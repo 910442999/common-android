@@ -119,26 +119,31 @@ object SysUtils {
         return height
     }
 
+    /**
+     * 根据屏幕方向判断是否是横屏
+     */
     @JvmStatic
-    fun isLandScreen(context: Context): Boolean {
-        val ori = context.resources.configuration.orientation //获取屏幕方向
+    fun isLandscapeScreen(context: Context): Boolean {
+        val ori = context.resources.configuration.orientation
         return ori == Configuration.ORIENTATION_LANDSCAPE
+    }
+
+    /**
+     * 根据屏幕宽高比判断是否是竖屏
+     */
+    @JvmStatic
+    fun isPortraitScreen(context: Context): Boolean {
+        return getPhoneWidthPixels(context) < getPhoneHeightPixels(context)
     }
 
     @JvmStatic
     fun getPhoneWidthPixels(context: Context): Int {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val var2 = DisplayMetrics()
-        wm.defaultDisplay?.getMetrics(var2)
-        return var2.widthPixels
+        return context.resources.displayMetrics.widthPixels
     }
 
     @JvmStatic
     fun getPhoneHeightPixels(context: Context): Int {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val var2 = DisplayMetrics()
-        wm?.defaultDisplay?.getMetrics(var2)
-        return var2.heightPixels
+        return context.resources.displayMetrics.heightPixels
     }
 
     /**
@@ -198,7 +203,7 @@ object SysUtils {
     }
 
     @JvmStatic
-    fun getScreenSize(context: Context): Point? {
+    fun getScreenSize(context: Context): Point {
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = wm.defaultDisplay
         val out = Point()

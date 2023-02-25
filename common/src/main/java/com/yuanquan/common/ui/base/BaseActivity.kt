@@ -100,7 +100,9 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         return className
     }
 
-    abstract fun onPageName(): String?
+    open fun onPageName(): String? {
+        return getActivityName()
+    }
 
     abstract fun initView()
 
