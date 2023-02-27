@@ -7,12 +7,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.viewbinding.ViewBinding
-import com.yuanquan.common.api.response.BaseResult
 import com.yuanquan.common.api.HttpUtil
 import com.yuanquan.common.api.error.ErrorResult
-import com.yuanquan.common.api.error.ErrorUtil
+import com.yuanquan.common.api.response.BaseResult
+import com.yuanquan.common.utils.LogUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -22,7 +23,7 @@ import kotlin.collections.set
 open class BaseViewModel<VB : ViewBinding> : ViewModel() {
 
     private val AUTH_SECRET = "123456"//前后台协议密钥
-    open val httpUtil by lazy {
+    open val baseHttpUtil by lazy {
         HttpUtil.getInstance().getService()
     }
     var isShowLoading = MutableLiveData<Boolean>()//是否显示loading
@@ -138,7 +139,13 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
                     showError(ErrorResult(result.code, message, isShowError))
                 }
             } catch (e: Exception) {//接口请求失败
-                val errorResult = ErrorUtil.getError(e)
+                val errorResult = ErrorResult()
+                if (e is HttpException) {
+                    errorResult.code = e.code()
+                }
+                LogUtil.e("请求异常>>$e")
+                errorResult.errMsg = e.message
+//                if (errorResult.errMsg.isNullOrEmpty()) errorResult.errMsg = "网络请求失败，请重试"
                 errorResult.show = isShowError
                 showError(errorResult)
             } finally {//请求结束

@@ -18,39 +18,13 @@ fun <T : View> T.withTrigger(delay: Long = 1000): T {
  * @param block: (T) -> Unit 函数
  * @return Unit
  */
-fun <T : View> T.click(block: (T) -> Unit) = setOnClickListener {
-    if (clickEnable()) {
+fun <T : View> T.onClick(block: (T) -> Unit) = setOnClickListener {
+    if (onClickEnable()) {
         block(it as T)
     } else {
 //        ToastUtils.show(MyApplication.getInstance().applicationContext.getString(R.string.click_toast))
     }
 }
-
-///***
-// * 点击事件的View扩展 如果未登录 跳转登录页
-// * @param block: (T) -> Unit 函数
-// * @return Unit
-// */
-//fun <T : View> T.clickForLogin(context: Context, block: (T) -> Unit) {
-//    clickForLogin(context, true, block)
-//}
-//
-///***
-// * 点击事件的View扩展 如果未登录 跳转登录页
-// * @param isEnable: 是否防抖动（连续点击） 默认 是
-// * @param block: (T) -> Unit 函数
-// * @return Unit
-// */
-//fun <T : View> T.clickForLogin(context: Context, isEnable: Boolean, block: (T) -> Unit) =
-//    setOnClickListener {
-//        if (!isEnable || clickEnable()) {
-//            if (App.instance.isLogined()) {
-//                block(it as T)
-//            } else {
-//                CommonUtils.startLoginActivity(context)
-//            }
-//        }
-//    }
 
 /***
  * 带延迟过滤的点击事件View扩展
@@ -61,7 +35,7 @@ fun <T : View> T.click(block: (T) -> Unit) = setOnClickListener {
 fun <T : View> T.clickWithTrigger(time: Long = 1000, block: (T) -> Unit) {
     triggerDelay = time
     setOnClickListener {
-        if (clickEnable()) {
+        if (onClickEnable()) {
             block(it as T)
         }
     }
@@ -79,7 +53,7 @@ private var <T : View> T.triggerDelay: Long
         setTag(1123461123, value)
     }
 
-private fun <T : View> T.clickEnable(): Boolean {
+private fun <T : View> T.onClickEnable(): Boolean {
     var flag = false
     val currentClickTime = System.currentTimeMillis()
     if (currentClickTime - triggerLastTime >= 200) {
@@ -92,19 +66,19 @@ private fun <T : View> T.clickEnable(): Boolean {
 /**
  * 连续点击 n 次 触发点击事件
  */
-fun <T : View> T.clickDisplay(block: (T) -> Unit) = setOnClickListener {
-    clickDisplay(5, block)
+fun <T : View> T.onClickDisplay(block: (T) -> Unit) = setOnClickListener {
+    onClickDisplay(5, block)
 }
 
-fun <T : View> T.clickDisplay(size: Int = 5, block: (T) -> Unit) = setOnClickListener {
-    if (clickDisplayEnable(size)) {
+fun <T : View> T.onClickDisplay(size: Int = 5, block: (T) -> Unit) = setOnClickListener {
+    if (onClickDisplayEnable(size)) {
         block(it as T)
     }
 }
 
 // 需要点击几次 就设置几
 var mHits: LongArray? = null
-fun clickDisplayEnable(size: Int): Boolean {
+fun onClickDisplayEnable(size: Int): Boolean {
     var flag = false
     if (mHits == null) {
         mHits = LongArray(size)

@@ -1,6 +1,6 @@
 package com.yuanquan.common.event
 
-class EventMessage @JvmOverloads constructor(
-    var code: Int,
-    var obj: Any? = null
+open class EventMessage @JvmOverloads constructor(
+    open var code: Int,
+    open var obj: Any? = null
 )

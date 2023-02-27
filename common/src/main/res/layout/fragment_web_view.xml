@@ -16,13 +16,16 @@
         <FrameLayout
             android:id="@+id/fl_web_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"></FrameLayout>
+            android:layout_height="match_parent" />
 
         <ImageView
             android:id="@+id/iv_web_loading"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true" />
+            android:layout_centerVertical="true"
+            android:visibility="gone"
+            tools:src="@mipmap/ic_launcher"
+            tools:visibility="visible" />
     </RelativeLayout>
 </LinearLayout>

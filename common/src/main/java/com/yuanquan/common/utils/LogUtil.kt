@@ -4,8 +4,8 @@ import android.util.Log
 import com.yuanquan.common.BuildConfig
 
 object LogUtil {
-    private const val TAG = "OOOK-LOG"
-    const val TAG_NET = "OOOK-NET"
+    private const val TAG = "LogUtil-LOG"
+    const val TAG_NET = "LogUtil-NET"
 
     @JvmStatic
     fun i(message: Any?) {

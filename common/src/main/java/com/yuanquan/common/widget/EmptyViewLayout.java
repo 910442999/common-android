@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 
-import com.yuanquan.common.LanguageUtils;
 import com.yuanquan.common.R;
 
 public class EmptyViewLayout extends LinearLayout {
@@ -39,6 +38,6 @@ public class EmptyViewLayout extends LinearLayout {
             iv_empty_image.setImageResource(resId);
         }
         TextView tv_empty_txt = view.findViewById(R.id.tv_empty_txt);
-        tv_empty_txt.setText(LanguageUtils.optString(data));
+        tv_empty_txt.setText(data);
     }
 }

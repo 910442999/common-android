@@ -1,16 +1,13 @@
 package com.yuanquan.common.utils;
 
 import android.app.Application;
-import android.content.Context;
 
+import com.cretin.www.cretinautoupdatelibrary.interfaces.AppUpdateInfoListener;
 import com.cretin.www.cretinautoupdatelibrary.model.DownloadInfo;
 import com.cretin.www.cretinautoupdatelibrary.model.TypeConfig;
 import com.cretin.www.cretinautoupdatelibrary.model.UpdateConfig;
 import com.cretin.www.cretinautoupdatelibrary.utils.SSLUtils;
-import com.yuanquan.common.App;
 import com.yuanquan.common.BuildConfig;
-import com.yuanquan.common.LanguageUtils;
-import com.yuanquan.common.ui.common.UpdateActivity;
 
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +19,7 @@ public class AppUpdateUtils {
      *
      * @param context
      */
-    public static void init(Application context) {
+    public static void init(Application context, Class customActivityClass) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.connectTimeout(30_000, TimeUnit.SECONDS).readTimeout(30_000, TimeUnit.SECONDS).writeTimeout(30_000, TimeUnit.SECONDS)
                 //如果你需要信任所有的证书，可解决根证书不被信任导致无法下载的问题 start
@@ -33,20 +30,17 @@ public class AppUpdateUtils {
         UpdateConfig updateConfig = new UpdateConfig().setDebug(BuildConfig.DEBUG)
                 .setDataSourceType(TypeConfig.DATA_SOURCE_TYPE_MODEL)
                 .setUiThemeType(TypeConfig.UI_THEME_CUSTOM)
-                .setCustomActivityClass(UpdateActivity.class)
+                .setCustomActivityClass(customActivityClass)
                 .setShowNotification(false)//配置更新的过程中是否在通知栏显示进度
                 .setCustomDownloadConnectionCreator(new OkHttp3Connection.Creator(builder));
         com.cretin.www.cretinautoupdatelibrary.utils.AppUpdateUtils.init(context, updateConfig);
     }
 
-    public static void checkUpdate(String apkUrl, int prodVersionCode, String prodVersionName, int forceUpdateFlag, String updateLog) {
+    public static void checkUpdate(String apkUrl, int prodVersionCode, String prodVersionName, int forceUpdateFlag, String updateLog, AppUpdateInfoListener appUpdateInfoListener) {
         DownloadInfo info = new DownloadInfo().setApkUrl(apkUrl).setProdVersionCode(prodVersionCode).setProdVersionName(prodVersionName).setForceUpdateFlag(forceUpdateFlag).setUpdateLog(updateLog);
-        com.cretin.www.cretinautoupdatelibrary.utils.AppUpdateUtils.getInstance().addAppUpdateInfoListener(
-                isLatest -> {
-                    if (isLatest) ToastUtils.show(App.instance,LanguageUtils.optString("当前版本已是最新"));
-                }
-        ).checkUpdate(info);
+        com.cretin.www.cretinautoupdatelibrary.utils.AppUpdateUtils.getInstance().addAppUpdateInfoListener(appUpdateInfoListener).checkUpdate(info);
     }
+
     //清除缓存数据
     public static void clearAllData() {
         com.cretin.www.cretinautoupdatelibrary.utils.AppUpdateUtils.getInstance().clearAllData();

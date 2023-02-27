@@ -1,6 +1,7 @@
 package com.yuanquan.common.api.retrofit
 
 import com.yuanquan.common.BuildConfig
+import com.yuanquan.common.api.URLConstant
 import com.yuanquan.common.api.gson.GsonConverterFactory
 import com.yuanquan.common.api.interceptor.LoggingInterceptor
 import okhttp3.Interceptor
@@ -30,11 +31,7 @@ class RetrofitClient {
 
     // 日志拦截器
     private val mLoggingInterceptor: Interceptor by lazy {
-        var loggingInterceptor = LoggingInterceptor()
-        var filterParamList = arrayListOf<String>()
-        filterParamList.add("minio.ambow.com")
-        loggingInterceptor.filterParamList = filterParamList
-        loggingInterceptor
+        LoggingInterceptor()
     }
 
     // OkHttpClient客户端

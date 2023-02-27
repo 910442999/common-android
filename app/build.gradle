@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.yuanquan.common"
-        minSdk 24
+        minSdk 21
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -42,32 +42,4 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     implementation project(':common')
-    //网络请求框架
-    implementation "com.squareup.retrofit2:retrofit:2.8.1"
-    implementation "com.squareup.retrofit2:converter-gson:2.8.1"
-    //glide图片加载框架
-    implementation "com.github.bumptech.glide:glide:4.11.0"
-    implementation "com.github.bumptech.glide:okhttp3-integration:4.11.0"
-    //刷新框架
-    implementation 'io.github.scwang90:refresh-layout-kernel:2.0.5'      //核心必须依赖
-    implementation 'io.github.scwang90:refresh-header-classics:2.0.5'    //经典刷新头
-    implementation 'io.github.scwang90:refresh-footer-classics:2.0.5'    //经典加载
-    //EventBus
-    implementation 'org.greenrobot:eventbus:3.2.0'
-    implementation "io.github.cymchad:BaseRecyclerViewAdapterHelper:4.0.0-beta04"
-    //图片选择框架
-    implementation 'io.github.lucksiege:pictureselector:v3.10.7'
-    implementation 'com.github.MZCretin:AutoUpdateProject:2.0.5'
-    implementation 'com.github.tbruyelle:rxpermissions:0.12'
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.5'
-    implementation 'com.contrarywind:Android-PickerView:4.1.9'
-    implementation 'com.github.jenly1314:zxing-lite:2.2.1'
-    //圆片带背景或文字
-    implementation 'com.github.mysiga:CircleTextView:V1.1'
-    //背景阴影
-    implementation 'com.github.lihangleo2:ShadowLayout:3.3.2'
-    implementation 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
-
 }

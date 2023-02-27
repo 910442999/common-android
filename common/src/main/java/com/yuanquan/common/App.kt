@@ -18,7 +18,6 @@ open class App : Application() {
         super.onCreate()
         instance = this
         CrashHandler.getInstance().init(applicationContext)
-        AppUpdateUtils.init(this)
         registerActivityLifecycleCallbacks()
     }
 

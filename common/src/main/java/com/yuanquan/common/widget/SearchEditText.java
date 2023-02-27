@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.yuanquan.common.LanguageUtils;
 import com.yuanquan.common.R;
 import com.yuanquan.common.interfaces.ICallBack;
 import com.yuanquan.common.utils.KeyBoardUtils;
@@ -129,7 +128,6 @@ public class SearchEditText extends LinearLayout {
         // 2. 绑定搜索框EditText
         et_search = (EditText) findViewById(R.id.et_search);
         tv_search = (TextView) findViewById(R.id.tv_search);
-        tv_search.setText(LanguageUtils.optString("取消"));
     }
 
     public void clean() {
@@ -155,6 +153,10 @@ public class SearchEditText extends LinearLayout {
 
     public void setSearchButtonVisibility(int visibility) {
         tv_search.setVisibility(visibility);
+    }
+
+    public void setSearchText(String text) {
+        tv_search.setText(text);
     }
 
     /**
