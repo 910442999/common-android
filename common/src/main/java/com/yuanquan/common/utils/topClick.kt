@@ -26,6 +26,12 @@ fun <T : View> T.onClick(block: (T) -> Unit) = setOnClickListener {
     }
 }
 
+private var <T : View> T.triggerDelay: Long
+    get() = if (getTag(1123461123) != null) getTag(1123461123) as Long else -1
+    set(value) {
+        setTag(1123461123, value)
+    }
+
 /***
  * 带延迟过滤的点击事件View扩展
  * @param delay Long 延迟时间，默认2000毫秒
@@ -47,13 +53,7 @@ private var <T : View> T.triggerLastTime: Long
         setTag(1123460103, value)
     }
 
-private var <T : View> T.triggerDelay: Long
-    get() = if (getTag(1123461123) != null) getTag(1123461123) as Long else -1
-    set(value) {
-        setTag(1123461123, value)
-    }
-
-private fun <T : View> T.onClickEnable(): Boolean {
+fun <T : View> T.onClickEnable(): Boolean {
     var flag = false
     val currentClickTime = System.currentTimeMillis()
     if (currentClickTime - triggerLastTime >= 200) {

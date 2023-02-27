@@ -1,12 +1,12 @@
 package com.yuanquan.common.api.retrofit
 
 import com.yuanquan.common.BuildConfig
-import com.yuanquan.common.api.URLConstant
-import com.yuanquan.common.api.gson.GsonConverterFactory
 import com.yuanquan.common.api.interceptor.LoggingInterceptor
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import retrofit2.Converter
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
@@ -38,20 +38,22 @@ class RetrofitClient {
     private val mClient: OkHttpClient by lazy { getOkHttpClientBuilder().build() }
 
     /**
-     * 创建API Service接口实例
+     * 创建API Service接口实例(全部默认)
      */
     fun <T> create(baseUrl: String, clazz: Class<T>): T =
-        Retrofit.Builder().baseUrl(baseUrl).client(mClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(clazz)
+        create(baseUrl, mClient, GsonConverterFactory.create(), clazz)
 
     /**
-     * 创建API Service接口实例
+     * 创建API Service接口实例（全部使用自定义）
      */
-    fun <T> create(baseUrl: String, client: OkHttpClient, clazz: Class<T>): T =
+    fun <T> create(
+        baseUrl: String,
+        client: OkHttpClient,
+        factory: Converter.Factory,
+        clazz: Class<T>
+    ): T =
         Retrofit.Builder().baseUrl(baseUrl).client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(factory)
             .build()
             .create(clazz)
 
