@@ -6,7 +6,6 @@ import android.graphics.Paint;
 
 import com.haibin.calendarview.Calendar;
 import com.haibin.calendarview.MonthView;
-import com.yuanquan.common.LanguageUtils;
 import com.yuanquan.common.utils.SysUtils;
 
 /**
@@ -26,6 +25,7 @@ public class SimpleMonthView extends MonthView {
      */
     private float mPointRadius;
     private int mH, mW;
+    private String currentDay = "今";
 
     public SimpleMonthView(Context context) {
         super(context);
@@ -70,7 +70,7 @@ public class SimpleMonthView extends MonthView {
             canvas.drawCircle(cx, cy, mRadius, mSelectedPaint);
         }
 
-        canvas.drawText(calendar.isCurrentDay() ? LanguageUtils.optString("今") : String.valueOf(calendar.getDay()),
+        canvas.drawText(calendar.isCurrentDay() ? this.currentDay : String.valueOf(calendar.getDay()),
                 cx,
                 baselineY,
                 calendar.isCurrentDay() || isSelected ? mSelectTextPaint :
@@ -79,5 +79,9 @@ public class SimpleMonthView extends MonthView {
         if (hasScheme) {
             canvas.drawCircle(cx, y + mItemHeight - mH, mPointRadius, mSelectedPaint);
         }
+    }
+
+    protected void setCurrentDay(String currentDay) {
+        this.currentDay = currentDay;
     }
 }

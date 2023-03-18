@@ -96,16 +96,16 @@ public class CircleTextImageView extends AppCompatImageView {
     public CircleTextImageView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.CircleTextView, defStyle, 0);
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.CircleTextImageView, defStyle, 0);
 
-        mBorderWidth = typedArray.getDimensionPixelSize(R.styleable.CircleTextView_borderWidth, DEFAULT_BORDER_WIDTH);
-        mBorderColor = typedArray.getColor(R.styleable.CircleTextView_borderColor, DEFAULT_BORDER_COLOR);
-        mBorderOverlay = typedArray.getBoolean(R.styleable.CircleTextView_borderOverlay, DEFAULT_BORDER_OVERLAY);
-        mTextString = typedArray.getString(R.styleable.CircleTextView_android_text);
-        mTextColor = typedArray.getColor(R.styleable.CircleTextView_android_textColor, DEFAULT_TEXT_COLOR);
-        mTextSize = typedArray.getDimensionPixelSize(R.styleable.CircleTextView_android_textSize, DEFAULT_TEXT_SIZE);
-        mTextPadding = typedArray.getDimensionPixelSize(R.styleable.CircleTextView_textPadding, DEFAULT_TEXT_PADDING);
-        mCircleBackgroundColor = typedArray.getColor(R.styleable.CircleTextView_backgroundColor,
+        mBorderWidth = typedArray.getDimensionPixelSize(R.styleable.CircleTextImageView_borderWidth, DEFAULT_BORDER_WIDTH);
+        mBorderColor = typedArray.getColor(R.styleable.CircleTextImageView_borderColor, DEFAULT_BORDER_COLOR);
+        mBorderOverlay = typedArray.getBoolean(R.styleable.CircleTextImageView_borderOverlay, DEFAULT_BORDER_OVERLAY);
+        mTextString = typedArray.getString(R.styleable.CircleTextImageView_android_text);
+        mTextColor = typedArray.getColor(R.styleable.CircleTextImageView_android_textColor, DEFAULT_TEXT_COLOR);
+        mTextSize = typedArray.getDimensionPixelSize(R.styleable.CircleTextImageView_android_textSize, DEFAULT_TEXT_SIZE);
+        mTextPadding = typedArray.getDimensionPixelSize(R.styleable.CircleTextImageView_textPadding, DEFAULT_TEXT_PADDING);
+        mCircleBackgroundColor = typedArray.getColor(R.styleable.CircleTextImageView_backgroundColor,
                 DEFAULT_CIRCLE_BACKGROUND_COLOR);
         typedArray.recycle();
 

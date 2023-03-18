@@ -10,8 +10,6 @@ import java.io.IOException
 
 
 class LoggingInterceptor : Interceptor {
-    var filterParamList: List<String>? = null
-
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
@@ -39,26 +37,17 @@ class LoggingInterceptor : Interceptor {
             )
         )
         if (request.method() == "POST" || request.method() == "PUT") {
-            var filter = false
-            if (filterParamList != null) {
-                for (i in filterParamList!!.indices) {
-                    if (api.contains(filterParamList!![i])) {
-                        filter = true
-                    }
-                }
-            }
-            if (!filter)
-                builder.append(
-                    String.format("%s%n",
-                        run {
-                            var msg = bodyToString(request.body())
-                            if (msg != null) {
-                                msg = msg.replace("%(?![0-9a-fA-F]{2})".toRegex(), "%25")
-                                msg = msg.replace("\\+".toRegex(), "%2B");
-                            }
-                            "请求参数>>> $msg"
-                        })
-                )
+            builder.append(
+                String.format("%s%n",
+                    run {
+                        var msg = bodyToString(request.body())
+                        if (msg != null) {
+                            msg = msg.replace("%(?![0-9a-fA-F]{2})".toRegex(), "%25")
+                            msg = msg.replace("\\+".toRegex(), "%2B");
+                        }
+                        "请求参数>>> $msg"
+                    })
+            )
         }
 
         val response = chain.proceed(request)

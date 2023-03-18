@@ -1,6 +1,6 @@
 package com.yuanquan.common.api.error
 
-class ErrorResult @JvmOverloads constructor(
+open class ErrorResult @JvmOverloads constructor(
     var code: Int = 0,
     var errMsg: String? = "",
     var show: Boolean = false,

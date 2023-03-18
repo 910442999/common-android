@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import com.yuanquan.common.utils.click
+import com.yuanquan.common.utils.onClick
 import java.lang.reflect.ParameterizedType
 
 /**
@@ -31,7 +31,7 @@ abstract class BaseAdapter<VB : ViewBinding, T>(
     }
 
     override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
-        holder.itemView.click {
+        holder.itemView.onClick {
             itemClick?.let { it(position) }
         }
         holder.itemView.setOnLongClickListener {

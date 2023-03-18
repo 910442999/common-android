@@ -7,7 +7,6 @@ import android.widget.TextView;
 
 import com.haibin.calendarview.Calendar;
 import com.haibin.calendarview.WeekBar;
-import com.yuanquan.common.LanguageUtils;
 import com.yuanquan.common.R;
 
 /**
@@ -18,8 +17,7 @@ import com.yuanquan.common.R;
 public class CustomWeekBar extends WeekBar {
 
     private int mPreSelectedIndex;
-    private static final String[] weeks = {LanguageUtils.optString("日"), LanguageUtils.optString("一"), LanguageUtils.optString("二"),
-            LanguageUtils.optString("三"), LanguageUtils.optString("四"), LanguageUtils.optString("五"), LanguageUtils.optString("六")};
+    private static String[] weeks = {"日", "一", "二", "三", "四", "五", "六"};
 
     public CustomWeekBar(Context context) {
         super(context);
@@ -45,6 +43,13 @@ public class CustomWeekBar extends WeekBar {
         for (int i = 0; i < getChildCount(); i++) {
             ((TextView) getChildAt(i)).setText(getWeekString(i, weekStart));
         }
+    }
+
+    /**
+     * 设置周文本，这个方法仅供父类使用
+     */
+    protected void setWeeks(String[] weeks) {
+        this.weeks = weeks;
     }
 
     /**

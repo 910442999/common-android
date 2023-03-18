@@ -34,6 +34,7 @@ object StatusBarUtil {
      *
      * @param colorId 颜色
      */
+    @JvmStatic
     fun setStatusBarColor(activity: Activity, colorId: Int) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -52,6 +53,7 @@ object StatusBarUtil {
      * 设置状态栏透明
      */
     @TargetApi(19)
+    @JvmStatic
     fun setTranslucentStatus(activity: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             //5.x开始需要把颜色设置透明，否则导航栏会呈现系统默认的浅灰色
@@ -81,6 +83,7 @@ object StatusBarUtil {
      *
      * @param activity
      */
+    @JvmStatic
     fun setRootViewFitsSystemWindows(activity: Activity, fitSystemWindows: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             val winContent = activity.findViewById<View>(android.R.id.content) as ViewGroup
@@ -96,6 +99,7 @@ object StatusBarUtil {
     /**
      * 设置状态栏深色浅色切换
      */
+    @JvmStatic
     fun setStatusBarDarkTheme(activity: Activity, dark: Boolean): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -203,6 +207,7 @@ object StatusBarUtil {
     }
 
     //获取状态栏高度
+    @JvmStatic
     fun getStatusBarHeight(context: Context): Int {
         var result = 0
         val resourceId = context.resources.getIdentifier(

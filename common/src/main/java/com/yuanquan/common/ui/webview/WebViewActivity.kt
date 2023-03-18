@@ -1,4 +1,4 @@
-package com.yuanquan.common.ui.common
+package com.yuanquan.common.ui.webview
 
 import android.content.Intent
 import android.content.pm.ActivityInfo

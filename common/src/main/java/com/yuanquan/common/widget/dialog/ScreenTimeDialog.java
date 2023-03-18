@@ -8,7 +8,6 @@ import com.bigkoo.pickerview.builder.TimePickerBuilder;
 import com.bigkoo.pickerview.listener.OnTimeSelectListener;
 import com.bigkoo.pickerview.view.TimePickerView;
 import com.contrarywind.view.WheelView;
-import com.yuanquan.common.LanguageUtils;
 import com.yuanquan.common.R;
 
 import java.text.SimpleDateFormat;
@@ -21,7 +20,7 @@ import java.util.Date;
 public class ScreenTimeDialog {
     TimePickerView pickerView;
 
-    public ScreenTimeDialog(Context context, String title) {
+    public ScreenTimeDialog(Context context, String title,String finishText) {
         Calendar selectedDate = Calendar.getInstance();//系统当前时间
         Calendar startDate = Calendar.getInstance();
         startDate.set(1930, 1, 1);
@@ -37,7 +36,7 @@ public class ScreenTimeDialog {
                     TextView tv_title = v.findViewById(R.id.tv_title);
                     tv_title.setText(title);
                     TextView tv_finish = v.findViewById(R.id.tv_finish);
-                    tv_finish.setText(LanguageUtils.optString("提交"));
+                    tv_finish.setText(finishText);
                     tv_finish.setOnClickListener(v1 -> {
                         pickerView.returnData(); //pickerView调用返回值
                         pickerView.dismiss();

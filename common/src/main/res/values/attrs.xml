@@ -22,7 +22,7 @@
             <enum name="RIGHT" value="1" />
         </attr>
     </declare-styleable>
-    <declare-styleable name="CircleTextView">
+    <declare-styleable name="CircleTextImageView">
         <attr name="borderWidth" format="dimension" />
         <attr name="borderColor" format="color" />
         <attr name="borderOverlay" format="boolean" />

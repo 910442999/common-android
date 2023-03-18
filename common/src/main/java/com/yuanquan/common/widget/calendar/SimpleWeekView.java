@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 
 import com.haibin.calendarview.Calendar;
 import com.haibin.calendarview.WeekView;
-import com.yuanquan.common.LanguageUtils;
 import com.yuanquan.common.utils.SysUtils;
 
 /**
@@ -20,6 +19,7 @@ public class SimpleWeekView extends WeekView {
      */
     private float mPointRadius;
     private int mH, mW;
+    private String currentDay = "今";
 
     public SimpleWeekView(Context context) {
         super(context);
@@ -54,7 +54,7 @@ public class SimpleWeekView extends WeekView {
         if (calendar.isCurrentDay() && !isSelected) {
             canvas.drawCircle(cx, cy, mRadius, mSelectedPaint);
         }
-        canvas.drawText(calendar.isCurrentDay() ? LanguageUtils.optString("今") : String.valueOf(calendar.getDay()),
+        canvas.drawText(calendar.isCurrentDay() ? this.currentDay : String.valueOf(calendar.getDay()),
                 cx,
                 baselineY,
                 calendar.isCurrentDay() || isSelected ? mSelectTextPaint :
@@ -62,5 +62,9 @@ public class SimpleWeekView extends WeekView {
         if (hasScheme) {
             canvas.drawCircle(cx, mItemHeight - mH, mPointRadius, mSelectedPaint);
         }
+    }
+
+    protected void setCurrentDay(String currentDay) {
+        this.currentDay = currentDay;
     }
 }
