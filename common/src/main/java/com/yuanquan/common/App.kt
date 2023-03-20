@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import android.util.Log
-import com.yuanquan.common.utils.AppUpdateUtils
 import com.yuanquan.common.utils.CrashHandler
 
 open class App : Application() {
