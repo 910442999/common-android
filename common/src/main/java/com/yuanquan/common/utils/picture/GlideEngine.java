@@ -1,4 +1,4 @@
-package com.yuanquan.common.widget;
+package com.yuanquan.common.utils.picture;
 
 import android.content.Context;
 import android.widget.ImageView;

@@ -53,6 +53,7 @@ dependencies {
     api "io.github.cymchad:BaseRecyclerViewAdapterHelper:4.0.0-beta04"
     //图片选择框架
     api 'io.github.lucksiege:pictureselector:v3.10.7'
+    api 'io.github.lucksiege:ucrop:v3.10.7'
     api 'com.github.MZCretin:AutoUpdateProject:2.0.5'
     api 'com.github.tbruyelle:rxpermissions:0.12'
     api 'io.reactivex.rxjava3:rxandroid:3.0.2'

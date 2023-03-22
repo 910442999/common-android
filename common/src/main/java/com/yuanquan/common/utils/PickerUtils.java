@@ -13,9 +13,9 @@ import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.config.SelectMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.luck.picture.lib.interfaces.OnResultCallbackListener;
-import com.yuanquan.common.widget.GlideEngine;
+import com.yuanquan.common.utils.picture.ImageFileCropEngine;
+import com.yuanquan.common.utils.picture.GlideEngine;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -77,6 +77,8 @@ public class PickerUtils {
                 .setImageEngine(GlideEngine.createGlideEngine())
                 .setMaxSelectNum(1)// 最大图片选择数量
                 .setMinSelectNum(1)// 最小选择数量
+                .isDirectReturnSingle(true)
+                .setCropEngine(new ImageFileCropEngine())
                 .forResult(listener);
     }
 }

@@ -10,6 +10,7 @@ import com.bigkoo.pickerview.view.TimePickerView;
 import com.contrarywind.view.WheelView;
 import com.yuanquan.common.R;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -20,10 +21,18 @@ import java.util.Date;
 public class ScreenTimeDialog {
     TimePickerView pickerView;
 
-    public ScreenTimeDialog(Context context, String title,String finishText) {
+    public ScreenTimeDialog(Context context, String selecteDate, String title, String finishText) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar selectedDate = Calendar.getInstance();//系统当前时间
+        if (selecteDate != null) {
+            // 指定一个日期
+            Date date = dateFormat.parse(selecteDate);
+            // 对 calendar 设置为 date 所定的日期
+            selectedDate.setTime(date);
+        }
+
         Calendar startDate = Calendar.getInstance();
-        startDate.set(1930, 1, 1);
+        startDate.set(1952, 0, 1);
         pickerView = new TimePickerBuilder(context, new OnTimeSelectListener() {
             @Override
             public void onTimeSelect(Date date, View v) {
@@ -43,7 +52,7 @@ public class ScreenTimeDialog {
                     });
                 })
                 .setDate(selectedDate)
-                .setRangDate(startDate, selectedDate)
+                .setRangDate(startDate, Calendar.getInstance())
                 .setContentTextSize(15)
                 .setLineSpacingMultiplier(2.0f)
                 .setDividerColor(context.getResources().getColor(R.color.bg_AAAAAA))
