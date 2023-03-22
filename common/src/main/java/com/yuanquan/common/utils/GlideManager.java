@@ -175,13 +175,14 @@ public class GlideManager {
         if (headerImageUrl == null || headerImageUrl.isEmpty()) {
             if (colourCode != null && !colourCode.isEmpty() && subNickName != null && !subNickName.isEmpty()) {
                 pvHeader.setCircleBackgroundColor(Color.parseColor(colourCode));
-                pvHeader.setTextColor(ContextCompat.getColor(context,R.color.white));
+                pvHeader.setTextColor(ContextCompat.getColor(context, R.color.white));
                 pvHeader.setTextSize(SysUtils.dp2Px(context, textSize));
                 pvHeader.setText(subNickName);
             } else {
                 Glide.with(context).load(resourceId).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new CircleCrop())).into(pvHeader);
             }
         } else {
+            pvHeader.setText("");
             headerImage(context, headerImageUrl, pvHeader, resourceId);
         }
     }
