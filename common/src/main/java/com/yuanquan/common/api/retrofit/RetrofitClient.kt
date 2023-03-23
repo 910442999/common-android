@@ -4,8 +4,10 @@ import com.yuanquan.common.BuildConfig
 import com.yuanquan.common.api.interceptor.LoggingInterceptor
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import retrofit2.CallAdapter
 import retrofit2.Converter
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
@@ -54,6 +56,26 @@ class RetrofitClient {
     ): T =
         Retrofit.Builder().baseUrl(baseUrl).client(client)
             .addConverterFactory(factory)
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.createSynchronous())
+            .build()
+            .create(clazz)
+
+    /**
+     * 创建API Service接口实例（全部使用自定义）
+     * .addCallAdapterFactory(RxJava3CallAdapterFactory.createSynchronous())
+    // Or
+    // .addCallAdapterFactory(RxJava3CallAdapterFactory.createWithScheduler(Schedulers.io()))
+     */
+    fun <T> create(
+        baseUrl: String,
+        client: OkHttpClient,
+        factory: Converter.Factory,
+        adapterFactory: CallAdapter.Factory,
+        clazz: Class<T>
+    ): T =
+        Retrofit.Builder().baseUrl(baseUrl).client(client)
+            .addConverterFactory(factory)
+            .addCallAdapterFactory(adapterFactory)
             .build()
             .create(clazz)
 
