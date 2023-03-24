@@ -23,9 +23,7 @@ import kotlin.collections.set
 open class BaseViewModel<VB : ViewBinding> : ViewModel() {
 
     private val AUTH_SECRET = "123456"//前后台协议密钥
-    open val baseHttpUtil by lazy {
-        HttpUtil.getInstance().getService()
-    }
+
     var isShowLoading = MutableLiveData<Boolean>()//是否显示loading
     var errorData = MutableLiveData<ErrorResult>()//错误信息
     lateinit var vb: VB
