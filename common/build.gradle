@@ -60,7 +60,7 @@ dependencies {
     api 'io.reactivex.rxjava3:rxjava:3.1.5'
     api 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
     api 'com.contrarywind:Android-PickerView:4.1.9'
-    api 'com.github.jenly1314:zxing-lite:2.2.1'
+    api 'com.github.jenly1314:zxing-lite:2.3.1'
     //圆片带背景或文字
     api 'com.github.mysiga:CircleTextView:V1.1'
     //背景阴影
