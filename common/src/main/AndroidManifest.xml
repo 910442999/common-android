@@ -22,6 +22,6 @@
     <application>
         <activity
             android:name=".ui.webview.WebViewActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="behind" />
     </application>
 </manifest>
