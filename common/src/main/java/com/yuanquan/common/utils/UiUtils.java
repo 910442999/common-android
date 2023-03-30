@@ -1,10 +1,8 @@
 package com.yuanquan.common.utils;
 
-import static android.view.View.DRAWING_CACHE_QUALITY_HIGH;
-
-import android.graphics.Bitmap;
 import android.text.Html;
 import android.view.View;
+import android.view.ViewGroup;
 
 public class UiUtils {
     /**
@@ -12,5 +10,12 @@ public class UiUtils {
      */
     public static String setHtmlText(String text) {
         return Html.fromHtml(text).toString();
+    }
+
+    public static void setMargins(View v, int l, int t, int r, int b) {
+        if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            layoutParams.setMargins(l, t, r, b);
+        }
     }
 }

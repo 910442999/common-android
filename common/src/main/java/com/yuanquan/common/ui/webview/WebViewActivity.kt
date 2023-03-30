@@ -2,6 +2,7 @@ package com.yuanquan.common.ui.webview
 
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -43,7 +44,10 @@ class WebViewActivity :
         var shareContent = intent.getStringExtra("shareContent") ?: ""
         var cookies = intent.getStringArrayListExtra("cookies")
         var orientation =
-            intent.getIntExtra("orientation", ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+            intent.getIntExtra("orientation", ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+        if (orientation != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+            requestedOrientation = orientation
+        }
         if (showBar) {
             vb.layoutToolbar.vTitleBarLine.visibility = View.VISIBLE
         } else {
@@ -91,6 +95,10 @@ class WebViewActivity :
 //                    }
 //                }).show()
 //        }
+    }
+
+    fun isScreenOriatationPortrait(): Boolean {
+        return resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

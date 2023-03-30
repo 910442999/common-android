@@ -24,10 +24,19 @@ public class CommonUtils {
     }
 
     public static void killProcessApp(Context context, int position, Class clazz) {
-        //重启app,这一步一定要加上，如果不重启app，可能打开新的页面显示的语言会不正确
-        reStart(context, position, clazz);
-        killProcess(myPid());
-        System.exit(0);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //重启app,这一步一定要加上，如果不重启app，可能打开新的页面显示的语言会不正确
+                Intent intent = new Intent(context, clazz);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intent.putExtra("position", position);
+                context.startActivity(intent);
+                killProcess(myPid());
+                System.exit(0);
+            }
+        }, 600);
     }
 
     /**

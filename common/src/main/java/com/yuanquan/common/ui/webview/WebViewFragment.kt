@@ -1,19 +1,16 @@
 package com.yuanquan.common.ui.webview
 
-import android.content.Intent
-import android.content.pm.ActivityInfo
-import android.content.res.Configuration
-import android.graphics.Bitmap
 import android.net.Uri
-import android.net.http.SslError
-import android.text.TextUtils
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
-import android.webkit.*
+import android.webkit.DownloadListener
+import android.webkit.JavascriptInterface
+import android.webkit.ValueCallback
+import android.webkit.WebView
 import android.widget.FrameLayout
-import com.yuanquan.common.databinding.FragmentWebViewBinding
 import com.yuanquan.common.BuildConfig
+import com.yuanquan.common.databinding.FragmentWebViewBinding
 import com.yuanquan.common.ui.base.BaseFragment
 import com.yuanquan.common.ui.base.BaseViewModel
 import com.yuanquan.common.utils.SysUtils
@@ -32,7 +29,6 @@ class WebViewFragment :
 
     var isCreate = true
     var statusBarHeight: Int = 0
-    var orientation: Int? = null
 
     private var mWebView: WebView? = null
 
@@ -40,11 +36,6 @@ class WebViewFragment :
         if (arguments != null) {
             statusBarHeight = arguments?.getInt("statusBarHeight") ?: 0
             var cookies = arguments?.getStringArrayList("cookies")
-            orientation =
-                arguments?.getInt("orientation", ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-            if (orientation != null && orientation != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-                activity?.requestedOrientation = orientation!!
-            }
             url = arguments?.getString("url") ?: ""
             WebViewUtils.syncCookie(mContext, url, cookies)
             initWebView()
@@ -61,10 +52,6 @@ class WebViewFragment :
 
     private fun theScreenIsAlwaysOn(boolean: Boolean) {
         SysUtils.theScreenIsAlwaysOn(mContext, boolean)
-    }
-
-    fun isScreenOriatationPortrait(): Boolean {
-        return resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
     }
 
     private fun initWebView() {
