@@ -37,8 +37,9 @@ public class AssetsUtil {
             BufferedReader bufReader = new BufferedReader(inputReader);
             String line = "";
 
-            while ((line = bufReader.readLine()) != null)
+            while ((line = bufReader.readLine()) != null) {
                 result += line;
+            }
             return result;
         } catch (Exception e) {
             e.printStackTrace();

@@ -17,9 +17,7 @@ import androidx.appcompat.app.AppCompatDialogFragment
  */
 abstract class BaseDialogFragment : AppCompatDialogFragment() {
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         dialog?.apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)

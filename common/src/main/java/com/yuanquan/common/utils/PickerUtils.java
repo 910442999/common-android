@@ -71,7 +71,7 @@ public class PickerUtils {
         mPvTime.show();
     }
 
-    public static void pictureSelector(Context context, int language, OnResultCallbackListener<LocalMedia> listener) {
+    public static void pictureSelector(Context context, int language,int defaultLanguage, OnResultCallbackListener<LocalMedia> listener) {
         PictureSelector.create(context)
                 .openGallery(SelectMimeType.ofImage())
                 .setImageEngine(GlideEngine.createGlideEngine())
@@ -79,6 +79,7 @@ public class PickerUtils {
                 .setMinSelectNum(1)// 最小选择数量
                 .isDirectReturnSingle(true)
                 .setLanguage(language)
+                .setDefaultLanguage(defaultLanguage)
                 .setCropEngine(new ImageFileCropEngine())
                 .forResult(listener);
     }

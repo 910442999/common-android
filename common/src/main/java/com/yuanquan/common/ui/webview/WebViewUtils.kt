@@ -6,7 +6,6 @@ import android.webkit.CookieManager
 import android.webkit.CookieSyncManager
 import android.webkit.WebSettings
 import android.webkit.WebView
-import androidx.core.content.ContentProviderCompat.requireContext
 import com.yuanquan.common.utils.LogUtil
 
 object WebViewUtils {
@@ -21,13 +20,6 @@ object WebViewUtils {
         CookieSyncManager.createInstance(context)
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { //这个代码是清楚webview里的所有cookie加不加完全看你自己。
-//            cookieManager?.removeSessionCookies(null)
-//            cookieManager?.flush()
-//        } else {
-//            cookieManager?.removeAllCookie()
-//            CookieSyncManager.getInstance().sync()
-//        }
         if (cookieList != null && cookieList.size > 0) {
             for (cookie in cookieList) {
                 cookieManager.setCookie(url, cookie)
@@ -40,6 +32,19 @@ object WebViewUtils {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             cookieManager.flush()
         } else {
+            CookieSyncManager.getInstance().sync()
+        }
+    }
+
+    @JvmStatic
+    fun removeAllCookie(context: Context) {
+        CookieSyncManager.createInstance(context)
+        val cookieManager = CookieManager.getInstance()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { //这个代码是清楚webview里的所有cookie加不加完全看你自己。
+            cookieManager?.removeSessionCookies(null)
+            cookieManager?.flush()
+        } else {
+            cookieManager?.removeAllCookie()
             CookieSyncManager.getInstance().sync()
         }
     }
@@ -90,8 +95,9 @@ object WebViewUtils {
 
         webSetting?.mediaPlaybackRequiresUserGesture = false
     }
+
     @JvmStatic
-    fun loadDataWithBaseURL(url: String):String{
+    fun loadDataWithBaseURL(url: String): String {
         return """<html> 
                 <head> 
                 <style type="text/css"> 
