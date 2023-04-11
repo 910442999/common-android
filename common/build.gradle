@@ -41,15 +41,15 @@ dependencies {
     api 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
     api 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
     //网络请求框架
-    api "com.squareup.retrofit2:retrofit:2.8.1"
-    api "com.squareup.retrofit2:converter-gson:2.8.1"
+    api 'com.squareup.retrofit2:retrofit:2.9.0'
+    api 'com.squareup.retrofit2:converter-gson:2.9.0'
     //glide图片加载框架
-    api "com.github.bumptech.glide:okhttp3-integration:4.14.2"
-    api 'com.github.bumptech.glide:glide:4.14.2'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.14.2'
+    api 'com.github.bumptech.glide:okhttp3-integration:4.15.1'
+    api 'com.github.bumptech.glide:glide:4.15.1'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
 
     //EventBus
-    api 'org.greenrobot:eventbus:3.2.0'
+    api 'org.greenrobot:eventbus:3.3.1'
     api "io.github.cymchad:BaseRecyclerViewAdapterHelper:4.0.0-beta04"
     //图片选择框架
     api 'io.github.lucksiege:pictureselector:v3.10.7'
@@ -57,7 +57,7 @@ dependencies {
     api 'com.github.MZCretin:AutoUpdateProject:2.0.5'
     api 'com.github.tbruyelle:rxpermissions:0.12'
     api 'io.reactivex.rxjava3:rxandroid:3.0.2'
-    api 'io.reactivex.rxjava3:rxjava:3.1.5'
+    api 'io.reactivex.rxjava3:rxjava:3.1.6'
     api 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
     api 'com.contrarywind:Android-PickerView:4.1.9'
     api 'com.github.jenly1314:zxing-lite:2.3.1'
@@ -68,9 +68,9 @@ dependencies {
     api 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
     api "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     //微信支付
-    api 'com.tencent.mm.opensdk:wechat-sdk-android:+'
+    api 'com.tencent.mm.opensdk:wechat-sdk-android:6.8.24'
     //支付宝支付
-    api 'com.alipay.sdk:alipaysdk-android:+@aar'
+    api 'com.alipay.sdk:alipaysdk-android:15.8.12@aar'
     //日历
     api 'com.haibin:calendarview:3.7.1'
     //圆片带背景或文字
