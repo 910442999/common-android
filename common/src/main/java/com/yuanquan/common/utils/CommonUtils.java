@@ -137,7 +137,20 @@ public class CommonUtils {
         layoutParams.height = heightFloat;
         view.setLayoutParams(layoutParams);
     }
-
+    /**
+     * 是否是纯数字正则
+     *
+     * @param data
+     * @return
+     */
+    public static boolean isNumeric(String data) {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum = pattern.matcher(data);
+        if (!isNum.matches()) {
+            return false;
+        }
+        return true;
+    }
     public static boolean validatePassword(String password) {
         String x = "^(?![A-Z]*$)(?![a-z]*$)(?![0-9]*$)(?![^a-zA-Z0-9]*$)\\S+$";//4选2
         //        x = "^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\\W_]+$)(?![a-z0-9]+$)(?![a-z\\W_]+$)(?![0-9\\W_]+$)[a-zA-Z0-9\\W_]{8,16}$";//4选三
@@ -147,23 +160,11 @@ public class CommonUtils {
         return false;
     }
 
-    static String regEx =
-
-            "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]{1}|[\\w-]{2,}))@"
-
-                    + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
-
-                    + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\."
-
-                    + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
-
-                    + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])){1}|"
-
-                    + "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$";
+    static String regEx = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
 
     public static boolean validateEmail(String email) {
         Matcher matcherObj = Pattern.compile(regEx).matcher(email);
-        if (matcherObj.matches()) return true;
-        else return false;
+        return matcherObj.matches();
     }
+
 }

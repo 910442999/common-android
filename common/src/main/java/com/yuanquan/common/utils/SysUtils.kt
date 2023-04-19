@@ -9,7 +9,6 @@ import android.content.res.Configuration
 import android.graphics.Point
 import android.os.Build
 import android.os.Environment
-import android.util.DisplayMetrics
 import android.view.WindowManager
 import com.yuanquan.common.R
 import java.io.File
@@ -40,7 +39,7 @@ object SysUtils {
     }
 
     @JvmStatic
-    fun getAppVersion(context: Context): String? {
+    fun getAppVersion(context: Context): String {
         val manager: PackageManager = context.packageManager
         return try {
             val info: PackageInfo = manager.getPackageInfo(context.packageName, 0)

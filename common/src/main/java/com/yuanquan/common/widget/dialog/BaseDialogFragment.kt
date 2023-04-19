@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.fragment.app.FragmentManager
 
 /**
  *
@@ -52,5 +53,17 @@ abstract class BaseDialogFragment : AppCompatDialogFragment() {
 
     protected open fun isTouchClose(): Boolean {
         return true
+    }
+//    open fun isDialogShowing(): Boolean {
+//        return if (mDialog != null && mDialog!!.isShowing) {
+//            true
+//        } else {
+//            false
+//        }
+//    }
+    override fun show(manager: FragmentManager, tag: String?) {
+        val ft = manager.beginTransaction()
+        ft.add(this, tag)
+        ft.commitAllowingStateLoss()
     }
 }
