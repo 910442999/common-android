@@ -16,6 +16,7 @@ import com.yuanquan.common.api.error.ErrorResult
 import com.yuanquan.common.event.EventCode
 import com.yuanquan.common.event.EventMessage
 import com.yuanquan.common.utils.*
+import com.yuanquan.common.widget.dialog.LoadingDialog
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 
@@ -26,7 +27,7 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
     lateinit var vm: VM
     lateinit var vb: VB
 
-//    private var loadingDialog: LoadingDialog? = null
+    private var loadingDialog: LoadingDialog? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +52,7 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         mContext = this
         init()
         initView()
-//        loadingDialog = LoadingDialog(this)
+        loadingDialog = LoadingDialog(this)
         initClick()
         initData()
     }
@@ -73,7 +74,7 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         super.onDestroy()
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this)
         dismissLoading()
-//        loadingDialog == null
+        loadingDialog == null
     }
 
     //事件传递
@@ -123,31 +124,31 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         })
     }
 
-    fun showLoading() {
-//        if (loadingDialog != null && !loadingDialog!!.isShowing) {
-//            loadingDialog?.setCancelable(false)
-//            loadingDialog?.setCanceledOnTouchOutside(false)
-//            loadingDialog?.show()
-//        }
+    open fun showLoading() {
+        if (loadingDialog != null && !loadingDialog!!.isShowing) {
+            loadingDialog?.setCancelable(false)
+            loadingDialog?.setCanceledOnTouchOutside(false)
+            loadingDialog?.show()
+        }
     }
 
-    fun dismissLoading() {
-//        if (loadingDialog != null && loadingDialog!!.isShowing) {
-//            loadingDialog?.dismiss()
-//        }
+    open fun dismissLoading() {
+        if (loadingDialog != null && loadingDialog!!.isShowing) {
+            loadingDialog?.dismiss()
+        }
     }
 
     open fun showDialog(context: Context?, s: String?, onClickListener: View.OnClickListener) {
         if (!TextUtils.isEmpty(s)) {
-//            AlertDialogUtils.show(context, s, View.OnClickListener { view ->
-//                AlertDialogUtils.dismiss()
-//                onClickListener.onClick(view)
-//            })
+            AlertDialogUtils.show(context, s) { view ->
+                AlertDialogUtils.dismiss()
+                onClickListener.onClick(view)
+            }
         }
     }
 
     open fun dismissDialog() {
-//        AlertDialogUtils.dismiss()
+        AlertDialogUtils.dismiss()
     }
 
     open fun showToast(s: String?) {
