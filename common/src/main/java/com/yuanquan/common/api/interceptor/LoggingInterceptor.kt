@@ -59,27 +59,7 @@ class LoggingInterceptor : Interceptor {
                 "%s%n", "请求耗时>>> " + String.format("%.1f", (t2 - t1) / 1e6) + "ms"
             )
         )
-        if (result.length > 4000) {
-            val chunkCount = result.length / 4000 // integer division
-            for (i in 0..chunkCount) {
-                val max = 4000 * (i + 1)
-                if (max >= result.length) {
-                    builder.append(
-                        String.format(
-                            "%s%n%s%n%s%n", "请求结果>>> " + result.substring(4000 * i), " ", ""
-                        )
-                    )
-                } else {
-                    builder.append(
-                        String.format(
-                            "%s%n%s%n%s%n", "请求结果>>> " + result.substring(4000 * i, max), " ", ""
-                        )
-                    )
-                }
-            }
-        } else {
-            builder.append(String.format("%s%n%s%n%s%n", "请求结果>>> $result", " ", ""))
-        }
+        builder.append(String.format("%s%n%s%n%s%n", "请求结果>>> $result", " ", ""))
         LogUtil.i(LogUtil.TAG_NET, builder.toString())
         return response
     }

@@ -1,5 +1,6 @@
 package com.yuanquan.common.ui.webview
 
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.view.KeyEvent
@@ -8,6 +9,7 @@ import android.webkit.DownloadListener
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import com.yuanquan.common.BuildConfig
 import com.yuanquan.common.databinding.FragmentWebViewBinding
@@ -76,7 +78,19 @@ class WebViewFragment :
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT
             )
         )
-        mWebView?.webViewClient = object : MyWebViewClient() {
+        mWebView?.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, overrideUrl: String): Boolean {
+                try {
+                    if (overrideUrl.contains("tel://") || overrideUrl.contains("tel:")) {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(overrideUrl))
+                        view.context.startActivity(intent)
+                        return true
+                    }
+                } catch (e: Exception) {
+
+                }
+                return super.shouldOverrideUrlLoading(view, overrideUrl)
+            }
 
             override fun onPageFinished(p0: WebView?, p1: String?) {
                 super.onPageFinished(p0, p1)

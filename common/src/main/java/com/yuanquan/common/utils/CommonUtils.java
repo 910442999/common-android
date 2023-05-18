@@ -137,6 +137,7 @@ public class CommonUtils {
         layoutParams.height = heightFloat;
         view.setLayoutParams(layoutParams);
     }
+
     /**
      * 是否是纯数字正则
      *
@@ -144,13 +145,13 @@ public class CommonUtils {
      * @return
      */
     public static boolean isNumeric(String data) {
-        Pattern pattern = Pattern.compile("[0-9]*");
-        Matcher isNum = pattern.matcher(data);
-        if (!isNum.matches()) {
+        boolean matches = Pattern.matches("[0-9]*", data);
+        if (!matches) {
             return false;
         }
         return true;
     }
+
     public static boolean validatePassword(String password) {
         String x = "^(?![A-Z]*$)(?![a-z]*$)(?![0-9]*$)(?![^a-zA-Z0-9]*$)\\S+$";//4选2
         //        x = "^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\\W_]+$)(?![a-z0-9]+$)(?![a-z\\W_]+$)(?![0-9\\W_]+$)[a-zA-Z0-9\\W_]{8,16}$";//4选三

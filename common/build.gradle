@@ -8,7 +8,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        minSdk 21
+        minSdk 26
         targetSdk 33
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -52,9 +52,8 @@ dependencies {
     api 'org.greenrobot:eventbus:3.3.1'
     api "io.github.cymchad:BaseRecyclerViewAdapterHelper:4.0.0-beta04"
     //图片选择框架
-    api 'io.github.lucksiege:pictureselector:v3.10.7'
-    api 'io.github.lucksiege:ucrop:v3.10.7'
-    api 'com.github.tbruyelle:rxpermissions:0.12'
+//    api 'io.github.lucksiege:pictureselector:v3.11.1'
+//    api 'io.github.lucksiege:ucrop:v3.11.1'
     api 'io.reactivex.rxjava3:rxandroid:3.0.2'
     api 'io.reactivex.rxjava3:rxjava:3.1.6'
     api 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
