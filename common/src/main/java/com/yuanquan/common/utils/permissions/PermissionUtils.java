@@ -14,7 +14,6 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.Size;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.PermissionChecker;
 
 import com.yuanquan.common.utils.ActivityCompatHelper;
 
@@ -27,31 +26,13 @@ import java.util.List;
  * @describe：PermissionUtil
  */
 public class PermissionUtils {
-    private static final int REQUEST_CODE = 88888;
+    public static final int REQUEST_CODE = 88888;
 
-    private static PermissionUtils mInstance;
-
-    private PermissionUtils() {
-
-    }
-
-    public static PermissionUtils getInstance() {
-        if (mInstance == null) {
-            synchronized (PermissionChecker.class) {
-                if (mInstance == null) {
-                    mInstance = new PermissionUtils();
-                }
-            }
-        }
-        return mInstance;
-    }
-
-
-    public void requestPermissions(Activity activity, @Size(min = 1) @NonNull String[] permissions, PermissionResultCallback callback) {
+    public static void requestPermissions(Activity activity, @Size(min = 1) @NonNull String[] permissions, PermissionResultCallback callback) {
         requestPermissions(activity, permissions, REQUEST_CODE, callback);
     }
 
-    private void requestPermissions(Activity activity, @Size(min = 1) @NonNull String[] permissions, final int requestCode, PermissionResultCallback permissionResultCallback) {
+    public static void requestPermissions(Activity activity, @Size(min = 1) @NonNull String[] permissions, final int requestCode, PermissionResultCallback permissionResultCallback) {
         if (ActivityCompatHelper.isDestroy(activity)) {
             return;
         }
@@ -78,7 +59,7 @@ public class PermissionUtils {
         }
     }
 
-    public void onRequestPermissionsResult(int[] grantResults, PermissionResultCallback action) {
+    public static void onRequestPermissionsResult(int[] grantResults, PermissionResultCallback action) {
         if (PermissionUtils.isAllGranted(grantResults)) {
             action.onGranted();
         } else {
@@ -181,7 +162,6 @@ public class PermissionUtils {
         }
         return isAllGranted;
     }
-
 
     /**
      * 跳转到系统设置页面
