@@ -26,20 +26,20 @@ import java.util.List;
  * @date：2021/11/18 10:12 上午
  * @describe：PermissionUtil
  */
-public class PermissionUtil {
+public class PermissionUtils {
     private static final int REQUEST_CODE = 88888;
 
-    private static PermissionUtil mInstance;
+    private static PermissionUtils mInstance;
 
-    private PermissionUtil() {
+    private PermissionUtils() {
 
     }
 
-    public static PermissionUtil getInstance() {
+    public static PermissionUtils getInstance() {
         if (mInstance == null) {
             synchronized (PermissionChecker.class) {
                 if (mInstance == null) {
-                    mInstance = new PermissionUtil();
+                    mInstance = new PermissionUtils();
                 }
             }
         }
@@ -79,7 +79,7 @@ public class PermissionUtil {
     }
 
     public void onRequestPermissionsResult(int[] grantResults, PermissionResultCallback action) {
-        if (PermissionUtil.isAllGranted(grantResults)) {
+        if (PermissionUtils.isAllGranted(grantResults)) {
             action.onGranted();
         } else {
             action.onDenied();
