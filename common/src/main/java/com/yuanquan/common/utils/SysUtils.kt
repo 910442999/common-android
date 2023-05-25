@@ -13,6 +13,7 @@ import android.view.WindowManager
 import com.yuanquan.common.R
 import java.io.File
 
+
 object SysUtils {
     @JvmStatic
     fun dp2Px(context: Context, dp: Float): Int {
@@ -215,7 +216,4 @@ object SysUtils {
         }
         return out
     }
-
-
-
 }

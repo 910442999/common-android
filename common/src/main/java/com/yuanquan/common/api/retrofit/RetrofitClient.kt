@@ -1,8 +1,5 @@
 package com.yuanquan.common.api.retrofit
 
-import com.yuanquan.common.BuildConfig
-import com.yuanquan.common.api.interceptor.LoggingInterceptor
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.CallAdapter
 import retrofit2.Converter
@@ -30,11 +27,6 @@ class RetrofitClient {
 //        SetCookieCache(),
 //        SharedPrefsCookiePersistor(App.instance)
 //    )
-
-    // 日志拦截器
-    private val mLoggingInterceptor: Interceptor by lazy {
-        LoggingInterceptor()
-    }
 
     // OkHttpClient客户端
     private val mClient: OkHttpClient by lazy { getOkHttpClientBuilder().build() }
@@ -86,6 +78,5 @@ class RetrofitClient {
         connectTimeout(60, TimeUnit.SECONDS)// 连接时间：30s超时
         readTimeout(60, TimeUnit.SECONDS)// 读取时间：10s超时
         writeTimeout(60, TimeUnit.SECONDS)// 写入时间：10s超时
-        if (BuildConfig.DEBUG) addInterceptor(mLoggingInterceptor)// 仅debug模式启用日志过滤器
     }
 }

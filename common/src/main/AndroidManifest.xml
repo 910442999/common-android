@@ -23,7 +23,6 @@
         </intent>
     </queries>
     <!--    io.github.lucksiege:pictureselector:v3.10.7 选择相册   end-->
-
     <application>
         <activity
             android:name=".ui.webview.WebViewActivity"

@@ -11,7 +11,6 @@ import android.webkit.ValueCallback
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
-import com.yuanquan.common.BuildConfig
 import com.yuanquan.common.databinding.FragmentWebViewBinding
 import com.yuanquan.common.ui.base.BaseFragment
 import com.yuanquan.common.ui.base.BaseViewModel
@@ -42,9 +41,6 @@ class WebViewFragment :
             WebViewUtils.syncCookie(mContext, url, cookies)
             initWebView()
             loadWebViewUrl(false)
-            if (BuildConfig.DEBUG) {
-                Log.e("WebViewUrl: ", url)
-            }
         }
 
         mWebView?.setOnLongClickListener { true }
@@ -57,9 +53,9 @@ class WebViewFragment :
     }
 
     private fun initWebView() {
-        if (BuildConfig.DEBUG) { //如果是测试环境 就打开调试
-            WebView.setWebContentsDebuggingEnabled(true)
-        }
+//        if (BuildConfig.DEBUG) { //如果是测试环境 就打开调试
+//            WebView.setWebContentsDebuggingEnabled(true)
+//        }
 //        if ("save" == mType && Build.VERSION.SDK_INT >= 21) {
 //            //为了减少内存占用以提高性能，因此在默认情况下会智能的绘制html中需要绘制的部分，其实就是当前屏幕展示的html内容，因此会出现未显示的图像是空白的
 ////            android.webkit.WebView.enableSlowWholeDocumentDraw()
