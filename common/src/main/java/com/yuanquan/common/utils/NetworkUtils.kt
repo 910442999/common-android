@@ -17,8 +17,10 @@ import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSpecifier
 import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
+import android.os.PatternMatcher
 import android.provider.Settings
 import android.text.TextUtils
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import java.net.Inet4Address
@@ -79,12 +81,6 @@ object NetworkUtils {
         ssid: String,
         password: String
     ): Boolean {
-        val wifiConfig = WifiConfiguration()
-        wifiConfig.SSID = ssid
-        wifiConfig.preSharedKey = password
-//        wifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN)
-//        wifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA)
-//        wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK)
         val specifier = WifiNetworkSpecifier.Builder()
             .setSsid(ssid)
             .setWpa2Passphrase(password)
@@ -92,6 +88,7 @@ object NetworkUtils {
 
         val request = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .setNetworkSpecifier(specifier)
             .build()
 
@@ -102,22 +99,25 @@ object NetworkUtils {
             object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
+                    Log.e("TAG", "onAvailable: ")
                     // 返回连接结果
                     future.complete(true)
+//                    connectivityManager.unregisterNetworkCallback(this)
                 }
 
                 override fun onUnavailable() {
                     super.onUnavailable()
+                    Log.e("TAG", "onUnavailable: ")
                     // 返回连接结果
                     future.complete(false)
                     // 取消注册网络回调
-                    connectivityManager.unregisterNetworkCallback(this)
+//                    connectivityManager.unregisterNetworkCallback(this)
                 }
             }
 
         // 注册网络回调
         connectivityManager.requestNetwork(request, networkCallback)
-        return try {
+       var b=  try {
             // 等待连接结果
             future.get()
         } catch (e: InterruptedException) {
@@ -127,6 +127,10 @@ object NetworkUtils {
             e.printStackTrace()
             false
         }
+
+        // 取消注册网络回调
+        connectivityManager.unregisterNetworkCallback(networkCallback)
+        return b
     }
 
     /**
@@ -149,6 +153,7 @@ object NetworkUtils {
         if (networkId == -1) {
             return false
         }
+//        wifiManager.disconnect()
         // 启用 WiFi 配置
         if (!wifiManager.enableNetwork(networkId, true)) {
             return false
