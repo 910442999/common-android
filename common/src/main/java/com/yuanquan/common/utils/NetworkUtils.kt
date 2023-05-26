@@ -81,16 +81,7 @@ object NetworkUtils {
         ssid: String,
         password: String
     ): Boolean {
-        val specifier = WifiNetworkSpecifier.Builder()
-            .setSsid(ssid)
-            .setWpa2Passphrase(password)
-            .build()
-
-        val request = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .setNetworkSpecifier(specifier)
-            .build()
+        val request = getNetworkRequest(ssid, password)
 
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -117,7 +108,7 @@ object NetworkUtils {
 
         // 注册网络回调
         connectivityManager.requestNetwork(request, networkCallback)
-       var b=  try {
+        var b = try {
             // 等待连接结果
             future.get()
         } catch (e: InterruptedException) {
@@ -131,6 +122,23 @@ object NetworkUtils {
         // 取消注册网络回调
         connectivityManager.unregisterNetworkCallback(networkCallback)
         return b
+    }
+
+    private fun getNetworkRequest(
+        ssid: String,
+        password: String
+    ): NetworkRequest {
+        val specifier = WifiNetworkSpecifier.Builder()
+            .setSsid(ssid)
+            .setWpa2Passphrase(password)
+            .build()
+
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .setNetworkSpecifier(specifier)
+            .build()
+        return request
     }
 
     /**
