@@ -124,7 +124,7 @@ object NetworkUtils {
         return b
     }
 
-    private fun getNetworkRequest(
+    public fun getNetworkRequest(
         ssid: String,
         password: String
     ): NetworkRequest {
