@@ -144,7 +144,7 @@ object NetworkUtils {
     /**
      * Android 10 以下版本连接 WiFi
      */
-    private fun connectToWifiBelowApi29(
+    public fun connectToWifiBelowApi29(
         context: Context,
         ssid: String,
         password: String
