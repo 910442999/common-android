@@ -17,7 +17,6 @@ import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSpecifier
 import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
-import android.os.PatternMatcher
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
@@ -76,7 +75,7 @@ object NetworkUtils {
      * Android 10 及以上版本连接 WiFi
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private fun connectToWifiApi29(
+    fun connectToWifiApi29(
         context: Context,
         ssid: String,
         password: String
@@ -144,7 +143,7 @@ object NetworkUtils {
     /**
      * Android 10 以下版本连接 WiFi
      */
-    private fun connectToWifiBelowApi29(
+    fun connectToWifiBelowApi29(
         context: Context,
         ssid: String,
         password: String
