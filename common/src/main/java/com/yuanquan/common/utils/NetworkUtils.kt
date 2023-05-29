@@ -82,7 +82,6 @@ object NetworkUtils {
         password: String
     ): Boolean {
         val request = getNetworkRequest(ssid, password)
-
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val future = CompletableFuture<Boolean>()
@@ -124,7 +123,8 @@ object NetworkUtils {
         return b
     }
 
-    public fun getNetworkRequest(
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun getNetworkRequest(
         ssid: String,
         password: String
     ): NetworkRequest {
@@ -144,7 +144,7 @@ object NetworkUtils {
     /**
      * Android 10 以下版本连接 WiFi
      */
-    public fun connectToWifiBelowApi29(
+    private fun connectToWifiBelowApi29(
         context: Context,
         ssid: String,
         password: String
