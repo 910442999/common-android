@@ -448,6 +448,21 @@ object NetworkUtils {
     }
 
     /**
+     * 校验是否是ip地址
+     */
+    fun isValidIPAddress(ipAddress: String): Boolean {
+        val regex = Regex(
+            "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"
+        )
+
+        return ipAddress.matches(regex)
+    }
+
+
+    /**
      * 打开网络设置界面
      *
      * 在 Android Q 及以上版本中，需要在 AndroidManifest.xml 中添加以下权限：

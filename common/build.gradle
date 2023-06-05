@@ -67,9 +67,9 @@ dependencies {
     api 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
     api "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     //微信支付
-    api 'com.tencent.mm.opensdk:wechat-sdk-android:6.8.24'
+//    api 'com.tencent.mm.opensdk:wechat-sdk-android:6.8.24'
     //支付宝支付
-    api 'com.alipay.sdk:alipaysdk-android:15.8.12@aar'
+//    api 'com.alipay.sdk:alipaysdk-android:15.8.12@aar'
     //日历
     api 'com.haibin:calendarview:3.7.1'
     //圆片带背景或文字

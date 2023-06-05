@@ -38,7 +38,6 @@ class WebViewActivity :
         var pageName = intent.getStringExtra("pageName")
         title = intent.getStringExtra("title") ?: ""
         var url = intent.getStringExtra("url") ?: ""
-        var showBar = intent.getBooleanExtra("showBar", true)
         var showTitle = intent.getBooleanExtra("showTitle", true)
         var shareImage = intent.getStringExtra("shareImage") ?: ""
         var shareContent = intent.getStringExtra("shareContent") ?: ""
@@ -48,11 +47,7 @@ class WebViewActivity :
         if (orientation != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
             requestedOrientation = orientation
         }
-        if (showBar) {
-            vb.layoutToolbar.vTitleBarLine.visibility = View.VISIBLE
-        } else {
-            vb.layoutToolbar.vTitleBarLine.visibility = View.GONE
-        }
+
         if (showTitle) {
             vb.layoutToolbar.rlTitleToolbar.visibility = View.VISIBLE
             if (!title.isNullOrBlank()) {
