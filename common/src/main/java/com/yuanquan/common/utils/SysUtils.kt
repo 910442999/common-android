@@ -146,6 +146,12 @@ object SysUtils {
         return context.resources.displayMetrics.heightPixels
     }
 
+    @JvmStatic
+    fun isTablet(context: Context): Boolean {
+        val configuration = context.resources.configuration
+        return configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_LARGE
+    }
+
     /**
      * 判断是否是全面屏
      */

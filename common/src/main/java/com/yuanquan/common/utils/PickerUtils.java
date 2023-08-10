@@ -11,6 +11,7 @@ import com.bigkoo.pickerview.view.OptionsPickerView;
 import com.bigkoo.pickerview.view.TimePickerView;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.config.SelectMimeType;
+import com.luck.picture.lib.engine.CropFileEngine;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.luck.picture.lib.interfaces.OnResultCallbackListener;
 import com.yuanquan.common.utils.picture.ImageFileCropEngine;
@@ -71,16 +72,21 @@ public class PickerUtils {
         mPvTime.show();
     }
 
-    public static void pictureSelector(Context context, int language,int defaultLanguage, OnResultCallbackListener<LocalMedia> listener) {
+    public static void pictureSelector(Context context, int language, int defaultLanguage, OnResultCallbackListener<LocalMedia> listener) {
+        pictureSelector(context, language, defaultLanguage, 1, 1,new ImageFileCropEngine(), listener);
+    }
+
+    public static void pictureSelector(Context context, int language, int defaultLanguage, int maxSelectNum, int minSelectNum, CropFileEngine engine, OnResultCallbackListener<LocalMedia> listener) {
         PictureSelector.create(context)
                 .openGallery(SelectMimeType.ofImage())
                 .setImageEngine(GlideEngine.createGlideEngine())
-                .setMaxSelectNum(1)// 最大图片选择数量
-                .setMinSelectNum(1)// 最小选择数量
+                .setMaxSelectNum(maxSelectNum)// 最大图片选择数量
+                .setMinSelectNum(minSelectNum)// 最小选择数量
                 .isDirectReturnSingle(true)
                 .setLanguage(language)
                 .setDefaultLanguage(defaultLanguage)
-                .setCropEngine(new ImageFileCropEngine())
+                .setCropEngine(engine)
                 .forResult(listener);
     }
+
 }

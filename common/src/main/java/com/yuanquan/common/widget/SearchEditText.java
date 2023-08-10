@@ -100,8 +100,9 @@ public class SearchEditText extends LinearLayout {
             public void afterTextChanged(Editable s) {
                 // 每次输入后，模糊查询数据库 & 显示
                 // 注：若搜索框为空,则模糊搜索空字符 = 显示所有的搜索历史
-                String tempName = et_search.getText().toString();
-
+                if (mCallBack != null) {
+                    mCallBack.afterTextChanged(et_search.getText().toString());
+                }
             }
         });
         et_search.setOnFocusChangeListener((v, hasFocus) -> {

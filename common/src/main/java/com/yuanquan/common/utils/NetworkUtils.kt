@@ -6,28 +6,17 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.LinkProperties
-import android.net.Network
-import android.net.NetworkCapabilities
 import android.net.NetworkInfo
-import android.net.NetworkRequest
 import android.net.wifi.SupplicantState
-import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
-import android.net.wifi.WifiNetworkSpecifier
-import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.SocketException
 import java.util.Locale
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
 
 
 /**
@@ -40,290 +29,6 @@ import java.util.concurrent.ExecutionException
  *     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
  */
 object NetworkUtils {
-    /**
-     * 是否已经注册回调
-     */
-    private var isRegisted = false
-    private var connectivityManager: ConnectivityManager? = null
-
-    /**
-     * 网络是否可用
-     */
-    private var isNetWorkAvailable = false
-
-    /**
-     * 网络类型
-     */
-    private var netType: NetType? = null
-    private var networkCallbackImpl: NetworkCallbackImpl? = null
-
-    @JvmStatic
-    fun connectWifi(
-        context: Context,
-        ssid: String,
-        password: String
-    ): Boolean {
-        // Android 10 及以上版本需要使用新的 API
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            connectToWifiApi29(context, ssid, password)
-        } else {
-            connectToWifiBelowApi29(context, ssid, password)
-        }
-    }
-
-    /**
-     * Android 10 及以上版本连接 WiFi
-     */
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    fun connectToWifiApi29(
-        context: Context,
-        ssid: String,
-        password: String
-    ): Boolean {
-        val request = getNetworkRequest(ssid, password)
-        val connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val future = CompletableFuture<Boolean>()
-        val networkCallback: ConnectivityManager.NetworkCallback =
-            object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
-                    super.onAvailable(network)
-                    Log.e("TAG", "onAvailable: ")
-                    // 返回连接结果
-                    future.complete(true)
-//                    connectivityManager.unregisterNetworkCallback(this)
-                }
-
-                override fun onUnavailable() {
-                    super.onUnavailable()
-                    Log.e("TAG", "onUnavailable: ")
-                    // 返回连接结果
-                    future.complete(false)
-                    // 取消注册网络回调
-//                    connectivityManager.unregisterNetworkCallback(this)
-                }
-            }
-
-        // 注册网络回调
-        connectivityManager.requestNetwork(request, networkCallback)
-        var b = try {
-            // 等待连接结果
-            future.get()
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-            false
-        } catch (e: ExecutionException) {
-            e.printStackTrace()
-            false
-        }
-
-        // 取消注册网络回调
-        connectivityManager.unregisterNetworkCallback(networkCallback)
-        return b
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun getNetworkRequest(
-        ssid: String,
-        password: String
-    ): NetworkRequest {
-        val specifier = WifiNetworkSpecifier.Builder()
-            .setSsid(ssid)
-            .setWpa2Passphrase(password)
-            .build()
-
-        val request = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .setNetworkSpecifier(specifier)
-            .build()
-        return request
-    }
-
-    /**
-     * Android 10 以下版本连接 WiFi
-     */
-    fun connectToWifiBelowApi29(
-        context: Context,
-        ssid: String,
-        password: String
-    ): Boolean {
-        val wifiConfig = WifiConfiguration()
-        wifiConfig.SSID = "\"$ssid\""
-        wifiConfig.preSharedKey = "\"$password\""
-//        wifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN)
-//        wifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA)
-//        wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK)
-        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        // 添加 WiFi 配置
-        val networkId = wifiManager.addNetwork(wifiConfig)
-        if (networkId == -1) {
-            return false
-        }
-//        wifiManager.disconnect()
-        // 启用 WiFi 配置
-        if (!wifiManager.enableNetwork(networkId, true)) {
-            return false
-        }
-        // 重新连接 WiFi
-        return wifiManager.reconnect()
-    }
-
-    @RequiresPermission(allOf = [Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_WIFI_STATE])
-    fun removeWifi(context: Context, ssid: String, password: String) {
-        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val suggestionsList: MutableList<WifiNetworkSuggestion> = ArrayList()
-            val suggestion = WifiNetworkSuggestion.Builder()
-                .setSsid(ssid)
-                .setWpa2Passphrase(password)
-                .build()
-            suggestionsList.add(suggestion)
-            // 删除网络
-            val status = wifiManager.removeNetworkSuggestions(suggestionsList)
-            if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
-                LogUtil.e("Network suggestion removed successfully.");
-            } else {
-                LogUtil.e("Failed to remove network suggestion.");
-            }
-        } else {
-            val configurations = wifiManager.configuredNetworks
-            for (config in configurations) {
-                if (config.SSID == "\"" + ssid + "\"") {
-                    wifiManager.removeNetwork(config.networkId)
-                    wifiManager.saveConfiguration()
-                    break
-                }
-            }
-        }
-    }
-
-    @JvmStatic
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun isWifiEnabled(context: Context): Boolean {
-        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        return wifiManager.isWifiEnabled
-    }
-
-    internal class NetworkCallbackImpl : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) {
-            super.onAvailable(network)
-            isNetWorkAvailable = true
-            LogUtil.e("onAvailable")
-        }
-
-        override fun onLosing(network: Network, maxMsToLive: Int) {
-            super.onLosing(network, maxMsToLive)
-            isNetWorkAvailable = false
-            LogUtil.e("onLosing")
-        }
-
-        override fun onLost(network: Network) {
-            super.onLost(network)
-            isNetWorkAvailable = false
-            LogUtil.e("onLost")
-        }
-
-        override fun onUnavailable() {
-            super.onUnavailable()
-            isNetWorkAvailable = false
-            LogUtil.e("onUnavailable")
-        }
-
-        override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities
-        ) {
-            super.onCapabilitiesChanged(network, networkCapabilities)
-            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
-                isNetWorkAvailable = true
-            }
-            if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI_AWARE)
-            ) {
-                netType = NetType.WIFI
-            } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
-                netType = NetType.BLUETOOTH
-            } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                netType = NetType.CELLULAR
-            } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                netType = NetType.ETHERNET
-            }
-            LogUtil.e("onCapabilitiesChanged")
-        }
-
-        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-            super.onLinkPropertiesChanged(network, linkProperties)
-            LogUtil.e("onLinkPropertiesChanged")
-        }
-
-        override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
-            super.onBlockedStatusChanged(network, blocked)
-            LogUtil.e("onBlockedStatusChanged")
-        }
-    }
-
-
-    /**
-     * 注册回调
-     */
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun registerCallback(context: Context) {
-        if (!isRegisted) {
-            connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            if (connectivityManager != null) {
-                isRegisted = true
-                networkCallbackImpl = NetworkCallbackImpl()
-                connectivityManager!!.registerDefaultNetworkCallback(networkCallbackImpl!!)
-            }
-        }
-    }
-
-    /**
-     * 取消注册
-     */
-    fun unRegisterCallback() {
-        if (connectivityManager != null && isRegisted) {
-            isRegisted = false
-            connectivityManager!!.unregisterNetworkCallback(networkCallbackImpl!!)
-        }
-    }
-
-
-    enum class NetType {
-        /**
-         * wifi
-         */
-        WIFI,
-        BLUETOOTH,
-        CELLULAR,
-        ETHERNET
-    }
-
-
-    fun isNetWorkAvailable(): Boolean {
-        return isNetWorkAvailable
-    }
-
-    fun getNetType(): NetType? {
-        return netType
-    }
-
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun isAvailable(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            isNetWorkAvailable
-        } else {
-            val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            var networkInfo: NetworkInfo? = null
-            if (connectivityManager != null) {
-                networkInfo = connectivityManager.activeNetworkInfo
-            }
-            networkInfo != null && networkInfo.isConnected
-        }
-    }
 
     /**
      * 获取当前WIFI名称
@@ -373,8 +78,14 @@ object NetworkUtils {
                     LogUtil.e("ssid=$ssid")
                     return ssid
                 }
+                LogUtil.e("getCurrentSsid：获取失败")
+                return ""
+            } else {
+                LogUtil.e("getCurrentSsid：请求未完成")
+                return ""
             }
         }
+        LogUtil.e("getCurrentSsid：未启用")
         return ""
     }
 
@@ -423,8 +134,7 @@ object NetworkUtils {
                     e.printStackTrace()
                 }
             } else if (info.type == ConnectivityManager.TYPE_WIFI) { //当前使用无线网络
-                val wifiManager =
-                    context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
                 val wifiInfo = wifiManager.connectionInfo
                 return intIP2StringIP(wifiInfo.ipAddress)
             }
@@ -441,10 +151,7 @@ object NetworkUtils {
      * @return
      */
     fun intIP2StringIP(ip: Int): String {
-        return (ip and 0xFF).toString() + "." +
-                (ip shr 8 and 0xFF) + "." +
-                (ip shr 16 and 0xFF) + "." +
-                (ip shr 24 and 0xFF)
+        return (ip and 0xFF).toString() + "." + (ip shr 8 and 0xFF) + "." + (ip shr 16 and 0xFF) + "." + (ip shr 24 and 0xFF)
     }
 
     /**
@@ -452,10 +159,7 @@ object NetworkUtils {
      */
     fun isValidIPAddress(ipAddress: String): Boolean {
         val regex = Regex(
-            "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"
+            "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"
         )
 
         return ipAddress.matches(regex)
@@ -518,8 +222,7 @@ object NetworkUtils {
     @JvmStatic
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     private fun getActiveNetworkInfo(context: Context): NetworkInfo? {
-        val cm = context
-            .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         return cm.activeNetworkInfo
     }
 

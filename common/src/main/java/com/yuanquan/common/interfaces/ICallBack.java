@@ -7,5 +7,7 @@ package com.yuanquan.common.interfaces;
 public interface ICallBack {
     void searchAction(String string);
 
+    void afterTextChanged(String string);
+
     void rightAction(String string);
 }

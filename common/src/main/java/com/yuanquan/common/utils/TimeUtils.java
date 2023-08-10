@@ -9,6 +9,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 /**
  * timeCompare 判断2个时间大小
@@ -35,8 +38,8 @@ public class TimeUtils {
     public static final String yyyy_MM_dd_HH_mm_ss = "yyyy-MM-dd HH:mm:ss";
     public static final String yyyy_MM_dd = "yyyy-MM-dd";
     public static final String MM_dd = "MM-dd";
-    public static final String HH_mm_ss = "yyyy-MM-dd HH:mm:ss";
     public static final String MM_dd_HH_mm = "MM-dd HH:mm";
+    public static final String HH_mm_ss = "HH:mm:ss";
 
 
     //时间转换 2018-12-27T16:00:00.000Z” 转换成“yyyy-MM-dd”
@@ -255,8 +258,7 @@ public class TimeUtils {
         try {
             Date curDate = new Date(System.currentTimeMillis());//获取当前时间
             String startTime = sd.format(curDate);
-            long diff = sd.parse(endTime).getTime()
-                    - sd.parse(startTime).getTime();
+            long diff = sd.parse(endTime).getTime() - sd.parse(startTime).getTime();
             long day = diff / nd;// 计算差多少天
             long hour = diff % nd / nh;// 计算差多少小时
             long min = diff % nd % nh / nm;// 计算差多少分钟
@@ -384,8 +386,7 @@ public class TimeUtils {
      * @return
      */
     public static String getDateTime(Date date, String format) {
-        if (date == null)
-            return "";
+        if (date == null) return "";
         String currentTime = "";
         try {
             SimpleDateFormat sdf = new SimpleDateFormat(format);
@@ -491,8 +492,7 @@ public class TimeUtils {
             int age = yearNow - yearBirth;   //计算整岁数
             if (monthNow <= monthBirth) {
                 if (monthNow == monthBirth) {
-                    if (dayOfMonthNow < dayOfMonthBirth)
-                        age--;//当前日期在生日之前，年龄减一
+                    if (dayOfMonthNow < dayOfMonthBirth) age--;//当前日期在生日之前，年龄减一
                 } else {
                     age--;//当前月份在生日之前，年龄减一
 
@@ -561,7 +561,7 @@ public class TimeUtils {
         return String.format("%02d:%02d:%01d", minute, second, millisecond);
     }
 
-    public static String StringToDate(String time) throws ParseException {
+    public static String stringToDate(String time) throws ParseException {
 
         if (TextUtils.isEmpty(time)) {
             return "";
@@ -574,6 +574,23 @@ public class TimeUtils {
 
     }
 
+    public static String stringToDate(String time, String pattern1, String pattern2) {
+        if (TextUtils.isEmpty(time)) {
+            return "";
+        }
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(pattern1);
+            Date date = format.parse(time);
+            SimpleDateFormat format1 = new SimpleDateFormat(pattern2);
+            String s = format1.format(date);
+            return s;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+
+    }
+
     // 将时间戳转为字符串
     public static String getStrTime(String cc_time) {
         String re_StrTime = null;
@@ -581,5 +598,183 @@ public class TimeUtils {
         long lcc_time = Long.valueOf(cc_time);
         re_StrTime = sdf.format(new Date(lcc_time * 1000L));
         return re_StrTime;
+    }
+
+    /**
+     * 判断两个时间，是否大于5 分钟的工具类
+     *
+     * @param time1
+     * @return
+     */
+    public static long twoTimeRemaining(String time1, String time2, String pattern) {
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
+        try {
+            Date date1 = format.parse(time1);
+            Date date2 = format.parse(time2);
+            return Math.abs(date1.getTime() - date2.getTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * 判断两个时间，是否大于5 分钟的工具类
+     *
+     * @param time1
+     * @param minute
+     * @return
+     */
+    public static boolean isTimeMoreThanMinutes(String time1, String time2, int minute, String pattern) {
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
+        try {
+            Date date1 = format.parse(time1);
+            Date date2 = format.parse(time2);
+            long timeDiff = Math.abs(date1.getTime() - date2.getTime());
+            return (timeDiff > minute * 60 * 1000);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * @param time
+     * @return
+     */
+    public static String formatChatTime(String time) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        try {
+            Date date = format.parse(time);
+            Calendar cal = Calendar.getInstance();
+            int year = cal.get(Calendar.YEAR);
+            int month = cal.get(Calendar.MONTH) + 1;
+            int day = cal.get(Calendar.DAY_OF_MONTH);
+            cal.setTime(date);
+            int hour = cal.get(Calendar.HOUR_OF_DAY);
+            int minute = cal.get(Calendar.MINUTE);
+
+            if (cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) + 1 == month && cal.get(Calendar.DAY_OF_MONTH) == day) {
+                // 时间为今天
+                return String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+            } else {
+                // 时间不为今天
+                format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                return format.format(date);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 将UTC时间转换成当前手机时区的时间
+     *
+     * @param utcTime UTC时间戳，单位为毫秒
+     * @param format  时间格式，例如："yyyy-MM-dd HH:mm:ss"
+     * @return 当前手机时区的时间字符串
+     */
+
+    public static String convertUtcToLocal(String utcTime, String format) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        // 设置时区为UTC
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            // 将UTC时间字符串解析为Date对象
+            Date utcDate = dateFormat.parse(utcTime);
+            // 获取手机当前时区
+            TimeZone localTimeZone = TimeZone.getDefault();
+            // 设置SimpleDateFormat的时区为当前手机时区
+            dateFormat.setTimeZone(localTimeZone);
+            // 将UTC时间格式化为当前手机时区的时间字符串
+            return dateFormat.format(utcDate);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 获取当前utc的时间
+     *
+     * @param format 时间格式，例如："yyyy-MM-dd HH:mm:ss"
+     * @return 当前手机时区的时间字符串
+     */
+    public static String getLocalUtc(String format) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        // 获取当前时间
+        Date now = new Date();
+// 获取当前时区
+        TimeZone timeZone = TimeZone.getDefault();
+// 计算当前时区与UTC的时间差（以毫秒为单位）
+        int offsetInMillis = timeZone.getOffset(now.getTime());
+// 计算UTC时间（以毫秒为单位）
+        long utcTimeInMillis = now.getTime() - offsetInMillis;
+// 将UTC时间转换为日期对象
+        Date utcDate = new Date(utcTimeInMillis);
+        return dateFormat.format(utcDate);
+    }
+
+    /**
+     * 获取时区
+     */
+    public static String getTimeZone(String id) {
+        TimeZone timeZone = TimeZone.getTimeZone(id);
+        return timeZone.getDisplayName();
+    }
+
+    /**
+     * 获取时区
+     */
+    public static String getTimeZoneId() {
+        TimeZone localTimeZone = TimeZone.getDefault();
+        return localTimeZone.getID();
+    }
+
+    /**
+     * 获取时区
+     */
+    public static TimeZone getTimeZone() {
+        TimeZone localTimeZone = TimeZone.getDefault();
+        return localTimeZone;
+    }
+
+    /**
+     * 获取两个时间的差值
+     *
+     * @param startTime 开始时间的字符串表示，例如"2021-12-01 12:00:00"
+     * @param endTime   结束时间的字符串表示，例如"2021-12-02 14:30:20"
+     * @return 格式化后的时间差字符串
+     */
+    public static long getTimeDifference(String startTime, String endTime, String format) {
+        if (startTime == null || endTime == null) return 0;
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        try {
+            Date startDate = dateFormat.parse(startTime);
+            Date endDate = dateFormat.parse(endTime);
+            long durationInMillis = endDate.getTime() - startDate.getTime();
+            return durationInMillis;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * 根据差值，并返回格式化后的字符串，例如"01:30:20"
+     *
+     * @param durationInMillis 格式化后的时间差字符串
+     */
+    public static String getTimeDifferenceString(long durationInMillis) {
+        try {
+            long hours = TimeUnit.MILLISECONDS.toHours(durationInMillis);
+            long minutes = TimeUnit.MILLISECONDS.toMinutes(durationInMillis) % 60;
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(durationInMillis) % 60;
+            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 }
