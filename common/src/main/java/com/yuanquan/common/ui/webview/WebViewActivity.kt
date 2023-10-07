@@ -31,6 +31,8 @@ class WebViewActivity :
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
         }
+        var softInputMode = intent.getIntExtra("softInputMode", 0)
+        window.setSoftInputMode(softInputMode)
         super.onCreate(savedInstanceState)
     }
 

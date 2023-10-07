@@ -695,6 +695,22 @@ public class TimeUtils {
         return "";
     }
 
+    public static String convertUtcToLocal(String utcTime, String pattern, String format) {
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            Date utcDate = sdf.parse(utcTime);
+            // 将时间戳转换为 "HH:mm" 格式的时间
+            SimpleDateFormat outputFormat = new SimpleDateFormat(format);
+            TimeZone localTimeZone = TimeZone.getDefault();
+            outputFormat.setTimeZone(localTimeZone);
+            return outputFormat.format(utcDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
     /**
      * 获取当前utc的时间
      *

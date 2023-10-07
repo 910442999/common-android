@@ -46,7 +46,7 @@ public class EditText_Clear extends AppCompatEditText {
      */
     private void init() {
         clearDrawable = getResources().getDrawable(R.mipmap.icon_close);
-        clearDrawable.setBounds(0, 0, 60, 60);
+        clearDrawable.setBounds(0, 0, 40, 40);
     }
 
 

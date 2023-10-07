@@ -14,8 +14,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.luck.picture.lib.engine.CropFileEngine;
-import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropImageEngine;
+import com.yuanquan.common.utils.crop.UCrop;
 
 import java.util.ArrayList;
 
