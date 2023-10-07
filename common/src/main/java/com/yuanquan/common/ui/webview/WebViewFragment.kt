@@ -11,6 +11,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import androidx.appcompat.app.AppCompatActivity
 import com.yuanquan.common.databinding.FragmentWebViewBinding
 import com.yuanquan.common.ui.base.BaseFragment
 import com.yuanquan.common.ui.base.BaseViewModel
@@ -32,6 +33,8 @@ class WebViewFragment :
     var statusBarHeight: Int = 0
 
     private var mWebView: WebView? = null
+
+    private val FILE_PICKER_REQUEST_CODE = 10000
 
     override fun initData() {
         if (arguments != null) {
@@ -187,6 +190,11 @@ class WebViewFragment :
                     acceptTypes?.forEach {
                         if (it.contains("video")) video = true
                     }
+
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                    intent.setType("*/*")
+                    intent.addCategory(Intent.CATEGORY_OPENABLE)
+                    startActivityForResult(intent, FILE_PICKER_REQUEST_CODE)
                     //                    if (video) {
                     //                        requestPermissions(
                     //                            1,
@@ -361,5 +369,16 @@ class WebViewFragment :
 
     override fun initView() {
 
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FILE_PICKER_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
+            val tempUri = data!!.data
+            uploadMessageAboveL?.onReceiveValue(arrayOf(tempUri!!))
+            uploadMessageAboveL = null
+            uploadMessage?.onReceiveValue(tempUri!!)
+            uploadMessage = null
+        }
     }
 }

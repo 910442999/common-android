@@ -173,8 +173,10 @@ public class GlideManager {
 
     public static void headerImage(Context context, String headerImageUrl, CircleTextImageView pvHeader, String colourCode, String subNickName, Float textSize, int resourceId) {
         if (headerImageUrl == null || headerImageUrl.isEmpty()) {
-            if (colourCode != null && !colourCode.isEmpty() && subNickName != null && !subNickName.isEmpty()) {
-                pvHeader.setCircleBackgroundColor(Color.parseColor(colourCode));
+            if (subNickName != null && !subNickName.isEmpty()) {
+                if (colourCode != null && !colourCode.isEmpty()) {
+                    pvHeader.setCircleBackgroundColor(Color.parseColor(colourCode));
+                }
                 pvHeader.setTextColor(ContextCompat.getColor(context, R.color.white));
                 pvHeader.setTextSize(SysUtils.dp2Px(context, textSize));
                 pvHeader.setText(subNickName);
