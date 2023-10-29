@@ -83,11 +83,11 @@ class WifiManager(
      * �Զ�����wifi
      */
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_WIFI_STATE])
-    fun connectWifi(scanResult: ScanResult, password: String, callback: (Boolean) -> Unit) {
+    fun connectWifi(ssid: String, password: String, callback: (Boolean) -> Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            connectByNew(scanResult.SSID, password, callback)
+            connectByNew(ssid, password, callback)
         } else {
-            connectByOld(scanResult, password, callback)
+            connectByOld(ssid, password, callback)
         }
     }
 
@@ -214,17 +214,19 @@ class WifiManager(
      */
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_WIFI_STATE])
     private fun connectByOld(
-        scanResult: ScanResult, password: String, callback: (Boolean) -> Unit
+        ssid: String, password: String, callback: (Boolean) -> Unit
     ) {
         var isSuccess = false
-        val ssid = scanResult.SSID
+
         isExist(ssid).elif({
             isSuccess = wifiManager.enableNetwork(it.networkId, true)
         }, {
             val wifiConfiguration =
-                createWifiConfig(ssid, password, getCipherType(scanResult.capabilities))
+                createWifiConfig(ssid, password, WifiCapability.WIFI_CIPHER_WPA)
             val netId = wifiManager.addNetwork(wifiConfiguration)
+            wifiManager.disconnect()
             isSuccess = wifiManager.enableNetwork(netId, true)
+            wifiManager.reconnect()
         })
         callback(isSuccess)
     }
@@ -367,5 +369,13 @@ class WifiManager(
 
     private companion object {
         const val TAG = "WifiManager"
+    }
+
+    fun <T, R> T?.elif(block: (T) -> R, block2: () -> R): R {
+        return if (this != null) {
+            block(this)
+        } else {
+            block2()
+        }
     }
 }

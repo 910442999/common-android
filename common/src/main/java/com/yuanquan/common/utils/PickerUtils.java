@@ -1,6 +1,7 @@
 package com.yuanquan.common.utils;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.view.View;
 
 import com.bigkoo.pickerview.builder.OptionsPickerBuilder;
@@ -73,10 +74,10 @@ public class PickerUtils {
     }
 
     public static void pictureSelector(Context context, int language, int defaultLanguage, OnResultCallbackListener<LocalMedia> listener) {
-        pictureSelector(context, language, defaultLanguage, 1, 1,new ImageFileCropEngine(), listener);
+        pictureSelector(context, language, defaultLanguage, 1, 1, ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, new ImageFileCropEngine(), listener);
     }
 
-    public static void pictureSelector(Context context, int language, int defaultLanguage, int maxSelectNum, int minSelectNum, CropFileEngine engine, OnResultCallbackListener<LocalMedia> listener) {
+    public static void pictureSelector(Context context, int language, int defaultLanguage, int maxSelectNum, int minSelectNum, int requestedOrientation, CropFileEngine engine, OnResultCallbackListener<LocalMedia> listener) {
         PictureSelector.create(context)
                 .openGallery(SelectMimeType.ofImage())
                 .setImageEngine(GlideEngine.createGlideEngine())
@@ -85,6 +86,7 @@ public class PickerUtils {
                 .isDirectReturnSingle(true)
                 .setLanguage(language)
                 .setDefaultLanguage(defaultLanguage)
+                .setRequestedOrientation(requestedOrientation)
                 .setCropEngine(engine)
                 .forResult(listener);
     }

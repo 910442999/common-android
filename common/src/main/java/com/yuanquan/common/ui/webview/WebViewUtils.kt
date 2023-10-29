@@ -94,6 +94,7 @@ object WebViewUtils {
         // webSetting.setPreFectch(true);
 
         webSetting?.mediaPlaybackRequiresUserGesture = false
+
     }
 
     @JvmStatic
