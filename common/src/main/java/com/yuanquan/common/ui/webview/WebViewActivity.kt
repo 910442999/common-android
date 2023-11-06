@@ -51,14 +51,14 @@ class WebViewActivity :
         }
 
         if (showTitle) {
-            vb.layoutToolbar.rlTitleToolbar.visibility = View.VISIBLE
+            vb.layoutToolbar.llTitleToolbar.visibility = View.VISIBLE
             if (!title.isNullOrBlank()) {
                 vb.layoutToolbar.titleToolbar.text = title
             }
             if (!shareImage.isNullOrBlank() || !shareContent.isNullOrBlank()) vb.layoutToolbar.ivTitleRight.visibility =
                 View.VISIBLE
         } else {
-            vb.layoutToolbar.rlTitleToolbar.visibility = View.GONE
+            vb.layoutToolbar.llTitleToolbar.visibility = View.GONE
         }
         var bundle = Bundle()
         bundle.putString("type", intent.getStringExtra("type"))

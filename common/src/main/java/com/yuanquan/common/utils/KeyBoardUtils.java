@@ -99,4 +99,55 @@ public class KeyBoardUtils {
             }
         });
     }
+
+    private static View rootView;
+    private static int initialScrollY;
+
+    public static void adjustPanOnKeyboardVisible(Activity activity) {
+        rootView = activity.findViewById(android.R.id.content);
+        initialScrollY = rootView.getScrollY();
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            private boolean isKeyboardVisible = false;
+
+            @Override
+            public void onGlobalLayout() {
+                Rect rect = new Rect();
+                rootView.getWindowVisibleDisplayFrame(rect);
+                int screenHeight = rootView.getRootView().getHeight();
+                int keyboardHeight = screenHeight - rect.bottom;
+
+                if (keyboardHeight > 0) {
+                    if (!isKeyboardVisible) {
+                        isKeyboardVisible = true;
+                        int viewThreshold = (int) (screenHeight * 0.15); // 调整阈值根据需要
+                        View focusedView = rootView.findFocus();
+                        if (focusedView != null) {
+                            int[] location = new int[2];
+                            focusedView.getLocationOnScreen(location);
+                            int viewBottom = location[1] + focusedView.getHeight();
+
+                            if (keyboardHeight > viewThreshold && viewBottom > rect.bottom - viewThreshold) {
+                                int scrollDistance = viewBottom - (rect.bottom - viewThreshold);
+                                rootView.scrollBy(0, scrollDistance);
+                            }
+                        }
+                    }
+                } else {
+                    if (isKeyboardVisible) {
+                        isKeyboardVisible = false;
+                        restoreLayout();
+                    }
+                }
+            }
+        });
+    }
+
+    public static void restoreLayout() {
+        rootView.scrollTo(0, initialScrollY);
+    }
+     public void removeOnGlobalLayoutListener() {
+//         rootView.getViewTreeObserver().removeOnGlobalLayoutListener(activity);
+    }
+
+
 }
