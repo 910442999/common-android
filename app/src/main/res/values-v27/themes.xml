@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.CommonAndroid" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.Commonandroid" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- 设置状态栏背景色为透明 -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <!-- 设置导航栏背景色为透明 -->
