@@ -5,11 +5,11 @@ plugins {
 
 android {
     namespace 'com.yuanquan.common'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdk 23
-        targetSdk 33
+        targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -71,6 +71,4 @@ dependencies {
 //    api 'com.alipay.sdk:alipaysdk-android:15.8.12@aar'
     //日历
     api 'com.haibin:calendarview:3.7.1'
-    //圆片带背景或文字
-    api 'com.github.mysiga:CircleTextView:V1.1'
 }

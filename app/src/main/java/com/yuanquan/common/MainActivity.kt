@@ -13,5 +13,10 @@ class MainActivity : Activity() {
         tv_text1.setOnClickListener {
             startActivity(Intent(this, AudioActivity::class.java))
         }
+        var tv_text2 = findViewById<TextView>(R.id.tv_text2)
+        tv_text2.setOnClickListener {
+            startActivity(Intent(this, TextViewActivity::class.java))
+        }
+
     }
 }
