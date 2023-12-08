@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
@@ -21,6 +23,7 @@ import android.widget.TextView
 import com.yuanquan.common.utils.NetworkUtils
 import com.yuanquan.common.utils.permissions.PermissionResultCallback
 import com.yuanquan.common.utils.permissions.PermissionUtils
+import com.yuanquan.common.widget.SelectableTextHelper
 
 
 class MainActivity : Activity() {
@@ -29,28 +32,34 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
         var tv_text1 = findViewById<TextView>(R.id.tv_text1)
         tv_text1.setOnClickListener {
-            PermissionUtils.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                object : PermissionResultCallback {
-                    override fun onGranted() {
-//                        addNetwork()
-                        var wifiName = "CMCC-dTMg-5G"
-                        var wifPassword = "ZDAWEIqaz"
-                        NetworkUtils.connectWifi(this@MainActivity,wifiName,wifPassword)
-                    }
-
-                    override fun onDenied() {
-
-                    }
-
-                })
+//            PermissionUtils.requestPermissions(
+//                this,
+//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+//                object : PermissionResultCallback {
+//                    override fun onGranted() {
+////                        addNetwork()
+//                        var wifiName = "CMCC-dTMg-5G"
+//                        var wifPassword = "ZDAWEIqaz"
+////                        NetworkUtils.connectWifi(this@MainActivity,wifiName,wifPassword)
+//                    }
+//
+//                    override fun onDenied() {
+//
+//                    }
+//
+//                })
+            var intent: Intent = Intent(this, TextLongDownActivity::class.java)
+            startActivity(intent)
+        }
+        var tv_text2 = findViewById<TextView>(R.id.tv_text2)
+        tv_text2.setOnClickListener {
+            var intent: Intent = Intent(this, TextLongDownActivity2::class.java)
+            startActivity(intent)
         }
 
     }
 
     @SuppressLint("MissingPermission")
-
     fun addNetwork() {
 //        val wifiAdmin = WifiAdmin(this)
 //        wifiAdmin.openWifi()

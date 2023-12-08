@@ -11,7 +11,7 @@ import java.util.Locale
 object FileUtils {
 
     @JvmStatic
-    fun getFileExtension(fileName: String?): String {
+    fun getFileExtension(fileName: String): String {
         return if (fileName != null && fileName.lastIndexOf(".") != -1) {
             fileName.substring(fileName.lastIndexOf(".") + 1)
         } else ""
@@ -19,12 +19,11 @@ object FileUtils {
 
     @JvmStatic
     fun removeFileExtension(filename: String): String {
-        return filename.takeLastWhile { it != '.' }
-    }
-
-    @JvmStatic
-    fun getParseFormat(fileName: String): String {
-        return fileName.substring(fileName.lastIndexOf(".") + 1)
+        if (filename != null && filename.lastIndexOf(".") != -1) {
+            return filename.substring(0, filename.lastIndexOf("."))
+        } else {
+            return filename
+        }
     }
 
     @JvmStatic
@@ -44,26 +43,32 @@ object FileUtils {
     }
 
     fun calculateMD5(inputStream: InputStream): String {
-        val digest = MessageDigest.getInstance("MD5")
-        val buffer = ByteArray(4096)
-        var read: Int
-        while (inputStream.read(buffer).also { read = it } != -1) {
-            if (read > 0) {
-                digest.update(buffer, 0, read)
+        val md5Digest = MessageDigest.getInstance("MD5")
+
+        // 使用缓冲区读取文件内容
+        val buffer = ByteArray(8192)
+        var bytesRead: Int
+
+        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+            if (bytesRead > 0) {
+                md5Digest.update(buffer, 0, bytesRead)
             }
         }
+
         inputStream.close()
 
-        val md5sum = digest.digest()
-        val hexString = StringBuilder()
-        for (i in md5sum.indices) {
-            val hex = Integer.toHexString(0xFF and md5sum[i].toInt())
-            if (hex.length == 1) {
-                hexString.append('0')
-            }
-            hexString.append(hex)
+        // 获取计算得到的MD5值
+        val md5Bytes = md5Digest.digest()
+
+        // 将字节数组转换为十六进制字符串表示
+        val md5String = StringBuilder()
+        for (i in md5Bytes.indices) {
+            md5String.append(
+                Integer.toString((md5Bytes[i].toInt() and 0xff) + 0x100, 16).substring(1)
+            )
         }
-        return hexString.toString()
+
+        return md5String.toString()
     }
 
     fun getFileType(file: File?): String {
