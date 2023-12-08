@@ -2,6 +2,7 @@ package com.yuanquan.common
 
 import android.app.Activity
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.ActionMode
 import android.view.LayoutInflater
 import android.view.Menu
@@ -38,6 +39,14 @@ class TextLongDownActivity2 : Activity() {
                 actionMode: ActionMode,
                 menuItem: MenuItem
             ): Boolean {
+                val selStart: Int = tv_text2?.selectionStart ?: 0
+                val selEnd: Int = tv_text2?.selectionEnd ?: 0
+                val min = 0.coerceAtLeast(selStart.coerceAtMost(selEnd))
+                val max = 0.coerceAtLeast(selStart.coerceAtLeast(selEnd))
+                val content = tv_text2?.text?.subSequence(min, max)
+                if (TextUtils.isEmpty(content)) {
+                    return true
+                }
                 //根据item的ID处理点击事件
                 when (menuItem.itemId) {
                     R.id.Informal22 -> {

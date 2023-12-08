@@ -19,9 +19,6 @@
         android:theme="@style/Theme.Commonandroid"
         tools:targetApi="31">
         <activity
-            android:name=".TextViewActivity"
-            android:exported="false" />
-        <activity
             android:name=".AudioActivity"
             android:exported="false" />
         <activity

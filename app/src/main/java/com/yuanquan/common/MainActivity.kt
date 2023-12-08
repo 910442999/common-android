@@ -34,10 +34,8 @@ class MainActivity : Activity() {
         }
         var tv_text2 = findViewById<TextView>(R.id.tv_text2)
         tv_text2.setOnClickListener {
-//            startActivity(Intent(this, TextViewActivity::class.java))
             var intent: Intent = Intent(this, TextLongDownActivity2::class.java)
             startActivity(intent)
         }
-
     }
 }
