@@ -9,6 +9,7 @@ import android.content.res.Configuration
 import android.graphics.Point
 import android.os.Build
 import android.os.Environment
+import android.provider.Settings
 import android.view.WindowManager
 import com.yuanquan.common.R
 import java.io.File
@@ -221,5 +222,14 @@ object SysUtils {
             out[width] = height
         }
         return out
+    }
+
+    @JvmStatic
+    fun isScreenRotationEnabled(context: Context): Boolean {
+        val rotationSetting: Int = Settings.System.getInt(
+            context.contentResolver,
+            Settings.System.ACCELEROMETER_ROTATION, 0
+        )
+        return rotationSetting == 1
     }
 }

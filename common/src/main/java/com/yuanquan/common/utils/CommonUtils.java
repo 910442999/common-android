@@ -130,7 +130,7 @@ public class CommonUtils {
         cm.setPrimaryClip(mClipData);
     }
 
-    public static void setWidthHight(View view, int width, float bili) {
+    public static void setWidthHeight(View view, int width, float bili) {
         int heightFloat = (int) (width / bili);
         ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
         layoutParams.width = width;

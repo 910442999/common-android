@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TextLongDownActivity2">
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tv_text2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放阿斯蒂芬打发打发打发都是阿斯蒂芬阿斯蒂芬爱的色放"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </ScrollView>
+</LinearLayout>

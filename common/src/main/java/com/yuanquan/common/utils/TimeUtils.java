@@ -36,6 +36,7 @@ public class TimeUtils {
 
     private static final int seconds_of_1year = seconds_of_30days * 12;
     public static final String yyyy_MM_dd_HH_mm_ss = "yyyy-MM-dd HH:mm:ss";
+    public static final String yyyy_MM_dd_HH_mm = "yyyy-MM-dd HH:mm";
     public static final String yyyy_MM_dd = "yyyy-MM-dd";
     public static final String MM_dd = "MM-dd";
     public static final String MM_dd_HH_mm = "MM-dd HH:mm";

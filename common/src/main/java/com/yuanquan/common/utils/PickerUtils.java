@@ -30,8 +30,7 @@ public class PickerUtils {
         void onTimeSelect(Date date, View v);
     }
 
-    public static <T> void showOptionsPicker(Context context, List<T> optionsItems, final OnOptionSelectListener onSelectListener) {
-
+    public static <T> void showOptionsPicker(Context context, String textContentConfirm, String textContentCancel, int option1, List<T> optionsItems, final OnOptionSelectListener onSelectListener) {
         OptionsPickerView<T> mPickerView = new OptionsPickerBuilder(context, new OnOptionsSelectListener() {
             @Override
             public void onOptionsSelect(int options1, int option2, int options3, View v) {
@@ -44,6 +43,9 @@ public class PickerUtils {
                 .setTitleBgColor(0xFFFFFFFF)//标题背景颜色 Night mode
                 .setContentTextSize(18)//滚轮文字大小
                 .setLineSpacingMultiplier(2)//滚轮文字大小
+                .setSubmitText(textContentConfirm)
+                .setCancelText(textContentCancel)
+                .setSelectOptions(option1)
                 .build();
         mPickerView.setPicker(optionsItems);
         mPickerView.show();
