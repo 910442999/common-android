@@ -13,14 +13,34 @@
         android:paddingRight="5dp">
 
         <TextView
+            android:id="@+id/tv_huaxian"
+            style="@style/OperateTextView"
+            android:text="划线" />
+
+        <TextView
+            android:id="@+id/tv_select"
+            style="@style/OperateTextView"
+            android:text="选择" />
+
+        <TextView
             android:id="@+id/tv_copy"
             style="@style/OperateTextView"
             android:text="复制" />
 
         <TextView
+            android:id="@+id/tv_click"
+            style="@style/OperateTextView"
+            android:text="点击事件" />
+    <TextView
+            android:id="@+id/tv_add_text"
+            style="@style/OperateTextView"
+            android:text="追加文本" />
+
+        <TextView
             android:id="@+id/tv_select_all"
             style="@style/OperateTextView"
             android:text="全选" />
+
     </LinearLayout>
 
     <ImageView

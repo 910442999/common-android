@@ -94,7 +94,8 @@ object WebViewUtils {
         // webSetting.setPreFectch(true);
 
         webSetting?.mediaPlaybackRequiresUserGesture = false
-
+        webSetting?.setAllowFileAccessFromFileURLs(true);
+        webSetting?.setAllowUniversalAccessFromFileURLs(true);
     }
 
     @JvmStatic

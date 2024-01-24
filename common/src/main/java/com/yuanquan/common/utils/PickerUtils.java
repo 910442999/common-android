@@ -30,7 +30,7 @@ public class PickerUtils {
         void onTimeSelect(Date date, View v);
     }
 
-    public static <T> void showOptionsPicker(Context context, String textContentConfirm, String textContentCancel, int option1, List<T> optionsItems, final OnOptionSelectListener onSelectListener) {
+    public static <T> OptionsPickerView showOptionsPicker(Context context, String textContentConfirm, String textContentCancel, int option1, List<T> optionsItems, final OnOptionSelectListener onSelectListener) {
         OptionsPickerView<T> mPickerView = new OptionsPickerBuilder(context, new OnOptionsSelectListener() {
             @Override
             public void onOptionsSelect(int options1, int option2, int options3, View v) {
@@ -49,6 +49,7 @@ public class PickerUtils {
                 .build();
         mPickerView.setPicker(optionsItems);
         mPickerView.show();
+        return mPickerView;
     }
 
     public static void showTimePicker(Context context, final OnTimesSelectListener onTimesSelectListener) {

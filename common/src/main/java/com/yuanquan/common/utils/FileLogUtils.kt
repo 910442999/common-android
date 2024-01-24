@@ -1,0 +1,115 @@
+package com.yuanquan.common.utils
+
+import android.Manifest
+import android.content.Context
+import android.content.res.Configuration
+import android.os.Build
+import android.util.Log
+import com.yuanquan.common.utils.permissions.PermissionUtils
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileWriter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+
+object FileLogUtils {
+    private const val TAG = "FileLogUtils"
+    private const val LOG_FILE_NAME = "appLog.log" // 日志文件名
+    private lateinit var logFile: File
+    private var context: Context? = null
+    fun init(context: Context) {
+        this.context = context
+        val logDir = getLogDirectory(context)
+        if (!logDir.exists()) {
+            logDir.mkdir()
+        }
+        logFile = File(logDir, LOG_FILE_NAME)
+    }
+
+    fun d(message: String) {
+        if (context != null) {
+            writeLog("DEBUG", message)
+        } else {
+            LogUtil.e("写入日志未初始化")
+        }
+    }
+
+    fun i(message: String) {
+        if (context != null) {
+            writeLog("INFO", message)
+        } else {
+            LogUtil.e("写入日志未初始化")
+        }
+    }
+
+    fun w(message: String) {
+        if (context != null) {
+            writeLog("WARN", message)
+        } else {
+            LogUtil.e("写入日志未初始化")
+        }
+    }
+
+    fun e(message: String) {
+        if (context != null) {
+            writeLog("ERROR", message)
+        } else {
+            LogUtil.e("写入日志未初始化")
+        }
+    }
+
+    private fun writeLog(level: String, message: String) {
+        //部分PAD（联想小新）获取权限为拒绝但实际有权限
+        if (context != null) {
+            if (SysUtils.isTablet(context!!)) {
+                writeFile(level, message)
+            } else {
+                var hasPermissions = PermissionUtils.hasPermissions(
+                    context!!, arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    )
+                )
+                if (hasPermissions) {
+                    writeFile(level, message)
+                } else {
+                    LogUtil.e("写入日志无权限")
+                }
+            }
+        } else {
+            LogUtil.e("写入日志未初始化")
+        }
+    }
+
+    private fun writeFile(level: String, message: String) {
+        try {
+            val timestamp =
+                SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss.SSS",
+                    Locale.getDefault()
+                ).format(Date())
+            val log = "[$timestamp][$level][$TAG] $message\n"
+            BufferedWriter(FileWriter(logFile, true)).use { writer ->
+                writer.append(log)
+            }
+        } catch (e: Exception) {
+            LogUtil.e(e.printStackTrace())
+        }
+    }
+
+    /**
+     * 内部存储目录：如果您在 getLogDirectory() 方法中选择了内部存储目录（对应 Android 10 以下版本），则日志文件将保存在应用的内部存储目录中。内部存储目录的位置通常是 /data/data/<应用包名>/files。例如，如果您的应用包名是 "com.example.myapp"，则日志文件的完整路径将是 /data/data/com.example.myapp/files/app_log.txt。
+     *
+     * 外部存储目录：如果您在 getLogDirectory() 方法中选择了外部存储目录（对应 Android 10 及以上版本），则日志文件将保存在应用的外部存储目录中。外部存储目录的位置通常是 /storage/emulated/0/Android/data/<应用包名>/files。例如，如果您的应用包名是 "com.example.myapp"，则日志文件的完整路径将是 /storage/emulated/0/Android/data/com.example.myapp/files/app_log.txt。
+     * 如设备中无法查看，需要链接电脑查看文件
+     */
+    private fun getLogDirectory(context: Context): File {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            context.getExternalFilesDir(null)!!
+        } else {
+            context.filesDir
+        }
+    }
+}

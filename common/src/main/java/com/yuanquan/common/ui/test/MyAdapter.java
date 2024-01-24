@@ -39,11 +39,11 @@ import java.util.List;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
-    public static List<String> data = new ArrayList<>();
+    public static List<String> data1111 = new ArrayList<>();
 
     static {
         for (int i = 1; i <= 15; i++) {
-            data.add(i + "");
+            data1111.add(i + "");
         }
     }
 
@@ -59,7 +59,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         //   Log.i("GCS","onBindViewHolder = "+position);
-        final String title = data.get(position);
+        final String title = data1111.get(position);
         holder.tv_title.setText(title);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,7 +73,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
     @Override
     public int getItemCount() {
-        return data.size();
+        return data1111.size();
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {

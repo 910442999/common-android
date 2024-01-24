@@ -111,13 +111,13 @@ public class PageLayoutActivity extends AppCompatActivity implements PagerGridLa
     }
 
     public void addOne(View view) {
-        mAdapter.data.add(0, "add");
+        mAdapter.data1111.add(0, "add");
         mAdapter.notifyDataSetChanged();
     }
 
     public void removeOne(View view) {
-        if (mAdapter.data.size() > 0) {
-            mAdapter.data.remove(0);
+        if (mAdapter.data1111.size() > 0) {
+            mAdapter.data1111.remove(0);
             mAdapter.notifyDataSetChanged();
         }
     }
@@ -127,7 +127,7 @@ public class PageLayoutActivity extends AppCompatActivity implements PagerGridLa
         for (int i = 1; i <= 5; i++) {
             data.add(i + "a");
         }
-        mAdapter.data.addAll(data);
+        mAdapter.data1111.addAll(data);
         mAdapter.notifyDataSetChanged();
     }
 

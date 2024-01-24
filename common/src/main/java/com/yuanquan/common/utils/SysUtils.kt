@@ -147,6 +147,11 @@ object SysUtils {
         return context.resources.displayMetrics.heightPixels
     }
 
+    /**
+     * 判断是否平板设备
+     * @param context
+     * @return true:平板,false:手机
+     */
     @JvmStatic
     fun isTablet(context: Context): Boolean {
         val configuration = context.resources.configuration

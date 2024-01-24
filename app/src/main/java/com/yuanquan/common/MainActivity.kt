@@ -37,5 +37,22 @@ class MainActivity : Activity() {
             var intent: Intent = Intent(this, TextLongDownActivity2::class.java)
             startActivity(intent)
         }
+        var tv_text3 = findViewById<TextView>(R.id.tv_text3)
+        tv_text3.setOnClickListener {
+            var intent: Intent =
+                Intent(this, com.yuanquan.common.selecttext.MainActivity::class.java)
+            startActivity(intent)
+        }
+        var tv_text4 = findViewById<TextView>(R.id.tv_text4)
+        tv_text4.setOnClickListener {
+            var intent: Intent =
+                Intent(this, com.yuanquan.common.selecttext.MainActivity2::class.java)
+            startActivity(intent)
+        }
+        var tv_text5 = findViewById<TextView>(R.id.tv_text5)
+        tv_text5.setOnClickListener {
+            var intent: Intent = Intent(this, TextLongDownActivity3::class.java)
+            startActivity(intent)
+        }
     }
 }
