@@ -32,4 +32,29 @@
         <attr name="backgroundColor" format="color" />
         <attr name="textPadding" format="dimension" />
     </declare-styleable>
+    <!-- 仪表盘自定义属性 -->
+    <declare-styleable name="MySeekBar">
+        <!--背景颜色-->
+        <attr name="bgColor" format="color"/>
+        <!--进度颜色-->
+        <attr name="progressColor" format="color"/>
+        <!--当前进度-->
+        <attr name="progress" format="float"/>
+        <!--总进度-->
+        <attr name="maxProgress" format="float"/>
+        <!--是否显示小太阳-->
+        <attr name="showSun" format="boolean"/>
+        <!--是否缩放小太阳-->
+        <attr name="zoomSun" format="boolean"/>
+        <!--小太阳颜色-->
+        <attr name="sunColor" format="color"/>
+        <!--小太阳半径-->
+        <attr name="circleRadius" format="dimension"/>
+        <!--矩形圆角-->
+        <attr name="radiusXY" format="dimension"/>
+        <attr name="showText" format="boolean"/>
+        <attr name="setTextColor" format="color"/>
+        <attr name="setTextHeight" format="integer|dimension"/>
+        <attr name="setTextSize" format="dimension"/>
+    </declare-styleable>
 </resources>

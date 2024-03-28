@@ -126,7 +126,11 @@ class SelectUtils {
             // the cursor to the beginning of the next line.
             //
             ////////////////////HACK BLOCK////////////////////////////////////////////////////
-            if (isEndOfLineOffset(layout, previousOffsetCopy)) { // we have to minus one from the offset so that the code below to find
+            if (isEndOfLineOffset(
+                    layout,
+                    previousOffsetCopy
+                )
+            ) { // we have to minus one from the offset so that the code below to find
                 // the previous line can work correctly.
                 val left = layout.getPrimaryHorizontal(previousOffsetCopy - 1).toInt()
                 val right = layout.getLineRight(line).toInt()
@@ -278,6 +282,89 @@ class SelectUtils {
                 if (null != mSpans) {
                     for (mSpan in mSpans) {
                         if (mSpan is SelectImageSpan) {
+                            return true
+                        }
+                    }
+                }
+            } catch (ignore: Exception) {
+            }
+            return false
+        }
+
+        /**
+         * 利用反射检测文本是否是NetworkImageSpan文本
+         */
+        fun isNetworkImageSpanText(mSpannable: Spannable): Boolean {
+            if (TextUtils.isEmpty(mSpannable)) {
+                return false
+            }
+            try {
+                val mSpans = getFieldValue(mSpannable, "mSpans") as Array<*>?
+                if (null != mSpans) {
+                    for (mSpan in mSpans) {
+                        if (mSpan is NetworkImageSpan) {
+                            return true
+                        }
+                    }
+                }
+            } catch (ignore: Exception) {
+            }
+            return false
+        }
+
+        /**
+         * 利用反射检测文本是否是CustomTextSpan文本
+         */
+        fun isCustomTextSpanText(mSpannable: Spannable): Boolean {
+            if (TextUtils.isEmpty(mSpannable)) {
+                return false
+            }
+            try {
+                val mSpans = getFieldValue(mSpannable, "mSpans") as Array<*>?
+                if (null != mSpans) {
+                    for (mSpan in mSpans) {
+                        if (mSpan is CustomTextSpan) {
+                            return true
+                        }
+                    }
+                }
+            } catch (ignore: Exception) {
+            }
+            return false
+        }
+
+        /**
+         * 利用反射检测文本是否是CustomTextSpan文本
+         */
+        fun isBitmapImageSpanText(mSpannable: Spannable): Boolean {
+            if (TextUtils.isEmpty(mSpannable)) {
+                return false
+            }
+            try {
+                val mSpans = getFieldValue(mSpannable, "mSpans") as Array<*>?
+                if (null != mSpans) {
+                    for (mSpan in mSpans) {
+                        if (mSpan is BitmapImageSpan) {
+                            return true
+                        }
+                    }
+                }
+            } catch (ignore: Exception) {
+            }
+            return false
+        }
+ /**
+         * 利用反射检测文本是否是CustomTextSpan文本
+         */
+        fun isZeroHeightSpanText(mSpannable: Spannable): Boolean {
+            if (TextUtils.isEmpty(mSpannable)) {
+                return false
+            }
+            try {
+                val mSpans = getFieldValue(mSpannable, "mSpans") as Array<*>?
+                if (null != mSpans) {
+                    for (mSpan in mSpans) {
+                        if (mSpan is ZeroHeightSpan) {
                             return true
                         }
                     }

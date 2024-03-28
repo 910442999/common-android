@@ -18,8 +18,8 @@ fun <T : View> T.withTrigger(delay: Long = 1000): T {
  * @param block: (T) -> Unit 函数
  * @return Unit
  */
-fun <T : View> T.onClick(block: (T) -> Unit) = setOnClickListener {
-    if (onClickEnable()) {
+fun <T : View> T.onClick(time: Long = 300,block: (T) -> Unit) = setOnClickListener {
+    if (onClickEnable(time)) {
         block(it as T)
     } else {
 //        ToastUtils.show(MyApplication.getInstance().applicationContext.getString(R.string.click_toast))
@@ -41,7 +41,7 @@ private var <T : View> T.triggerDelay: Long
 fun <T : View> T.clickWithTrigger(time: Long = 1000, block: (T) -> Unit) {
     triggerDelay = time
     setOnClickListener {
-        if (onClickEnable()) {
+        if (onClickEnable(time)) {
             block(it as T)
         }
     }
@@ -53,10 +53,10 @@ private var <T : View> T.triggerLastTime: Long
         setTag(1123460103, value)
     }
 
-fun <T : View> T.onClickEnable(): Boolean {
+fun <T : View> T.onClickEnable(time: Long): Boolean {
     var flag = false
     val currentClickTime = System.currentTimeMillis()
-    if (currentClickTime - triggerLastTime >= 200) {
+    if (currentClickTime - triggerLastTime >= time) {
         flag = true
     }
     triggerLastTime = currentClickTime

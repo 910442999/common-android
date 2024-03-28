@@ -5,17 +5,19 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.view.View;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 
@@ -105,8 +107,7 @@ public class BitmapUtil {
 //        return file;
 //    }
 
-    private static int calculateInSampleSize(BitmapFactory.Options options,
-                                             int reqWidth, int reqHeight) {
+    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
@@ -169,12 +170,114 @@ public class BitmapUtil {
     }
 
     public static Bitmap convertViewToBitmap(View view) {
-        Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),
-                Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
         //利用bitmap生成画布
         Canvas canvas = new Canvas(bitmap);
         //把view中的内容绘制在画布上
         view.draw(canvas);
+        return bitmap;
+    }
+
+    public static Bitmap generateCircularBitmap(String nickname, int color, int size) {
+        if (nickname == null || nickname.isEmpty()) {
+            nickname = "";
+        }
+        String newName = nickname.substring(0, 1);
+        // 创建一个正方形的 Bitmap
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+
+        // 创建一个画布
+        Canvas canvas = new Canvas(bitmap);
+
+        // 设置画布背景颜色
+        canvas.drawColor(color);
+
+        // 创建画笔
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+
+        // 设置文字的样式
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(size * 0.5f);
+        paint.setTextAlign(Paint.Align.CENTER);
+
+        // 计算文字的宽度和高度
+        float textWidth = paint.measureText(newName);
+        Paint.FontMetrics fontMetrics = paint.getFontMetrics();
+        float textHeight = fontMetrics.bottom - fontMetrics.top;
+
+        // 计算文字的位置
+        float x = size / 2;
+        float y = (size - textHeight) / 2 - fontMetrics.top;
+
+        // 在画布上绘制文字
+        canvas.drawText(newName, x, y, paint);
+
+        // 创建圆形的 Bitmap
+        Bitmap circularBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas circularCanvas = new Canvas(circularBitmap);
+
+        // 创建圆形路径
+        Path path = new Path();
+        path.addCircle(size / 2, size / 2, size / 2, Path.Direction.CW);
+
+        // 设置绘制区域
+        circularCanvas.clipPath(path);
+
+        // 在圆形画布上绘制原始的 Bitmap
+        circularCanvas.drawBitmap(bitmap, 0, 0, null);
+
+        // 释放资源
+        bitmap.recycle();
+
+        return circularBitmap;
+    }
+
+    public static Bitmap generateTextBitmap(String nickname, int color, int textSize, int width, int height, int left, int right, int top, int bottom) {
+        // 创建 Paint 对象
+        TextPaint textPaint = new TextPaint();
+        textPaint.setColor(color);
+        textPaint.setTextSize(textSize);
+        textPaint.setAntiAlias(true);
+        textPaint.setTextSize(textSize);
+        if (nickname == null || nickname.isEmpty()) {
+            nickname = "";
+        }
+        // 计算文字的宽度和高度
+        float textWidth = textPaint.measureText(nickname) + left;
+        String displayStr = nickname;
+//        if (nickname.length() > size) {
+//            while (textPaint.measureText(displayStr) >= (textWidth - textPaint.measureText("..."))) {
+//                displayStr = displayStr.substring(0, size - 1);
+//            }
+//            displayStr += "...";
+//        }
+
+//        Rect bounds = new Rect();
+//        textPaint.getTextBounds(nickname, 0, nickname.length(), bounds);
+//        float textWidth1 = bounds.width();
+//        Log.d("111","textWidth:"+textWidth1);
+
+        Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
+        float textHeight = fontMetrics.bottom - fontMetrics.top + top;
+        // 创建 Bitmap
+        Bitmap bitmap = Bitmap.createBitmap((int) textWidth, height, Bitmap.Config.ARGB_8888);
+        // 创建 Canvas
+        Canvas canvas = new Canvas(bitmap);
+        float y = (height - textHeight) / 2;
+        if (textWidth > width) {
+            // 计算可以绘制的文本宽度
+            float availableWidth = width - textPaint.measureText("...");
+            // 计算可以绘制的字符数量
+            int visibleCharCount = (int) (availableWidth / textPaint.measureText(nickname, 0, 1));
+            // 绘制省略号
+//            textPaint.measureText(nickname, 0, visibleCharCount)
+            canvas.drawText(displayStr.substring(0, visibleCharCount) + "...", left, textHeight, textPaint);
+        } else {
+            // 直接绘制全文本
+            canvas.drawText(displayStr, left, textHeight, textPaint);
+        }
+
         return bitmap;
     }
 }

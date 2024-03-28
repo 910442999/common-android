@@ -21,11 +21,7 @@ object FileLogUtils {
     private var context: Context? = null
     fun init(context: Context) {
         this.context = context
-        val logDir = getLogDirectory(context)
-        if (!logDir.exists()) {
-            logDir.mkdir()
-        }
-        logFile = File(logDir, LOG_FILE_NAME)
+        logFile = getLogFile(context)
     }
 
     fun d(message: String) {
@@ -111,5 +107,14 @@ object FileLogUtils {
         } else {
             context.filesDir
         }
+    }
+
+    fun getLogFile(context: Context): File {
+        val logDir = getLogDirectory(context)
+        if (!logDir.exists()) {
+            logDir.mkdir()
+        }
+        logFile = File(logDir, LOG_FILE_NAME)
+        return logFile
     }
 }

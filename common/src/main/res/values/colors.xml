@@ -196,4 +196,8 @@
     <color name="light_blue_600">#FF039BE5</color>
     <color name="gray_400">#FFBDBDBD</color>
     <color name="gray_600">#FF757575</color>
+
+    <color name="bg_color">#FFF4ED</color>
+    <color name="progress_color">#FFE5C5</color>
+    <color name="sun_color">#F6B160</color>
 </resources>

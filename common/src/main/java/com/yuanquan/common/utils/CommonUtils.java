@@ -100,7 +100,8 @@ public class CommonUtils {
             return str;
         }
         //如果是文本信息
-        if (clipboard.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
+        if (clipboard.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) ||
+                clipboard.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML)) {
             ClipData cdText = clipboard.getPrimaryClip();
             if (cdText != null) {
                 ClipData.Item item = cdText.getItemAt(0);

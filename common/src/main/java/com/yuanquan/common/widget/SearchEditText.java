@@ -144,6 +144,10 @@ public class SearchEditText extends LinearLayout {
         et_search.setHint(text);
     }
 
+    public void setSearchText(String text) {
+        et_search.setText(text);
+    }
+
     public void setSearchTextSize(float size) {
         et_search.setTextSize(size);
     }
@@ -156,7 +160,7 @@ public class SearchEditText extends LinearLayout {
         tv_search.setVisibility(visibility);
     }
 
-    public void setSearchText(String text) {
+    public void setSearchButtonText(String text) {
         tv_search.setText(text);
     }
 

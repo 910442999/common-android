@@ -7,6 +7,8 @@ import android.util.Log;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -792,6 +794,17 @@ public class TimeUtils {
         } catch (Exception e) {
             e.printStackTrace();
             return "";
+        }
+    }
+    public static long convertTimeStringToMillis(String timeString) {
+        try {
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            Date date = dateFormat.parse(timeString);
+            long millis = date.getTime();
+            return millis;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return 0;
         }
     }
 }
