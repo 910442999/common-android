@@ -2,9 +2,7 @@ package com.yuanquan.common.utils
 
 import android.Manifest
 import android.content.Context
-import android.content.res.Configuration
 import android.os.Build
-import android.util.Log
 import com.yuanquan.common.utils.permissions.PermissionUtils
 import java.io.BufferedWriter
 import java.io.File
@@ -71,7 +69,7 @@ object FileLogUtils {
                 if (hasPermissions) {
                     writeFile(level, message)
                 } else {
-                    LogUtil.e("写入日志无权限")
+                    writeMemory(level, message)
                 }
             }
         } else {
@@ -90,6 +88,24 @@ object FileLogUtils {
             BufferedWriter(FileWriter(logFile, true)).use { writer ->
                 writer.append(log)
             }
+            LogUtil.e("写入文件日志：" + message)
+        } catch (e: Exception) {
+            LogUtil.e(e.printStackTrace())
+        }
+    }
+
+    private fun writeMemory(level: String, message: String) {
+        try {
+            val timestamp =
+                SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss.SSS",
+                    Locale.getDefault()
+                ).format(Date())
+            val log = "[$timestamp][$level][$TAG] $message\n"
+            var string = SPUtils.getInstance().getString(TAG)
+            var s = string + log
+            SPUtils.getInstance().put(TAG, s)
+            LogUtil.e("写入内存日志：" + message)
         } catch (e: Exception) {
             LogUtil.e(e.printStackTrace())
         }

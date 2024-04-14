@@ -378,4 +378,22 @@ class WifiManager(
             block2()
         }
     }
+
+    fun openWifiSettings(context: Context) {
+        val intent = Intent()
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                intent.action = Settings.ACTION_WIFI_SETTINGS
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
+                intent.action = Settings.ACTION_WIFI_SETTINGS
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            else -> {
+                intent.action = Settings.ACTION_WIRELESS_SETTINGS
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+        }
+        context.startActivity(intent)
+    }
 }

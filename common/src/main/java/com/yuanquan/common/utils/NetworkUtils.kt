@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.wifi.SupplicantState
+import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
@@ -73,6 +74,39 @@ object NetworkUtils {
                     ssid = scanResult.SSID
                     return ssid
 //                }
+                }
+                if (!TextUtils.isEmpty(ssid) && "<unknown ssid>" != ssid) {
+                    LogUtil.e("ssid=$ssid")
+                    return ssid
+                }
+                LogUtil.e("getCurrentSsid：获取失败")
+                return ""
+            } else {
+                LogUtil.e("getCurrentSsid：请求未完成")
+                return ""
+            }
+        }
+        LogUtil.e("getCurrentSsid：未启用")
+        return ""
+    }
+
+    /**
+     * 获取当前WIFI名称
+     *
+     * @param context 上下文
+     * @return 当前WIFI名称
+     */
+
+    @JvmStatic
+    fun getCurrentSsid2(context: Context): String {
+        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager?
+        if (wifiManager != null && wifiManager.isWifiEnabled) {
+            val wifiInfo = wifiManager.connectionInfo
+            if (wifiInfo != null && wifiInfo.supplicantState == SupplicantState.COMPLETED) {
+                var ssid = wifiInfo.ssid
+                if (ssid != null && ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                    // 如果当前 SSID 以引号开头和结尾，则移除它们
+                    ssid = ssid.substring(1, ssid.length - 1)
                 }
                 if (!TextUtils.isEmpty(ssid) && "<unknown ssid>" != ssid) {
                     LogUtil.e("ssid=$ssid")
@@ -237,5 +271,26 @@ object NetworkUtils {
     fun isConnected(context: Context): Boolean {
         val info = getActiveNetworkInfo(context)
         return info != null && info.isConnected
+    }
+
+    @JvmStatic
+    fun openWifiSettings(context: Context) {
+        val intent = Intent()
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                intent.action = Settings.ACTION_WIFI_SETTINGS
+            }
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
+                intent.action = Settings.ACTION_WIFI_SETTINGS
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+
+            else -> {
+                intent.action = Settings.ACTION_WIRELESS_SETTINGS
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+        }
+        context.startActivity(intent)
     }
 }
