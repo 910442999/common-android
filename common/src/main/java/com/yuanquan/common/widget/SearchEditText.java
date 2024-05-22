@@ -1,6 +1,7 @@
 package com.yuanquan.common.widget;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
@@ -28,6 +29,7 @@ public class SearchEditText extends LinearLayout {
 
     // 搜索框组件
     private EditText et_search; // 搜索按键
+    private View ll_search;
     private TextView tv_search;
     // 数据库变量
     // 用于存放历史搜索记录
@@ -127,6 +129,7 @@ public class SearchEditText extends LinearLayout {
         LayoutInflater.from(context).inflate(R.layout.search_layout, this);
 
         // 2. 绑定搜索框EditText
+        ll_search = (View) findViewById(R.id.ll_search);
         et_search = (EditText) findViewById(R.id.et_search);
         tv_search = (TextView) findViewById(R.id.tv_search);
     }
@@ -154,6 +157,10 @@ public class SearchEditText extends LinearLayout {
 
     public void setSearchTextColor(int color) {
         et_search.setTextColor(color);
+    }
+
+    public void setSearchBackground(Drawable color) {
+        ll_search.setBackground(color);
     }
 
     public void setSearchButtonVisibility(int visibility) {
