@@ -7,8 +7,6 @@ import android.util.Log;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -174,6 +172,31 @@ public class TimeUtils {
             }
         } catch (Exception e) {
 
+        }
+        return i;
+    }
+
+    /**
+     * 判断2个时间大小
+     * yyyy-MM-dd HH:mm 格式（自己可以修改成想要的时间格式）
+     *
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public static int timeCompare(Date startTime, Date endTime) {
+        int i = 0;
+        //注意：传过来的时间格式必须要和这里填入的时间格式相同
+        // 1 结束时间小于开始时间 2 开始时间与结束时间相同 3 结束时间大于开始时间
+        if (endTime.getTime() < startTime.getTime()) {
+            //结束时间小于开始时间
+            i = 1;
+        } else if (endTime.getTime() == startTime.getTime()) {
+            //开始时间与结束时间相同
+            i = 2;
+        } else if (endTime.getTime() > startTime.getTime()) {
+            //结束时间大于开始时间
+            i = 3;
         }
         return i;
     }
@@ -796,6 +819,7 @@ public class TimeUtils {
             return "";
         }
     }
+
     public static long convertTimeStringToMillis(String timeString) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -807,4 +831,56 @@ public class TimeUtils {
             return 0;
         }
     }
+
+
+    /**
+     * 格式化日期字符串。
+     * 如果日期与当前年份相同，不显示年份。如果不同，则显示年份。
+     *
+     * @param dateString         日期字符串
+     * @param originalDateFormat 原始的日期字符串格式
+     * @return 格式化后的日期字符串
+     */
+    public static String formatDateString(String dateString, String originalDateFormat, String originalDateFormat1, String originalDateFormat2) {
+        // 设置解析器的时区为UTC
+        SimpleDateFormat parser = new SimpleDateFormat(originalDateFormat, Locale.getDefault());
+        parser.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        try {
+            // 解析得到UTC格式的Date对象
+            Date date = parser.parse(dateString);
+
+            // 转换Date对象到系统默认时区
+            SimpleDateFormat defaultTimeZoneFormatter = new SimpleDateFormat(originalDateFormat, Locale.getDefault());
+            defaultTimeZoneFormatter.setTimeZone(TimeZone.getDefault());
+            String defaultTimeZoneDateStr = defaultTimeZoneFormatter.format(date);
+
+            // 重新解析默认时区的日期字符串
+            Date defaultTimeZoneDate = defaultTimeZoneFormatter.parse(defaultTimeZoneDateStr);
+
+            Calendar currentCalendar = Calendar.getInstance();
+            Calendar dateCalendar = Calendar.getInstance();
+            dateCalendar.setTime(defaultTimeZoneDate);
+
+            int currentYear = currentCalendar.get(Calendar.YEAR);
+            int dateYear = dateCalendar.get(Calendar.YEAR);
+
+            SimpleDateFormat formatter;
+            if (currentYear == dateYear) {
+                // 如果年份相同，不显示年份
+                formatter = new SimpleDateFormat(originalDateFormat1, Locale.getDefault());
+            } else {
+                // 如果年份不同，显示年份
+                formatter = new SimpleDateFormat(originalDateFormat2, Locale.getDefault());
+            }
+
+            // 使用系统默认时区格式化日期
+            formatter.setTimeZone(TimeZone.getDefault());
+            return formatter.format(defaultTimeZoneDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
 }

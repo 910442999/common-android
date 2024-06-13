@@ -62,5 +62,5 @@
         android:id="@+id/v_bottom"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/gray_EEEEEE" />
+        android:background="@color/white_fff4f5f7" />
 </LinearLayout>

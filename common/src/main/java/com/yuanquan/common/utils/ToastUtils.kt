@@ -1,6 +1,7 @@
 package com.yuanquan.common.utils
 
 import android.content.Context
+import android.view.Gravity
 import android.widget.Toast
 
 object ToastUtils {
@@ -16,6 +17,7 @@ object ToastUtils {
         }
         if (toast == null) {
             toast = Toast.makeText(context, text, Toast.LENGTH_SHORT)
+            toast?.setGravity(Gravity.CENTER, 0, 0)
             toast?.show()
             oneTime = System.currentTimeMillis()
         } else {
@@ -26,12 +28,14 @@ object ToastUtils {
                     //  则显示新的toast
                     toast!!.cancel()
                     toast = Toast.makeText(context, text, Toast.LENGTH_SHORT)
+                    toast?.setGravity(Gravity.CENTER, 0, 0)
                     toast?.show()
                     oneTime = twoTime
                 }
             } else {
                 toast!!.cancel()
                 toast = Toast.makeText(context, text, Toast.LENGTH_SHORT)
+                toast?.setGravity(Gravity.CENTER, 0, 0)
                 oldMsg = text
                 toast?.show()
                 oneTime = twoTime

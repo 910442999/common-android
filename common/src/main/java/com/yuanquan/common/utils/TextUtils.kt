@@ -1,46 +1,38 @@
-package com.yuanquan.common.utils;
+package com.yuanquan.common.utils
 
-import android.text.TextUtils;
+import android.text.TextUtils
 
-/**
- * Created by yjf
- *
- * @description:
- * @date :2019/12/9
- */
-public class TextPiceUtils {
 
-    /**
-     * @param currency 币种
-     * @param value    金额
-     * @return
-     */
-    public static String changTVsize(String currency, String value) {
-        return changTVsize(currency, value, "");
-    }
-
+object TextUtils {
     /**
      * @param currency 货币
      * @param value    金额
      * @param company  单位
      * @return
      */
-    public static String changTVsize(String currency, String value, String company) {
+    /**
+     * @param currency 币种
+     * @param value    金额
+     * @return
+     */
+    @JvmStatic
+    fun changTVsize(currency: String?, value: String, company: String = ""): String {
+        var currency = currency
         if (currency == null || currency.isEmpty()) {
-            currency = "";
+            currency = ""
         }
-        String money = "";
-        if (!currency.contains("NT$")) {
+        var money = ""
+        money = if (!currency.contains("NT$")) {
             if (value.contains(".")) {
-                money = currency + value;
+                currency + value
             } else {
-                money = currency + value;
+                currency + value
             }
         } else {
             if (value.contains(".")) {
-                money = currency + value.substring(0, value.indexOf("."));
+                currency + value.substring(0, value.indexOf("."))
             } else {
-                money = currency + value;
+                currency + value
             }
         }
 
@@ -50,8 +42,11 @@ public class TextPiceUtils {
         //            spannableString.setSpan(new RelativeSizeSpan(1f), money.indexOf("."), money.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         //        }
         //        return spannableString;
-        return money + (TextUtils.isEmpty(company) ? "" : ("/" + company));
+        return money + if (TextUtils.isEmpty(company)) "" else "/$company"
     }
 
-
+    @JvmStatic
+    fun stripHtml(htmlString: String): String {
+        return htmlString.replace("<[^>]+>".toRegex(), "")
+    }
 }

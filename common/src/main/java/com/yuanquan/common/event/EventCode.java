@@ -7,5 +7,6 @@ public class EventCode {
     public static int ALI_PAY = 1006;//ALI支付
     public static int RESTART_APP = 1007;//重启app
     public static int BACK_APP_HOME = 1010; //WebView返回APP主页
+    public static int CLOSE_BOX_CHECK_ACTIVITY = 1011; //关闭网络检测弹窗页面
 
 }

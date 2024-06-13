@@ -168,6 +168,7 @@ public class SearchEditText extends LinearLayout {
     }
 
     public void setSearchButtonText(String text) {
+        tv_search.setVisibility(View.VISIBLE);
         tv_search.setText(text);
     }
 
