@@ -74,7 +74,7 @@ public class NotificationUtils {
      * @param content   内容
      *                  //     * @param intent    意图
      */
-    public Notification createNotification(String channelId, String title, String content, int icon) {
+    public NotificationCompat.Builder createNotification(String channelId, String title, String content, int icon) {
 
 //        PendingIntent pendingIntent = null;
 //        if (intent != null) {
@@ -82,7 +82,7 @@ public class NotificationUtils {
 ////            pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE);
 //        }
 
-        Notification notification = new NotificationCompat.Builder(context, channelId)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setSmallIcon(icon)
@@ -91,9 +91,8 @@ public class NotificationUtils {
 //                .setContentIntent(pendingIntent)
                 //        .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setOngoing(true)
-                .build();
-        return notification;
+                .setOngoing(true);
+        return builder;
     }
 
     /**

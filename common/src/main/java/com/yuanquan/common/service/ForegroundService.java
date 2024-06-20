@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 import com.yuanquan.common.utils.NotificationUtils;
 
@@ -59,7 +60,8 @@ public class ForegroundService extends Service {
             // 当然这里是具体按照项目需要设定的通道类型创建
             notificationUtils.createNotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
         }
-        Notification notification = notificationUtils.createNotification(CHANNEL_ID, CHANNEL_TITLE, CHANNEL_CONTENT, CHANNEL_ICON);
+        NotificationCompat.Builder builder = notificationUtils.createNotification(CHANNEL_ID, CHANNEL_TITLE, CHANNEL_CONTENT, CHANNEL_ICON);
+        Notification notification = builder.setSound(null).build();
         //将服务置于启动状态 ,NOTIFICATION_ID指的是创建的通知的ID
         startForeground(NOTIFICATION_ID, notification);
     }
