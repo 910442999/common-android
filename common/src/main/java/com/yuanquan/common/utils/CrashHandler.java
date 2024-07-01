@@ -136,7 +136,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @param ex
      * @return 返回文件名称, 便于将文件传送到服务器
      */
-    private String saveCrashInfo2File(Context ctx, Throwable ex) {
+    private String saveCrashInfo2File(Context context, Throwable ex) {
         try {
             StringBuffer sb = new StringBuffer();
             for (Map.Entry<String, String> entry : infos.entrySet()) {
@@ -158,22 +158,25 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             sb.append(result);
 
             String time = formatter.format(new Date());
-            String fileName = "crash-" + time + ".txt";
-            if (Environment.getExternalStorageState().equals(
-                    Environment.MEDIA_MOUNTED)) {
-                String path = Environment.getExternalStorageDirectory().getPath() + File.separator + appName + File.separator + "crash" + File.separator;
-                File dir = new File(path);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-                FileOutputStream fos = new FileOutputStream(path + fileName);
-                fos.write(sb.toString().getBytes());
-                fos.close();
+            String fileName = "crash-" + time + ".log";
+            File picturesDir;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                picturesDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+            } else {
+                picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
             }
+            if (picturesDir == null) return null;
+            String path = picturesDir.getPath() + File.separator + appName + File.separator + "crash" + File.separator;
+            File dir = new File(path);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            FileOutputStream fos = new FileOutputStream(path + fileName);
+            fos.write(sb.toString().getBytes());
+            fos.close();
             return fileName;
         } catch (Exception e) {
-
+            return null;
         }
-        return null;
     }
 }
