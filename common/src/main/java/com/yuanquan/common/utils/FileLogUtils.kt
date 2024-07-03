@@ -4,10 +4,16 @@ import android.Manifest
 import android.content.Context
 import android.os.Build
 import com.yuanquan.common.utils.permissions.PermissionUtils
+import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.FileWriter
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.RandomAccessFile
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -143,6 +149,54 @@ object FileLogUtils {
             }
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
+        }
+    }
+
+
+    fun readFileFromInternalStorage(file: File?): String {
+        val stringBuilder = StringBuilder()
+        try {
+            val fis = FileInputStream(file)
+            val isr = InputStreamReader(fis)
+            val bufferedReader = BufferedReader(isr)
+            var line: String?
+            while ((bufferedReader.readLine().also { line = it }) != null) {
+                stringBuilder.append(line).append("\n")
+            }
+            bufferedReader.close()
+            // 使用sb.toString()获取文件内容
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return stringBuilder.toString()
+    }
+
+    fun readFromBottom(file: File?): String {
+        try {
+            val randomAccessFile = RandomAccessFile(file, "r")
+            var fileLength = randomAccessFile.length()
+            // 移动到文件末尾
+            randomAccessFile.seek(fileLength)
+            val content = java.lang.StringBuilder()
+            // 从文件末尾开始读取每一行
+            while (fileLength > 0 && randomAccessFile.filePointer < fileLength) {
+                randomAccessFile.seek(--fileLength)
+                if (randomAccessFile.readByte() == '\n'.code.toByte()) {
+                    randomAccessFile.readLine() // Skip the current empty line
+                    val line = randomAccessFile.readLine()
+                    if (line != null) {
+                        content.insert(0, line + "\n")
+                    }
+                    break
+                }
+            }
+            randomAccessFile.close()
+            return content.toString()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ""
         }
     }
 }
