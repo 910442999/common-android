@@ -6,6 +6,7 @@ import android.os.Build
 import com.yuanquan.common.utils.permissions.PermissionUtils
 import java.io.BufferedWriter
 import java.io.File
+import java.io.FileOutputStream
 import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -132,5 +133,16 @@ object FileLogUtils {
         }
         logFile = File(logDir, LOG_FILE_NAME)
         return logFile
+    }
+
+    fun clearFileContents() {
+        try {
+            FileOutputStream(logFile).use { fos ->
+                // 将文件清空，即写入0字节
+                fos.write(ByteArray(0))
+            }
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
     }
 }
