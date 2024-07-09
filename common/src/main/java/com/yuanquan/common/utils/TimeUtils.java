@@ -883,4 +883,18 @@ public class TimeUtils {
         }
     }
 
+    //将给定时间转换成UTC时间
+    public static String convertToUTC(String dateTime, String dateFormat) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
+            Date date = sdf.parse(dateTime);
+            // 设置时区为UTC
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            // 将Date对象格式化为UTC时间字符串
+            return sdf.format(date);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 }
