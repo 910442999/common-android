@@ -5,10 +5,10 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.wifi.SupplicantState
-import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
@@ -292,5 +292,18 @@ object NetworkUtils {
             }
         }
         context.startActivity(intent)
+    }
+
+    @JvmStatic
+    fun isLocationEnabled(context: Context): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+
+    @JvmStatic
+    fun openLocationSettings(context: Context) {
+        val settingsIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        context.startActivity(settingsIntent)
     }
 }
