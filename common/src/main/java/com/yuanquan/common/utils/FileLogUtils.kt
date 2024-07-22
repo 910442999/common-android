@@ -21,7 +21,7 @@ import java.util.Locale
 
 object FileLogUtils {
     private const val TAG = "FileLogUtils"
-    private const val LOG_FILE_NAME = "appLog.log" // 日志文件名
+    private const val LOG_FILE_NAME = "appLog.txt" // 日志文件名
     private lateinit var logFile: File
     private var context: Context? = null
     fun init(context: Context) {
