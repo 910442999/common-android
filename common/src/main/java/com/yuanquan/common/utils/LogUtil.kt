@@ -3,7 +3,7 @@ package com.yuanquan.common.utils
 import android.util.Log
 
 object LogUtil {
-    private const val TAG = "LogUtil-LOG"
+    const val TAG = "LogUtil-LOG"
     const val TAG_NET = "LogUtil-NET"
 
     @JvmStatic
