@@ -18,7 +18,7 @@ object LogUtil {
 
     @JvmStatic
     fun d(tag: String, message: Any?) {
-        Log.i(tag, message.toString())
+        Log.d(tag, message.toString())
     }
 
     @JvmStatic
