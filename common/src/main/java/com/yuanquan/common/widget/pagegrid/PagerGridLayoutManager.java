@@ -58,7 +58,8 @@ public class PagerGridLayoutManager extends RecyclerView.LayoutManager
     public static final int HORIZONTAL = 1;         // 水平滚动
 
     @IntDef({VERTICAL, HORIZONTAL})
-    public @interface OrientationType {}            // 滚动类型
+    public @interface OrientationType {
+    }            // 滚动类型
 
     @OrientationType
     private int mOrientation;                       // 默认水平滚动
@@ -83,7 +84,6 @@ public class PagerGridLayoutManager extends RecyclerView.LayoutManager
     private int mScrollState = SCROLL_STATE_IDLE;   // 滚动状态
 
     private boolean mAllowContinuousScroll = true;  // 是否允许连续滚动
-
     private RecyclerView mRecyclerView;
 
     /**
