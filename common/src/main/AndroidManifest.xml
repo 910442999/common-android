@@ -27,9 +27,5 @@
         <activity
             android:name=".ui.webview.WebViewActivity"
             android:screenOrientation="behind" />
-
-        <activity
-            android:name=".ui.test.PageLayoutActivity"
-            android:screenOrientation="behind" />
     </application>
 </manifest>
