@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/easy_alert_dialog_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@null"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@drawable/shape_color_4c4c4c_radius_8"
+        android:paddingStart="15dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="12dp"
+        android:textColor="@color/white"
+        tools:text="a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少a的发多少" />
+
+    <ImageView
+        android:id="@+id/iv_arrow"
+        android:layout_width="14dp"
+        android:layout_height="7dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="-3dp"
+        android:layout_marginEnd="16dp"
+        android:background="@mipmap/ic_arrow"
+        tools:ignore="ContentDescription" />
+
+</LinearLayout>
