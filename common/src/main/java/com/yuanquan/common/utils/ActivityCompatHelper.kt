@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import androidx.fragment.app.FragmentActivity
 
 /**
@@ -76,5 +77,41 @@ object ActivityCompatHelper {
             }
         }
         return false
+    }
+
+    /**
+     * 通过反射启动页面
+     *
+     *     ActivityCompatHelper.startActivity(
+     *                 context, "com.yuanquan.common.ui.TestActivity",
+     *                 intent
+     *             )
+     *
+     */
+    fun startActivityForClass(context: Context, className: String, intent: Intent) {
+        try {
+            val clazz = Class.forName(className)
+            // 启动Activity
+            intent.setClass(context, clazz)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     *     ActivityCompatHelper.startActivityForClassName(
+     *                 context, "com.yuanquan.common.ui.TestActivity",
+     *                 intent
+     *             )
+     */
+    fun startActivityForClassName(context: Context, className: String, intent: Intent) {
+        try {
+            // 启动Activity
+            intent.setClassName(context, className)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

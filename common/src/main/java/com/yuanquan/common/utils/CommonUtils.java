@@ -39,27 +39,6 @@ public class CommonUtils {
         }, 600);
     }
 
-    /**
-     * 重启app
-     *
-     * @param context
-     * @param position
-     * @param clazz
-     */
-    public static void reStart(Context context, int position, Class clazz) {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //重启app,这一步一定要加上，如果不重启app，可能打开新的页面显示的语言会不正确
-                Intent intent = new Intent(context, clazz);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                intent.putExtra("position", position);
-                context.startActivity(intent);
-            }
-        }, 600);
-    }
-
     // 需要点击几次 就设置几
     static long[] mHits = null;
 
