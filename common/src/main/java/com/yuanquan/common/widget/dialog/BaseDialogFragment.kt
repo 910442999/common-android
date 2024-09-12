@@ -1,5 +1,6 @@
 package com.yuanquan.common.widget.dialog
 
+import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -21,15 +22,13 @@ import androidx.fragment.app.FragmentManager
  *
  */
 abstract class BaseDialogFragment : AppCompatDialogFragment() {
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
-        dialog?.apply {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        var dialog = super.onCreateDialog(savedInstanceState)
+        dialog.apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)
             window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             // setCancelable(false)
             //setCanceledOnTouchOutside(false)
-
             val dialogWindow = window!!
             val layoutParams = dialogWindow.attributes
             dialogWindow.decorView.setPadding(0, 0, 0, 0)
@@ -37,11 +36,15 @@ abstract class BaseDialogFragment : AppCompatDialogFragment() {
             layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
             layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
             dialogWindow.attributes = layoutParams
-
             setCancelable(isTouchClose())
             setCanceledOnTouchOutside(isTouchClose())
         }
+        return dialog
+    }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(getLayoutId(), container)
     }
 
@@ -58,7 +61,8 @@ abstract class BaseDialogFragment : AppCompatDialogFragment() {
     protected open fun isTouchClose(): Boolean {
         return true
     }
-//    open fun isDialogShowing(): Boolean {
+
+    //    open fun isDialogShowing(): Boolean {
 //        return if (mDialog != null && mDialog!!.isShowing) {
 //            true
 //        } else {
