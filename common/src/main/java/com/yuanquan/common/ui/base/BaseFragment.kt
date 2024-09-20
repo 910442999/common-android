@@ -17,8 +17,13 @@ import com.yuanquan.common.utils.LogUtil
 import com.yuanquan.common.utils.ToastUtils
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import java.lang.reflect.ParameterizedType
 
-
+/**
+ * # 保持ViewModel和ViewBinding不混淆，否则无法反射自动创建
+ * -keep class * implements androidx.viewbinding.ViewBinding { *; }
+ * -keep class * extends androidx.lifecycle.ViewModel { *; }
+ */
 abstract class BaseFragment<VM : BaseViewModel<VB>, VB : ViewBinding> : Fragment() {
 
     lateinit var mContext: FragmentActivity
@@ -39,20 +44,34 @@ abstract class BaseFragment<VM : BaseViewModel<VB>, VB : ViewBinding> : Fragment
         super.onCreate(savedInstanceState)
         mContext = context as FragmentActivity
 
-        var pathfinders = ArrayList<GenericParadigmUtil.Pathfinder>()
-        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 0))
-        val clazzVM = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders) as Class<VM>
-        vm = ViewModelProvider(this).get(clazzVM)
-
-        pathfinders = ArrayList()
-        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 1))
-        val clazzVB = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders)
-        val method = clazzVB.getMethod("inflate", LayoutInflater::class.java)
-        vb = method.invoke(null, layoutInflater) as VB
-
+//        var pathfinders = ArrayList<GenericParadigmUtil.Pathfinder>()
+//        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 0))
+//        val clazzVM = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders) as Class<VM>
+//        vm = ViewModelProvider(this).get(clazzVM)
+//
+//        pathfinders = ArrayList()
+//        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 1))
+//        val clazzVB = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders)
+//        val method = clazzVB.getMethod("inflate", LayoutInflater::class.java)
+//        vb = method.invoke(null, layoutInflater) as VB
+        vm = getViewModelInstance()
+        vb = getViewBindingInstance(layoutInflater)
         vm.binding(vb)
         vm.observe(this, this)
 
+    }
+
+    private fun getViewModelInstance(): VM {
+        val superClass = javaClass.genericSuperclass as ParameterizedType
+        val vmClass = (superClass.actualTypeArguments[0] as Class<VM>).kotlin
+        return ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(vmClass.java)
+    }
+
+    private fun getViewBindingInstance(inflater: LayoutInflater): VB {
+        val superClass = javaClass.genericSuperclass as ParameterizedType
+        val vbClass = superClass.actualTypeArguments[1] as Class<VB>
+        val method = vbClass.getMethod("inflate", LayoutInflater::class.java)
+        return method.invoke(null, inflater) as VB
     }
 
     override fun onCreateView(
