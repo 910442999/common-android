@@ -19,7 +19,6 @@ import com.yuanquan.common.utils.*
 import com.yuanquan.common.widget.dialog.LoadingDialog
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import java.lang.reflect.ParameterizedType
 
 /**
  * # 保持ViewModel和ViewBinding不混淆，否则无法反射自动创建
@@ -38,21 +37,17 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initResources()
-//        var pathfinders = ArrayList<GenericParadigmUtil.Pathfinder>()
-//        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 0))
-//        val clazzVM = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders) as Class<VM>
-//        vm = ViewModelProvider(this).get(clazzVM)
-//
-//        pathfinders = ArrayList()
-//        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 1))
-//        val clazzVB = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders)
-//        val method = clazzVB.getMethod("inflate", LayoutInflater::class.java)
-//        vb = method.invoke(null, layoutInflater) as VB
-        vm = getViewModelInstance()
-        vb = getViewBindingInstance(layoutInflater)
+        var pathfinders = ArrayList<GenericParadigmUtil.Pathfinder>()
+        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 0))
+        val clazzVM = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders) as Class<VM>
+        vm = ViewModelProvider(this).get(clazzVM)
+        pathfinders = ArrayList()
+        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 1))
+        val clazzVB = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders)
+        val method = clazzVB.getMethod("inflate", LayoutInflater::class.java)
+        vb = method.invoke(null, layoutInflater) as VB
         vm.binding(vb)
         vm.observe(this, this)
-
         setContentView(vb.root)
 
         mContext = this
@@ -62,19 +57,7 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         initClick()
         initData()
     }
-    private fun getViewModelInstance(): VM {
-        val superClass = javaClass.genericSuperclass as ParameterizedType
-        val vmClass = (superClass.actualTypeArguments[0] as Class<VM>).kotlin
-        return ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(vmClass.java)
-    }
 
-
-    private fun getViewBindingInstance(inflater: LayoutInflater): VB {
-        val superClass = javaClass.genericSuperclass as ParameterizedType
-        val vbClass = superClass.actualTypeArguments[1] as Class<VB>
-        val method = vbClass.getMethod("inflate", LayoutInflater::class.java)
-        return method.invoke(null, inflater) as VB
-    }
     /**
      * 防止系统字体影响到app的字体
      *

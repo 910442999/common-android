@@ -43,35 +43,18 @@ abstract class BaseFragment<VM : BaseViewModel<VB>, VB : ViewBinding> : Fragment
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mContext = context as FragmentActivity
-
-//        var pathfinders = ArrayList<GenericParadigmUtil.Pathfinder>()
-//        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 0))
-//        val clazzVM = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders) as Class<VM>
-//        vm = ViewModelProvider(this).get(clazzVM)
-//
-//        pathfinders = ArrayList()
-//        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 1))
-//        val clazzVB = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders)
-//        val method = clazzVB.getMethod("inflate", LayoutInflater::class.java)
-//        vb = method.invoke(null, layoutInflater) as VB
-        vm = getViewModelInstance()
-        vb = getViewBindingInstance(layoutInflater)
+        var pathfinders = ArrayList<GenericParadigmUtil.Pathfinder>()
+        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 0))
+        val clazzVM = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders) as Class<VM>
+        vm = ViewModelProvider(this).get(clazzVM)
+        pathfinders = ArrayList()
+        pathfinders.add(GenericParadigmUtil.Pathfinder(0, 1))
+        val clazzVB = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders)
+        val method = clazzVB.getMethod("inflate", LayoutInflater::class.java)
+        vb = method.invoke(null, layoutInflater) as VB
         vm.binding(vb)
         vm.observe(this, this)
 
-    }
-
-    private fun getViewModelInstance(): VM {
-        val superClass = javaClass.genericSuperclass as ParameterizedType
-        val vmClass = (superClass.actualTypeArguments[0] as Class<VM>).kotlin
-        return ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(vmClass.java)
-    }
-
-    private fun getViewBindingInstance(inflater: LayoutInflater): VB {
-        val superClass = javaClass.genericSuperclass as ParameterizedType
-        val vbClass = superClass.actualTypeArguments[1] as Class<VB>
-        val method = vbClass.getMethod("inflate", LayoutInflater::class.java)
-        return method.invoke(null, inflater) as VB
     }
 
     override fun onCreateView(
