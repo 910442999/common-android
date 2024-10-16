@@ -64,9 +64,21 @@ public class GlideManager {
      * @param resourceId 展位图片
      */
     public static void load(Context context, String url, ImageView iv, int resourceId, Transformation<Bitmap> transformation) {
+        load(context, url, iv, resourceId, true, DiskCacheStrategy.ALL, transformation);
+    }
+
+    /**
+     * 网络图片
+     *
+     * @param context
+     * @param url
+     * @param iv
+     * @param resourceId 展位图片
+     */
+    public static void load(Context context, String url, ImageView iv, int resourceId, boolean skip, DiskCacheStrategy strategy, Transformation<Bitmap> transformation) {
         RequestBuilder<Drawable> builder = Glide.with(context)
                 //这里写入url
-                .load(url).placeholder(resourceId).error(resourceId).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL);
+                .load(url).placeholder(resourceId).error(resourceId).skipMemoryCache(skip).diskCacheStrategy(strategy);
         if (transformation != null) {
             builder = builder.transform(transformation);
         }
