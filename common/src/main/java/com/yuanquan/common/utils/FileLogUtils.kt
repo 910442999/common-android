@@ -1,9 +1,8 @@
 package com.yuanquan.common.utils
 
-import android.Manifest
 import android.content.Context
 import android.os.Build
-import com.yuanquan.common.utils.permissions.PermissionUtils
+import android.os.Environment
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -14,19 +13,20 @@ import java.io.FileWriter
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.RandomAccessFile
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 
 object FileLogUtils {
-    private const val TAG = "FileLogUtils"
-    private const val LOG_FILE_NAME = "appFileLog.log" // 日志文件名
-    private lateinit var logFile: File
+    private const val TAG = "FileLog"
+    private var logFile: File? = null
     private var context: Context? = null
+    private val formatter: DateFormat = SimpleDateFormat("yyyy-MM-dd")
     fun init(context: Context) {
         this.context = context
-        logFile = getLogFile(context)
+        logFile = this.getLogFile(context)
     }
 
     fun d(message: String) {
@@ -40,6 +40,14 @@ object FileLogUtils {
     fun i(message: String) {
         if (context != null) {
             writeLog("INFO", message)
+        } else {
+            LogUtil.e("写入日志未初始化")
+        }
+    }
+
+    fun i(level: String, message: String) {
+        if (context != null) {
+            writeLog(level, message)
         } else {
             LogUtil.e("写入日志未初始化")
         }
@@ -64,21 +72,7 @@ object FileLogUtils {
     private fun writeLog(level: String, message: String) {
         //部分PAD（联想小新）获取权限为拒绝但实际有权限
         if (context != null) {
-            if (SysUtils.isTablet(context!!)) {
-                writeFile(level, message)
-            } else {
-                var hasPermissions = PermissionUtils.hasPermissions(
-                    context!!, arrayOf(
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    )
-                )
-                if (hasPermissions) {
-                    writeFile(level, message)
-                } else {
-                    writeMemory(level, message)
-                }
-            }
+            writeFile(level, message)
         } else {
             LogUtil.e("写入日志未初始化")
         }
@@ -86,6 +80,10 @@ object FileLogUtils {
 
     private fun writeFile(level: String, message: String) {
         try {
+            if (logFile == null) {
+                LogUtil.e(message)
+                return
+            }
             val timestamp =
                 SimpleDateFormat(
                     "yyyy-MM-dd HH:mm:ss.SSS",
@@ -97,7 +95,7 @@ object FileLogUtils {
             }
             LogUtil.e("写入文件日志：" + message)
         } catch (e: Exception) {
-            LogUtil.e(e.printStackTrace())
+            LogUtil.e(message)
         }
     }
 
@@ -114,35 +112,34 @@ object FileLogUtils {
             SPUtils.getInstance().put(TAG, s)
             LogUtil.e("写入内存日志：" + message)
         } catch (e: Exception) {
-            LogUtil.e(e.printStackTrace())
+            LogUtil.e(message)
         }
     }
 
-    /**
-     * 内部存储目录：如果您在 getLogDirectory() 方法中选择了内部存储目录（对应 Android 10 以下版本），则日志文件将保存在应用的内部存储目录中。内部存储目录的位置通常是 /data/data/<应用包名>/files。例如，如果您的应用包名是 "com.example.myapp"，则日志文件的完整路径将是 /data/data/com.example.myapp/files/app_log.txt。
-     *
-     * 外部存储目录：如果您在 getLogDirectory() 方法中选择了外部存储目录（对应 Android 10 及以上版本），则日志文件将保存在应用的外部存储目录中。外部存储目录的位置通常是 /storage/emulated/0/Android/data/<应用包名>/files。例如，如果您的应用包名是 "com.example.myapp"，则日志文件的完整路径将是 /storage/emulated/0/Android/data/com.example.myapp/files/app_log.txt。
-     * 如设备中无法查看，需要链接电脑查看文件
-     */
-    private fun getLogDirectory(context: Context): File {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            context.getExternalFilesDir(null)!!
+    fun getLogFile(context: Context): File? {
+        val picturesDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
         } else {
-            context.filesDir
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         }
-    }
-
-    fun getLogFile(context: Context): File {
-        val logDir = getLogDirectory(context)
+        if (picturesDir == null) return null
+        val path =
+            picturesDir.path + File.separator + TAG + File.separator
+        val logDir = File(path)
         if (!logDir.exists()) {
-            logDir.mkdir()
+            logDir.mkdirs()
         }
-        logFile = File(logDir, LOG_FILE_NAME)
+        val time = formatter.format(Date())
+        val fileName = "$TAG-$time.log"
+        logFile = File(logDir, fileName)
         return logFile
     }
 
     fun clearFileContents() {
         try {
+            if (logFile == null) {
+                return
+            }
             FileOutputStream(logFile).use { fos ->
                 // 将文件清空，即写入0字节
                 fos.write(ByteArray(0))

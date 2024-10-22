@@ -34,8 +34,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     private Map<String, String> infos = new HashMap<String, String>();
 
     //用于格式化日期,作为日志文件名的一部分
-    private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-    private String appName = "CrashHandler";
+    private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     /**
      * 保证只有一个CrashHandler实例
@@ -121,9 +120,6 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                 infos.put("型号", Build.MODEL);
                 infos.put("设备标识", Build.FINGERPRINT);
                 infos.put("CPU_ABI", Build.CPU_ABI);
-
-                int labelRes = pi.applicationInfo.labelRes;
-                appName = ctx.getResources().getString(labelRes);
             }
         } catch (Exception e) {
 
@@ -166,7 +162,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                 picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
             }
             if (picturesDir == null) return null;
-            String path = picturesDir.getPath() + File.separator + appName + File.separator + "crash" + File.separator;
+            String path = picturesDir.getPath() + File.separator + "crash" + File.separator;
             File dir = new File(path);
             if (!dir.exists()) {
                 dir.mkdirs();
