@@ -23,7 +23,6 @@ object FileLogUtils {
     private const val TAG = "FileLog"
     private var logFile: File? = null
     private var context: Context? = null
-    private val formatter: DateFormat = SimpleDateFormat("yyyy-MM-dd")
     fun init(context: Context) {
         this.context = context
         logFile = this.getLogFile(context)
@@ -129,8 +128,12 @@ object FileLogUtils {
         if (!logDir.exists()) {
             logDir.mkdirs()
         }
-        val time = formatter.format(Date())
-        val fileName = "$TAG-$time.log"
+        val timestamp =
+            SimpleDateFormat(
+                "yyyy-MM-dd",
+                Locale.getDefault()
+            ).format(Date())
+        val fileName = "$TAG-$timestamp.log"
         logFile = File(logDir, fileName)
         return logFile
     }
