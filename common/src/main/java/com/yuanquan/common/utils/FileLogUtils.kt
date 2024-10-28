@@ -13,7 +13,6 @@ import java.io.FileWriter
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.RandomAccessFile
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -117,9 +116,9 @@ object FileLogUtils {
 
     fun getLogFile(context: Context): File? {
         val picturesDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+            context.getExternalFilesDir(null)
         } else {
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            Environment.getExternalStoragePublicDirectory(null)
         }
         if (picturesDir == null) return null
         val path =

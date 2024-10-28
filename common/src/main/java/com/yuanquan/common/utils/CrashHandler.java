@@ -157,9 +157,9 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             String fileName = "crash-" + time + ".log";
             File picturesDir;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                picturesDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+                picturesDir = context.getExternalFilesDir(null);
             } else {
-                picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+                picturesDir = Environment.getExternalStoragePublicDirectory(null);
             }
             if (picturesDir == null) return null;
             String path = picturesDir.getPath() + File.separator + "crash" + File.separator;
