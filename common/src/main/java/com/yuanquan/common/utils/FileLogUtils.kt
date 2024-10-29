@@ -87,7 +87,7 @@ object FileLogUtils {
                     "yyyy-MM-dd HH:mm:ss.SSS",
                     Locale.getDefault()
                 ).format(Date())
-            val log = "[$timestamp][$level][$TAG] $message\n"
+            val log = "[$timestamp][$TAG][$level] $message\n"
             BufferedWriter(FileWriter(logFile, true)).use { writer ->
                 writer.append(log)
             }
@@ -104,7 +104,7 @@ object FileLogUtils {
                     "yyyy-MM-dd HH:mm:ss.SSS",
                     Locale.getDefault()
                 ).format(Date())
-            val log = "[$timestamp][$level][$TAG] $message\n"
+            val log = "[$timestamp][$TAG][$level] $message\n"
             var string = SPUtils.getInstance().getString(TAG)
             var s = string + log
             SPUtils.getInstance().put(TAG, s)
