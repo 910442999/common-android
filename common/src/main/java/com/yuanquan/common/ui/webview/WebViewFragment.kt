@@ -56,7 +56,7 @@ class WebViewFragment :
     }
 
     private fun initWebView() {
-//        if (BuildConfig.DEBUG) { //如果是测试环境 就打开调试
+//        if (URLConstant.isBuildDebug()) { //如果是测试环境 就打开调试
 //            WebView.setWebContentsDebuggingEnabled(true)
 //        }
 //        if ("save" == mType && Build.VERSION.SDK_INT >= 21) {
