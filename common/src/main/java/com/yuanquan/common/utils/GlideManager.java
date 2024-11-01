@@ -27,8 +27,12 @@ import com.yuanquan.common.widget.CircleTextImageView;
  */
 
 public class GlideManager {
-    public interface OnDownloadBitmapListener {
-        void onDownloadSuccess(Bitmap bitmap);
+    public interface OnBitmapListener {
+        void onResourceReady(Bitmap bitmap);
+    }
+
+    public interface OnDrawableListener {
+        void onResourceReady(Drawable drawable);
     }
 
 
@@ -154,11 +158,20 @@ public class GlideManager {
         Glide.with(context).asGif().load(url).into(imageView);//除非图像是动画gif ，否则将失败。
     }
 
-    public static void downloadBitmap(Context context, String url, OnDownloadBitmapListener bitmapListener) {
+    public static void asBitmap(Context context, String url, OnBitmapListener listener) {
         Glide.with(context).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
             @Override
             public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                if (bitmapListener != null) bitmapListener.onDownloadSuccess(resource);
+                if (listener != null) listener.onResourceReady(resource);
+            }
+        });
+    }
+
+    public static void asDrawable(Context context, String url, OnDrawableListener listener) {
+        Glide.with(context).asDrawable().load(url).into(new SimpleTarget<Drawable>() {
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                if (listener != null) listener.onResourceReady(resource);
             }
         });
     }
