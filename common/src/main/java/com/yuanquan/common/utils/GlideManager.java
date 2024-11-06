@@ -158,6 +158,10 @@ public class GlideManager {
         Glide.with(context).asGif().load(url).into(imageView);//除非图像是动画gif ，否则将失败。
     }
 
+    public static void asGif(Context context, String url, ImageView imageView) {
+        Glide.with(context).asGif().load(url).into(imageView);//除非图像是动画gif ，否则将失败。
+    }
+
     public static void asBitmap(Context context, String url, OnBitmapListener listener) {
         Glide.with(context).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
             @Override
