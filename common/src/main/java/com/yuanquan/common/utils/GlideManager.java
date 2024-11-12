@@ -211,7 +211,12 @@ public class GlideManager {
      * @param resourceId     图片占位图
      */
     public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader, int resourceId) {
-        Glide.with(context).load(headerImageUrl).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new CircleCrop())).into(pvHeader);
+        Glide.with(context).asDrawable().load(headerImageUrl).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new CircleCrop())).into(new SimpleTarget<Drawable>() {
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                pvHeader.setImageDrawable(resource);
+            }
+        });
     }
 
     public static void headerImage(Context context, String headerImageUrl, CircleTextImageView pvHeader, String colourCode, String subNickName, Float textSize) {
