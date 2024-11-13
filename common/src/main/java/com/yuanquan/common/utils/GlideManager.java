@@ -198,6 +198,15 @@ public class GlideManager {
         });
     }
 
+    public static void asDrawable(Context context, String url, int resourceId, boolean skip, DiskCacheStrategy strategy, OnDrawableListener listener) {
+        Glide.with(context).asDrawable().load(url).skipMemoryCache(skip).diskCacheStrategy(strategy).placeholder(resourceId).error(resourceId).into(new SimpleTarget<Drawable>() {
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                if (listener != null) listener.onResourceReady(resource);
+            }
+        });
+    }
+
     public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader) {
         headerImage(context, headerImageUrl, pvHeader, R.mipmap.icon_header);
     }
