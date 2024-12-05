@@ -897,4 +897,22 @@ public class TimeUtils {
             return "";
         }
     }
+
+    // 获取月日，例如：12月25日
+    public static String getMonthDay(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM月dd日", Locale.getDefault());
+        return sdf.format(date);
+    }
+
+    // 获取周几，例如：星期三
+    public static String getWeekDay(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("EEEE", Locale.getDefault());
+        return sdf.format(date);
+    }
+
+    // 获取上午或下午的时间，例如：上午 10:30 或 下午 2:45
+    public static String getAmPmTime(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("a hh:mm", Locale.getDefault());
+        return sdf.format(date);
+    }
 }
