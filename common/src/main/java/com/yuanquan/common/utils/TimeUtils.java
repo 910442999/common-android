@@ -899,8 +899,8 @@ public class TimeUtils {
     }
 
     // 获取月日，例如：12月25日
-    public static String getMonthDay(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MM月dd日", Locale.getDefault());
+    public static String getMonthDay(Date date, String dateFormat) {
+        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
         return sdf.format(date);
     }
 
@@ -915,4 +915,17 @@ public class TimeUtils {
         SimpleDateFormat sdf = new SimpleDateFormat("a hh:mm", Locale.getDefault());
         return sdf.format(date);
     }
+
+    // 自定义星期几的显示方式
+//    private static final String[] CUSTOM_WEEK_DAYS = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
+
+    public static String getCustomWeekDay(String[] days, Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        // Calendar.DAY_OF_WEEK 的值从周日开始（1=周日, 2=周一, ..., 7=周六）
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        // 由于数组索引从0开始，而Calendar.DAY_OF_WEEK从1开始，因此需要减1
+        return days[dayOfWeek - 1];
+    }
+
 }
