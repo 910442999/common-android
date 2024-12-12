@@ -14,7 +14,7 @@ class LoggingInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val httpUrl = request.url()
-        val t1 = System.nanoTime() //请求发起的时间
+        val startTime = System.currentTimeMillis() // 记录请求开始时间
 
 //        if (httpUrl.toString().contains(".png") || httpUrl.toString()
 //                .contains(".jpg") || httpUrl.toString().contains(".jpeg") || httpUrl.toString()
@@ -51,12 +51,17 @@ class LoggingInterceptor : Interceptor {
         }
 
         val response = chain.proceed(request)
-        val t2 = System.nanoTime() //收到响应的时间
         val responseBody = response.peekBody(1024 * 1024.toLong())
         val result = responseBody.string()
+        val endTime = System.currentTimeMillis() // 记录请求结束时间
+
+        val durationMillis = endTime - startTime // 计算请求时长，单位为毫秒
+        // 将毫秒转换为分:秒:毫秒格式
+        val seconds: Long = (durationMillis % 60000) / 1000
+        val milliseconds: Long = durationMillis % 1000
         builder.append(
             String.format(
-                "%s%n", "请求耗时>>> " + String.format("%.1f", (t2 - t1) / 1e6) + "ms"
+                "%s%n", String.format("请求耗时>>> %02d秒%03d毫秒", seconds, milliseconds)
             )
         )
         builder.append(String.format("%s%n%s%n%s%n", "请求结果>>> $result", " ", ""))
