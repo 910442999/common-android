@@ -180,6 +180,15 @@ public class GlideManager {
         });
     }
 
+    public static void asBitmap(Context context, String url, int resourceId, boolean skip, DiskCacheStrategy strategy, OnBitmapListener listener) {
+        Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId).skipMemoryCache(skip).diskCacheStrategy(strategy).into(new SimpleTarget<Bitmap>() {
+            @Override
+            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                if (listener != null) listener.onResourceReady(resource);
+            }
+        });
+    }
+
     public static void asDrawable(Context context, String url, OnDrawableListener listener) {
         Glide.with(context).asDrawable().load(url).into(new SimpleTarget<Drawable>() {
             @Override
