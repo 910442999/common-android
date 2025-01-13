@@ -14,7 +14,7 @@ import java.io.InputStreamReader
  * @author tangxin
  */
 
-object OSUtils {
+object RomUtils {
 
     val ROM_MIUI = "MIUI"
     val ROM_EMUI = "EMUI"
@@ -30,8 +30,8 @@ object OSUtils {
     private val KEY_VERSION_SMARTISAN = "ro.smartisan.version"
     private val KEY_VERSION_VIVO = "ro.vivo.os.version"
 
-    private var sName: String? = null
-    private var sVersion: String? = null
+    private var sRomName: String? = null
+    private var sRomVersion: String? = null
 
     val isEmui: Boolean
         get() = check(ROM_EMUI)
@@ -54,47 +54,47 @@ object OSUtils {
     val isSmartisan: Boolean
         get() = check(ROM_SMARTISAN)
 
-    val name: String?
+    val romName: String?
         get() {
-            if (sName == null) {
+            if (sRomName == null) {
                 check("")
             }
-            return sName
+            return sRomName
         }
 
-    val version: String?
+    val romVersion: String?
         get() {
-            if (sVersion == null) {
+            if (sRomVersion == null) {
                 check("")
             }
-            return sVersion
+            return sRomVersion
         }
 
     fun check(rom: String): Boolean {
-        if (sName != null) {
-            return sName == rom
+        if (sRomName != null) {
+            return sRomName == rom
         }
 
         if (!TextUtils.isEmpty(getProp(KEY_VERSION_MIUI))) {
-            sName = ROM_MIUI
+            sRomName = ROM_MIUI
         } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_EMUI))) {
-            sName = ROM_EMUI
+            sRomName = ROM_EMUI
         } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_OPPO))) {
-            sName = ROM_OPPO
+            sRomName = ROM_OPPO
         } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_VIVO))) {
-            sName = ROM_VIVO
+            sRomName = ROM_VIVO
         } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_SMARTISAN))) {
-            sName = ROM_SMARTISAN
+            sRomName = ROM_SMARTISAN
         } else {
-            sVersion = Build.DISPLAY
-            if (sVersion!!.toUpperCase().contains(ROM_FLYME)) {
-                sName = ROM_FLYME
+            sRomVersion = Build.DISPLAY
+            if (sRomVersion!!.toUpperCase().contains(ROM_FLYME)) {
+                sRomName = ROM_FLYME
             } else {
-                sVersion = Build.UNKNOWN
-                sName = Build.MANUFACTURER.toUpperCase()
+                sRomVersion = Build.UNKNOWN
+                sRomName = Build.MANUFACTURER.toUpperCase()
             }
         }
-        return sName == rom
+        return sRomName == rom
     }
 
     fun getProp(name: String): String? {
@@ -106,7 +106,7 @@ object OSUtils {
             line = input.readLine()
             input.close()
         } catch (ex: IOException) {
-            sVersion = null
+            sRomVersion = null
             return null
         } finally {
             if (input != null) {
@@ -118,7 +118,7 @@ object OSUtils {
 
             }
         }
-        sVersion = line
+        sRomVersion = line
         return line
     }
 }
