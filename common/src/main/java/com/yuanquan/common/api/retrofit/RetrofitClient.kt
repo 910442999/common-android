@@ -79,4 +79,13 @@ class RetrofitClient {
         readTimeout(60, TimeUnit.SECONDS)// 读取时间：10s超时
         writeTimeout(60, TimeUnit.SECONDS)// 写入时间：10s超时
     }
+
+    /**
+     * OkHttpClient客户端
+     */
+    fun getOkHttpClientBuilder(timeout: Long): OkHttpClient.Builder = OkHttpClient.Builder().apply {
+        connectTimeout(timeout, TimeUnit.SECONDS)// 连接时间：30s超时
+        readTimeout(timeout, TimeUnit.SECONDS)// 读取时间：10s超时
+        writeTimeout(timeout, TimeUnit.SECONDS)// 写入时间：10s超时
+    }
 }
