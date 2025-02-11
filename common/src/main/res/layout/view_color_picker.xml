@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <com.yuanquan.common.widget.color_picker.RainbowColorView
+            android:id="@+id/color_board"
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            android:layout_gravity="center_vertical"
+            app:graph_type="color_board"
+            app:is_square="true"
+            app:round="1dp" />
+
+        <View
+            android:id="@+id/view_select_color_location"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/color_select_shape_stroke_dot" />
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginRight="10dp">
+
+                <com.yuanquan.common.widget.color_picker.RainbowColorView
+                    android:id="@+id/view_color"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    app:graph_type="color_strip"
+                    app:round="1dp" />
+
+                <View
+                    android:id="@+id/view_select_color_bar"
+                    android:layout_width="10dp"
+                    android:layout_height="42dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/color_select_shape_color_pick_bar" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginRight="10dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <com.yuanquan.common.widget.color_picker.RainbowColorView
+                    android:id="@+id/view_alpha"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    app:graph_type="alpha_strip"
+                    app:round="1dp" />
+
+                <View
+                    android:id="@+id/view_select_alpha_bar"
+                    android:layout_width="10dp"
+                    android:layout_height="42dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/color_select_shape_color_pick_bar" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/shape_bg_r4_line_eae9e5"
+            android:padding="1dp">
+
+            <com.yuanquan.common.widget.color_picker.RainbowColorView
+                android:id="@+id/preview_color"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:graph_type="preview_strip"
+                app:round="1dp" />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"
+        android:gravity="center">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/colors_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="8"
+            tools:itemCount="12"
+            tools:listitem="@layout/item_sub_tool_color" />
+
+    </LinearLayout>
+
+</LinearLayout>

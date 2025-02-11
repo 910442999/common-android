@@ -1,31 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!--    已下所有权限在app中引入 -->
-    <!--    io.github.lucksiege:pictureselector:v3.10.7 选择相册   start-->
-    <!--    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />-->
-    <!--    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />-->
-    <!--    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />-->
-
-    <!--    <uses-permission-->
-    <!--        android:name="android.permission.QUERY_ALL_PACKAGES"-->
-    <!--        tools:node="remove" />-->
+    <!-- 已下所有权限在app中引入 -->
+    <!-- io.github.lucksiege:pictureselector:v3.10.7 选择相册   start -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" /> -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" /> -->
+    <!-- <uses-permission -->
+    <!-- android:name="android.permission.QUERY_ALL_PACKAGES" -->
+    <!-- tools:node="remove" /> -->
     <queries package="${applicationId}">
         <intent>
-            <action android:name="android.media.action.IMAGE_CAPTURE">
-
-            </action>
+            <action android:name="android.media.action.IMAGE_CAPTURE"></action>
         </intent>
         <intent>
-            <action android:name="android.media.action.ACTION_VIDEO_CAPTURE">
-
-            </action>
+            <action android:name="android.media.action.ACTION_VIDEO_CAPTURE"></action>
         </intent>
     </queries>
-    <!--    io.github.lucksiege:pictureselector:v3.10.7 选择相册   end-->
+
     <application>
+        <activity
+            android:name=".ui.test.ColorPickerActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.webview.WebViewActivity"
             android:screenOrientation="behind" />
     </application>
+
 </manifest>

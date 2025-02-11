@@ -87,4 +87,23 @@
         <!--控件是否自动显示与隐藏（根据显示数量）， 默认false-->
         <attr format="boolean" name="mtv_isAutoDisplay"/>
     </declare-styleable>
+
+    <declare-styleable name="RainbowColorView">
+        <!--圆角半径-->
+        <attr name="round" format="dimension" />
+        <attr name="graph_type" format="enum">
+            <!--彩虹色条-->
+            <enum name="color_strip" value="1" />
+            <!--透明度控制条-->
+            <enum name="alpha_strip" value="2" />
+            <!--预览-->
+            <enum name="preview_strip" value="3" />
+            <!--明暗度色板-->
+            <enum name="color_board" value="4" />
+        </attr>
+        <!--预览是否是圆形，默认是矩形，仅在设 graph_type = preview_strip 时生效 ； 且圆形的直径大小取决于高度，不会取决于宽度-->
+        <attr name="preview_circle" format="boolean" />
+        <!--明暗度色板 是否是正方形 ，以宽度为标准-->
+        <attr name="is_square" format="boolean"/>
+    </declare-styleable>
 </resources>

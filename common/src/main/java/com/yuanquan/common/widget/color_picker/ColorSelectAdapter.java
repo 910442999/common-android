@@ -1,4 +1,4 @@
-package com.yuanquan.common.widget.popup.color.adapter;
+package com.yuanquan.common.widget.color_picker;
 
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -10,27 +10,25 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuanquan.common.R;
-import com.yuanquan.common.widget.popup.color.extension.FastResource;
 
 import java.util.List;
 
 /**
  * @author fenglibin
  */
-public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ViewHolder> {
+public class ColorSelectAdapter extends RecyclerView.Adapter<ColorSelectAdapter.ViewHolder> {
     private List<String> colors;
     private String curColor;
-    private int mainColor;
     private OnColorClickListener onColorClickListener;
 
-    public ColorAdapter(List<String> colors) {
+    public ColorSelectAdapter(List<String> colors) {
         this.colors = colors;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View root = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_sub_tool_color, parent, false);
+        View root = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_color_select, parent, false);
         return new ViewHolder(root);
     }
 
@@ -38,10 +36,7 @@ public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
         String color1 = colors.get(position);
         int color = Color.parseColor(color1);
-        if (mainColor > 0) {
-            viewHolder.colorDisplay.setBackground(FastResource.createColorBackground(mainColor));
-        }
-        viewHolder.colorDisplay.setImageDrawable(FastResource.getColorDrawable(color));
+        viewHolder.colorDisplay.setBackgroundColor(color);
         viewHolder.colorDisplay.setSelected(color1.equals(curColor));
         viewHolder.itemView.setOnClickListener(v -> {
             if (onColorClickListener != null) {
@@ -63,12 +58,6 @@ public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ViewHolder> 
         curColor = color;
         notifyDataSetChanged();
     }
-
-//    public void setStyle(FastStyle style) {
-//        this.mainColor = style.getMainColor();
-//
-//        notifyDataSetChanged();
-//    }
 
     public interface OnColorClickListener {
         void onColorClick(String color);

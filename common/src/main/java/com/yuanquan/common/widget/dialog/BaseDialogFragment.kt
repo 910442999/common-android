@@ -27,8 +27,6 @@ abstract class BaseDialogFragment : AppCompatDialogFragment() {
         dialog.apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)
             window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            // setCancelable(false)
-            //setCanceledOnTouchOutside(false)
             val dialogWindow = window!!
             val layoutParams = dialogWindow.attributes
             dialogWindow.decorView.setPadding(0, 0, 0, 0)

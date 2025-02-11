@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="@dimen/fast_default_button_area_size"
-    android:layout_height="@dimen/fast_default_button_area_size">
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="40dp"
+    android:layout_height="40dp">
 
     <ImageView
         android:id="@+id/color_display"
-        android:layout_width="@dimen/fast_default_button_size"
-        android:layout_height="@dimen/fast_default_button_size"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:background="@drawable/fast_bg_color_item"
+        android:background="@drawable/shape_bg_r4_line_eae9e5"
         android:contentDescription="@null"
-        android:padding="4dp" />
+        android:padding="2dp" />
 </FrameLayout>
