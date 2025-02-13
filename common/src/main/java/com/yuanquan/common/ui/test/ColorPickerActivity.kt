@@ -6,8 +6,13 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.yuanquan.common.R
+import com.yuanquan.common.widget.color_picker.ColorPickerView
+import com.yuanquan.common.widget.color_picker.ColorPickerView.OnColorPickerChangeListener
 import com.yuanquan.common.widget.color_picker.ColorSelectView
 
+/**
+ *
+ */
 class ColorPickerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,5 +28,20 @@ class ColorPickerActivity : AppCompatActivity() {
             tvTest.setTextColor(Color.parseColor(color))
             view.setBackgroundColor(Color.parseColor(color))
         }
+
+        val left: ColorPickerView = findViewById(R.id.picker)
+        left.setOnColorPickerChangeListener(object : OnColorPickerChangeListener {
+            override fun onColorChanged(picker: ColorPickerView, color: Int) {
+                color_picker.setBoardViewPaintColor(color)
+                tvTest.setTextColor(color)
+                view.setBackgroundColor(color)
+            }
+
+            override fun onStartTrackingTouch(picker: ColorPickerView) {
+            }
+
+            override fun onStopTrackingTouch(picker: ColorPickerView) {
+            }
+        })
     }
 }

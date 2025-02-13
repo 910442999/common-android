@@ -23,6 +23,9 @@
             android:name=".ui.test.ColorPickerActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.test.ColorPicker2Activity"
+            android:exported="false" />
+        <activity
             android:name=".ui.webview.WebViewActivity"
             android:screenOrientation="behind" />
     </application>

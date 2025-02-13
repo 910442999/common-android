@@ -28,19 +28,32 @@
         android:gravity="center"
         android:text="TextView编辑器111" />
 
- <TextView
+    <TextView
         android:id="@+id/tv_text4"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
         android:text="TextView编辑器111" />
 
-<TextView
+    <TextView
         android:id="@+id/tv_text5"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
         android:text="TextView编辑器111" />
 
+    <TextView
+        android:id="@+id/tv_text6"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:text="ColorPicker2Activity" />
+
+    <TextView
+        android:id="@+id/tv_text7"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:text="ColorPickerActivity" />
 
 </LinearLayout>

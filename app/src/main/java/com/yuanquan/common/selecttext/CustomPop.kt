@@ -15,6 +15,7 @@ import androidx.annotation.StringRes
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.yuanquan.common.R
+import com.yuanquan.common.utils.SysUtils
 import com.yuanquan.common.widget.selecttext.SelectTextPopAdapter
 import com.yuanquan.common.widget.selecttext.SelectUtils
 import org.greenrobot.eventbus.Subscribe
@@ -159,8 +160,8 @@ class CustomPop(
             rv_content!!.adapter = listAdapter
         }
         val size = itemTextList.size
-        val deviceWidth = SelectUtils.Companion.displayWidth
-        val deviceHeight = SelectUtils.Companion.displayHeight
+        val deviceWidth = SysUtils.getPhoneWidthPixels(context)
+        val deviceHeight = SysUtils.getPhoneHeightPixels(context)
         val statusHeight = SelectUtils.Companion.statusHeight
         //计算箭头显示的位置
         val location = IntArray(2)

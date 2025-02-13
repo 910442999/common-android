@@ -310,6 +310,10 @@ class ColorSelectView : LinearLayout {
         colorsRecyclerView?.setLayoutManager(GridLayoutManager(context, spanCount))
     }
 
+    fun setBoardViewPaintColor(@ColorInt paintColor: Int) {
+        boardView.setPaintColor(paintColor)
+    }
+
     override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
         super.onWindowFocusChanged(hasWindowFocus)
 
