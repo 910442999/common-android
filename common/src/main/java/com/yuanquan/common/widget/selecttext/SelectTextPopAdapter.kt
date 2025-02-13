@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.yuanquan.common.R
+import com.yuanquan.common.utils.SysUtils
 
 /**
  * 弹窗 适配器
@@ -46,8 +47,10 @@ class SelectTextPopAdapter(
             val params = holder.tv_pop_func.layoutParams
             params.width = ViewGroup.LayoutParams.WRAP_CONTENT
             holder.tv_pop_func.layoutParams = params
-            holder.tv_pop_func.setPadding(SelectUtils.dp2px(8f), 0,
-                SelectUtils.dp2px(8f), 0)
+            holder.tv_pop_func.setPadding(
+                SysUtils.dp2Px(mContext, 8f), 0,
+                SysUtils.dp2Px(mContext, 8f), 0
+            )
         }
         holder.iv_pop_icon.setBackgroundResource(drawableId)
         holder.tv_pop_func.text = text

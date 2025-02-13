@@ -194,16 +194,6 @@ class SelectUtils {
             return offset > 0 && layout.getLineForOffset(offset) == layout.getLineForOffset(offset - 1) + 1
         }
 
-        val displayWidth: Int
-            get() = Resources.getSystem().displayMetrics.widthPixels
-
-        val displayHeight: Int
-            get() = Resources.getSystem().displayMetrics.heightPixels
-
-        fun dp2px(dpValue: Float): Int {
-            return (dpValue * Resources.getSystem().displayMetrics.density + 0.5f).toInt()
-        }
-
         /**
          * 设置宽高
          *

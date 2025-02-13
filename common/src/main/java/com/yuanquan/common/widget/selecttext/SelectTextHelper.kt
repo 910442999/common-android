@@ -6,15 +6,25 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Build
-import android.text.*
+import android.text.Selection
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
 import android.text.style.ClickableSpan
 import android.text.style.URLSpan
 import android.util.Log
 import android.util.Pair
-import android.view.*
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
 import android.view.View.OnTouchListener
+import android.view.ViewConfiguration
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.ViewTreeObserver.OnScrollChangedListener
 import android.widget.ImageView
 import android.widget.Magnifier
@@ -26,7 +36,8 @@ import androidx.annotation.StringRes
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.yuanquan.common.R
-import java.util.*
+import com.yuanquan.common.utils.SysUtils
+import java.util.LinkedList
 
 
 /**
@@ -92,7 +103,7 @@ class SelectTextHelper(builder: Builder) {
         mPopArrowImg = builder.mPopArrowImg
         itemTextList = builder.itemTextList
         itemListenerList = builder.itemListenerList
-        mCursorHandleSize = SelectUtils.dp2px(builder.mCursorHandleSizeInDp)
+        mCursorHandleSize = SysUtils.dp2Px(mContext,builder.mCursorHandleSizeInDp)
         init()
     }
 
@@ -699,12 +710,12 @@ class SelectTextHelper(builder: Builder) {
             }
             val size = itemTextList.size
             // 宽 个数超过mPopSpanCount 取 mPopSpanCount
-            mWidth = SelectUtils.dp2px((12 * 4 + 52 * size.coerceAtMost(mPopSpanCount)).toFloat())
+            mWidth = SysUtils.dp2Px(mContext,(12 * 4 + 52 * size.coerceAtMost(mPopSpanCount)).toFloat())
             // 行数
             val row = (size / mPopSpanCount // 行数
                     + if (size % mPopSpanCount == 0) 0 else 1) // 有余数 加一行
             // 高
-            mHeight = SelectUtils.dp2px((12 * (1 + row) + 52 * row + 5).toFloat())
+            mHeight = SysUtils.dp2Px(mContext,(12 * (1 + row) + 52 * row + 5).toFloat())
             mWindow = PopupWindow(
                 contentView,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -727,7 +738,7 @@ class SelectTextHelper(builder: Builder) {
         }
 
         fun show() {
-            val deviceWidth = SelectUtils.displayWidth
+            val deviceWidth = SysUtils.getPhoneWidthPixels(mContext)
             val size = itemTextList.size
             if (size > mPopSpanCount) {
                 rvContent!!.layoutManager =
@@ -767,7 +778,7 @@ class SelectTextHelper(builder: Builder) {
             var arrowTranslationX = when {
                 posXTemp == 0 -> {
                     // - SelectUtils.dp2px(mContext, 16) 是 margin
-                    mWidth / 2 - SelectUtils.dp2px(16f)
+                    mWidth / 2 - SysUtils.dp2Px(mContext,16f)
                 }
 
                 posXTemp < 0 -> {
@@ -776,13 +787,13 @@ class SelectTextHelper(builder: Builder) {
 
                 else -> {
                     // arrowTranslationX = 两坐标中心点   - 弹窗左侧点 - iv_arrow的margin
-                    posXTemp + mWidth / 2 - posX - SelectUtils.dp2px(16f)
+                    posXTemp + mWidth / 2 - posX - SysUtils.dp2Px(mContext,16f)
                 }
             }
-            if (arrowTranslationX < SelectUtils.dp2px(4f)) {
-                arrowTranslationX = SelectUtils.dp2px(4f)
-            } else if (arrowTranslationX > mWidth - SelectUtils.dp2px(4f)) {
-                arrowTranslationX = mWidth - SelectUtils.dp2px(4f)
+            if (arrowTranslationX < SysUtils.dp2Px(mContext,4f)) {
+                arrowTranslationX = SysUtils.dp2Px(mContext,4f)
+            } else if (arrowTranslationX > mWidth - SysUtils.dp2Px(mContext,4f)) {
+                arrowTranslationX = mWidth - SysUtils.dp2Px(mContext,4f)
             }
             ivArrow.translationX = arrowTranslationX.toFloat()
         }
@@ -891,7 +902,7 @@ class SelectTextHelper(builder: Builder) {
                             val viewPosition = IntArray(2)
                             mTextView.getLocationOnScreen(viewPosition)
                             val magnifierX = rawX - viewPosition[0]
-                            val magnifierY = rawY - viewPosition[1] - SelectUtils.dp2px(32f)
+                            val magnifierY = rawY - viewPosition[1] - SysUtils.dp2Px(mContext,32f)
                             mMagnifier!!.show(
                                 magnifierX.toFloat(), magnifierY.coerceAtLeast(0).toFloat()
                             )
