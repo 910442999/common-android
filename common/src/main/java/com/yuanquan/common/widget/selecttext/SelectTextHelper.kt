@@ -777,7 +777,7 @@ class SelectTextHelper(builder: Builder) {
             // 在中间
             var arrowTranslationX = when {
                 posXTemp == 0 -> {
-                    // - SelectUtils.dp2px(mContext, 16) 是 margin
+                    // - SysUtils.dp2Px(mContext, mContext, 16) 是 margin
                     mWidth / 2 - SysUtils.dp2Px(mContext,16f)
                 }
 
