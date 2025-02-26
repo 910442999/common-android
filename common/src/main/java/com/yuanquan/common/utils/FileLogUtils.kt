@@ -1,7 +1,6 @@
 package com.yuanquan.common.utils
 
 import android.content.Context
-import android.os.Build
 import android.os.Environment
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -24,7 +23,11 @@ object FileLogUtils {
     private var context: Context? = null
     fun init(context: Context) {
         this.context = context
-        logFile = this.getLogFile(context)
+        try {
+            logFile = this.getLogFile(context)
+        } catch (e: Exception) {
+            LogUtil.e("写入日志未初始化失败")
+        }
     }
 
     fun d(message: String) {
@@ -115,11 +118,7 @@ object FileLogUtils {
     }
 
     fun getLogFile(context: Context): File? {
-        val picturesDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            context.getExternalFilesDir(null)
-        } else {
-            Environment.getExternalStoragePublicDirectory(null)
-        }
+        val picturesDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
         if (picturesDir == null) return null
         val path =
             picturesDir.path + File.separator + TAG + File.separator
