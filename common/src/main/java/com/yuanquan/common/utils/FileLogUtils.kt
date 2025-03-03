@@ -23,11 +23,6 @@ object FileLogUtils {
     private var context: Context? = null
     fun init(context: Context) {
         this.context = context
-        try {
-            logFile = this.getLogFile(context)
-        } catch (e: Exception) {
-            LogUtil.e("写入日志未初始化失败")
-        }
     }
 
     fun d(message: String) {
@@ -81,10 +76,15 @@ object FileLogUtils {
 
     private fun writeFile(level: String, message: String) {
         try {
+            if (context == null) return
             if (logFile == null) {
-                LogUtil.e(message)
-                return
+                try {
+                    logFile = this.getLogFile(context!!)
+                } catch (e: Exception) {
+                    LogUtil.e("写入日志未初始化失败")
+                }
             }
+            if (logFile == null) return
             val timestamp =
                 SimpleDateFormat(
                     "yyyy-MM-dd HH:mm:ss.SSS",
