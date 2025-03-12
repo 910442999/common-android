@@ -9,7 +9,6 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.RouteInfo
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
@@ -21,11 +20,6 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
-import java.math.BigInteger
-import java.net.Inet4Address
-import java.net.InetAddress
-import java.net.UnknownHostException
-import java.nio.ByteOrder
 
 
 /**
@@ -320,100 +314,8 @@ class WifiManager(
      */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun getGateway(): String {
-        var address = getIPv4GatewayAddress()
-        if (address.isNullOrBlank()) {
-            return getHotspotGatewayAddress()
-        } else {
-            return address
-        }
+        return NetworkUtils.getGateway(context)
     }
-
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun getIPv4GatewayAddress(): String? {
-        var network = connectivityManager.boundNetworkForProcess
-        if (network == null) {
-            network = connectivityManager.activeNetwork
-        }
-        if (network == null) return null
-        val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
-        val routes: List<RouteInfo> = linkProperties.routes
-        for (route in routes) {
-            if (route.isDefaultRoute) {
-                val gateway: InetAddress? = route.gateway
-                if (gateway is Inet4Address) {
-                    var hostAddress = gateway.getHostAddress()
-                    return hostAddress
-                }
-            }
-        }
-        return null
-    }
-
-    fun getHotspotGatewayAddress(): String {
-        val dhcp = wifiManager.dhcpInfo
-        var ipAddress = dhcp.gateway
-        ipAddress = if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            Integer.reverseBytes(ipAddress)
-        } else {
-            ipAddress
-        }
-        val ipAddressByte = BigInteger.valueOf(ipAddress.toLong()).toByteArray()
-        try {
-            return InetAddress.getByAddress(ipAddressByte).hostAddress ?: ""
-        } catch (e: UnknownHostException) {
-            Log.e(TAG, "Error getting Hotspot IP address ", e)
-        }
-        return ""
-    }
-
-    /**
-     * 获取网关地址
-     *
-     * @return 获取失败则返回空字符
-     */
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun getIpAddress(): String {
-        var address = getIPv4Address()
-        if (address.isNullOrBlank()) {
-            return getHotspotAddress()
-        } else {
-            return address
-        }
-    }
-
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun getIPv4Address(): String? {
-        var network = connectivityManager.boundNetworkForProcess
-        if (network == null) {
-            network = connectivityManager.activeNetwork
-        }
-        if (network == null) return null
-        val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
-        linkProperties.linkAddresses.forEach { address ->
-            if (address.address is Inet4Address) {
-                return address.address.hostAddress
-            }
-        }
-        return null
-    }
-
-    fun getHotspotAddress(): String {
-        val dhcp = wifiManager.dhcpInfo
-        var ipAddress = dhcp.ipAddress
-        ipAddress = if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            Integer.reverseBytes(ipAddress)
-        } else {
-            ipAddress
-        }
-        val ipAddressByte = BigInteger.valueOf(ipAddress.toLong()).toByteArray()
-        try {
-            return InetAddress.getByAddress(ipAddressByte).hostAddress ?: ""
-        } catch (e: UnknownHostException) {
-            Log.e(TAG, "Error getting Hotspot IP address ", e)
-        }
-        return ""
-    }
-
 
     private companion object {
         const val TAG = "WifiManager"
@@ -425,25 +327,5 @@ class WifiManager(
         } else {
             block2()
         }
-    }
-
-    fun openWifiSettings(context: Context) {
-        val intent = Intent()
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                intent.action = Settings.ACTION_WIFI_SETTINGS
-            }
-
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
-                intent.action = Settings.ACTION_WIFI_SETTINGS
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-
-            else -> {
-                intent.action = Settings.ACTION_WIRELESS_SETTINGS
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-        }
-        context.startActivity(intent)
     }
 }

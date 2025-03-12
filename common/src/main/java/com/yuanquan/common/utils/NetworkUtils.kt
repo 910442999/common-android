@@ -8,15 +8,20 @@ import android.content.Intent
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
+import android.net.RouteInfo
 import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresPermission
+import java.math.BigInteger
 import java.net.Inet4Address
-import java.net.NetworkInterface
-import java.net.SocketException
+import java.net.InetAddress
+import java.net.UnknownHostException
+import java.nio.ByteOrder
 import java.util.Locale
 
 
@@ -147,35 +152,41 @@ object NetworkUtils {
 
     @JvmStatic
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun getIPAddress(context: Context): String? {
-        val info =
-            (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo
-        if (info != null && info.isConnected) {
-            if (info.type == ConnectivityManager.TYPE_MOBILE) { //当前使用2G/3G/4G网络
-                try {
-                    val en = NetworkInterface.getNetworkInterfaces()
-                    while (en.hasMoreElements()) {
-                        val intf = en.nextElement()
-                        val enumIpAddr = intf.inetAddresses
-                        while (enumIpAddr.hasMoreElements()) {
-                            val inetAddress = enumIpAddr.nextElement()
-                            if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
-                                return inetAddress.getHostAddress()
-                            }
-                        }
-                    }
-                } catch (e: SocketException) {
-                    e.printStackTrace()
-                }
-            } else if (info.type == ConnectivityManager.TYPE_WIFI) { //当前使用无线网络
-                val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-                val wifiInfo = wifiManager.connectionInfo
-                return intIP2StringIP(wifiInfo.ipAddress)
-            }
+    fun getIPAddress(context: Context): String {
+//        val info =
+//            (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo
+//        if (info != null && info.isConnected) {
+//            if (info.type == ConnectivityManager.TYPE_MOBILE) { //当前使用2G/3G/4G网络
+//                try {
+//                    val en = NetworkInterface.getNetworkInterfaces()
+//                    while (en.hasMoreElements()) {
+//                        val intf = en.nextElement()
+//                        val enumIpAddr = intf.inetAddresses
+//                        while (enumIpAddr.hasMoreElements()) {
+//                            val inetAddress = enumIpAddr.nextElement()
+//                            if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
+//                                return inetAddress.getHostAddress()
+//                            }
+//                        }
+//                    }
+//                } catch (e: SocketException) {
+//                    e.printStackTrace()
+//                }
+//            } else if (info.type == ConnectivityManager.TYPE_WIFI) { //当前使用无线网络
+//                val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+//                val wifiInfo = wifiManager.connectionInfo
+//                return intIP2StringIP(wifiInfo.ipAddress)
+//            }
+//        } else {
+//            //当前无网络连接,请在设置中打开网络
+//        }
+//        return null
+        var address = getIPv4Address(context)
+        if (address.isNullOrBlank()) {
+            return getHotspotAddress(context)
         } else {
-            //当前无网络连接,请在设置中打开网络
+            return address
         }
-        return null
     }
 
     /**
@@ -199,6 +210,99 @@ object NetworkUtils {
         return ipAddress.matches(regex)
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun getIPv4Address(context: Context): String? {
+        var connectivityManager: ConnectivityManager =
+            context.getSystemService(ComponentActivity.CONNECTIVITY_SERVICE) as ConnectivityManager
+        var network = connectivityManager.boundNetworkForProcess
+        if (network == null) {
+            network = connectivityManager.activeNetwork
+        }
+        if (network == null) return null
+        val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
+        linkProperties.linkAddresses.forEach { address ->
+            if (address.address is Inet4Address) {
+                return address.address.hostAddress
+            }
+        }
+        return null
+    }
+
+    fun getHotspotAddress(context: Context): String {
+        var wifiManager: WifiManager =
+            context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val dhcp = wifiManager.dhcpInfo
+        var ipAddress = dhcp.ipAddress
+        ipAddress = if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            Integer.reverseBytes(ipAddress)
+        } else {
+            ipAddress
+        }
+        val ipAddressByte = BigInteger.valueOf(ipAddress.toLong()).toByteArray()
+        try {
+            return InetAddress.getByAddress(ipAddressByte).hostAddress ?: ""
+        } catch (e: UnknownHostException) {
+            Log.e("NetworkUtils", "Error getting Hotspot IP address ", e)
+        }
+        return ""
+    }
+
+    /**
+     * 获取网关地址
+     *
+     * @return 获取失败则返回空字符
+     */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun getGateway(context: Context): String {
+        var address = getIPv4GatewayAddress(context)
+        if (address.isNullOrBlank()) {
+            return getHotspotGatewayAddress(context)
+        } else {
+            return address
+        }
+    }
+
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun getIPv4GatewayAddress(context: Context): String? {
+        var connectivityManager: ConnectivityManager =
+            context.getSystemService(ComponentActivity.CONNECTIVITY_SERVICE) as ConnectivityManager
+        var network = connectivityManager.boundNetworkForProcess
+        if (network == null) {
+            network = connectivityManager.activeNetwork
+        }
+        if (network == null) return null
+        val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
+        val routes: List<RouteInfo> = linkProperties.routes
+        for (route in routes) {
+            if (route.isDefaultRoute) {
+                val gateway: InetAddress? = route.gateway
+                if (gateway is Inet4Address) {
+                    var hostAddress = gateway.getHostAddress()
+                    return hostAddress
+                }
+            }
+        }
+        return null
+    }
+
+    fun getHotspotGatewayAddress(context: Context): String {
+        var wifiManager: WifiManager =
+            context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val dhcp = wifiManager.dhcpInfo
+        var ipAddress = dhcp.gateway
+        ipAddress = if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            Integer.reverseBytes(ipAddress)
+        } else {
+            ipAddress
+        }
+        val ipAddressByte = BigInteger.valueOf(ipAddress.toLong()).toByteArray()
+        try {
+            return InetAddress.getByAddress(ipAddressByte).hostAddress ?: ""
+        } catch (e: UnknownHostException) {
+            Log.e("NetworkUtils", "Error getting Hotspot IP address ", e)
+        }
+        return ""
+    }
 
     /**
      * 打开网络设置界面
