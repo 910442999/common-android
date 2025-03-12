@@ -320,21 +320,21 @@ class WifiManager(
      */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun getGateway(): String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            var address = getIPv4Address()
-            if (address.isNullOrBlank()) {
-                return getHotspotAddress()
-            } else {
-                return address
-            }
+        var address = getIPv4GatewayAddress()
+        if (address.isNullOrBlank()) {
+            return getHotspotGatewayAddress()
         } else {
-            return getHotspotAddress()
+            return address
         }
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun getIPv4Address(): String? {
-        val network = connectivityManager.boundNetworkForProcess ?: return null
+    fun getIPv4GatewayAddress(): String? {
+        var network = connectivityManager.boundNetworkForProcess
+        if (network == null) {
+            network = connectivityManager.activeNetwork
+        }
+        if (network == null) return null
         val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
         val routes: List<RouteInfo> = linkProperties.routes
         for (route in routes) {
@@ -349,9 +349,57 @@ class WifiManager(
         return null
     }
 
-    fun getHotspotAddress(): String {
+    fun getHotspotGatewayAddress(): String {
         val dhcp = wifiManager.dhcpInfo
         var ipAddress = dhcp.gateway
+        ipAddress = if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            Integer.reverseBytes(ipAddress)
+        } else {
+            ipAddress
+        }
+        val ipAddressByte = BigInteger.valueOf(ipAddress.toLong()).toByteArray()
+        try {
+            return InetAddress.getByAddress(ipAddressByte).hostAddress ?: ""
+        } catch (e: UnknownHostException) {
+            Log.e(TAG, "Error getting Hotspot IP address ", e)
+        }
+        return ""
+    }
+
+    /**
+     * 获取网关地址
+     *
+     * @return 获取失败则返回空字符
+     */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun getIpAddress(): String {
+        var address = getIPv4Address()
+        if (address.isNullOrBlank()) {
+            return getHotspotAddress()
+        } else {
+            return address
+        }
+    }
+
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun getIPv4Address(): String? {
+        var network = connectivityManager.boundNetworkForProcess
+        if (network == null) {
+            network = connectivityManager.activeNetwork
+        }
+        if (network == null) return null
+        val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
+        linkProperties.linkAddresses.forEach { address ->
+            if (address.address is Inet4Address) {
+                return address.address.hostAddress
+            }
+        }
+        return null
+    }
+
+    fun getHotspotAddress(): String {
+        val dhcp = wifiManager.dhcpInfo
+        var ipAddress = dhcp.ipAddress
         ipAddress = if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
             Integer.reverseBytes(ipAddress)
         } else {
@@ -385,10 +433,12 @@ class WifiManager(
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
                 intent.action = Settings.ACTION_WIFI_SETTINGS
             }
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
                 intent.action = Settings.ACTION_WIFI_SETTINGS
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
+
             else -> {
                 intent.action = Settings.ACTION_WIRELESS_SETTINGS
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
