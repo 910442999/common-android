@@ -92,6 +92,20 @@ object SysUtils {
         }
     }
 
+    /**
+     * 获取设备制造商
+     *
+     * @return 设备制造商
+     */
+    @JvmStatic
+    fun getDeviceManufacturer(): String? {
+        return try {
+            Build.MANUFACTURER.toLowerCase()
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
     @JvmStatic
     fun initFiles() {
         var file = File(Environment.getExternalStorageDirectory(), "data")
