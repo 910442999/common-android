@@ -1,28 +1,99 @@
 package com.yuanquan.common.utils
 
+import android.content.Context
+import android.media.MediaMetadataRetriever
+import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
+import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.text.TextUtils
 import android.webkit.MimeTypeMap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileInputStream
 import java.io.InputStream
 import java.net.URLConnection
 import java.security.MessageDigest
 import java.util.Locale
 
-object FileUtils {
 
+object FileUtils {
+    val ILLEGAL_CHARS = arrayOf("\\", "/") // 可根据需要扩展
+
+    // 获取文件扩展名
     @JvmStatic
     fun getFileExtension(fileName: String): String {
-        return if (fileName != null && fileName.lastIndexOf(".") != -1) {
-            fileName.substring(fileName.lastIndexOf(".") + 1)
-        } else ""
+        return fileName.substringAfterLast('.', "").lowercase()
+    }
+
+    fun removeFileExtension(filename: String): String {
+        return filename.takeLastWhile { it != '.' }
     }
 
     @JvmStatic
-    fun removeFileExtension(filename: String): String {
-        if (filename != null && filename.lastIndexOf(".") != -1) {
+    fun removeFileExtension2(filename: String): String {
+        if (filename.lastIndexOf(".") != -1) {
             return filename.substring(0, filename.lastIndexOf("."))
         } else {
             return filename
+        }
+    }
+
+    // 校验非法字符
+    fun hasIllegalCharacters(fileName: String): Boolean {
+        return ILLEGAL_CHARS.any { fileName.contains(it) }
+    }
+
+    // 获取文件名
+    fun getFileName(context: Context, uri: Uri): String? {
+        return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+            } else null
+        }
+    }
+
+    // 获取文件名
+    fun getFileSize(context: Context, uri: Uri): Long? {
+        return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                cursor.getLong(cursor.getColumnIndexOrThrow(OpenableColumns.SIZE))
+            } else null
+        }
+    }
+
+    // 获取文件大小
+    @JvmStatic
+    fun getFileSize2(context: Context, uri: Uri): Long {
+        return context.contentResolver.openFileDescriptor(uri, "r")?.use { parcelFileDescriptor ->
+            parcelFileDescriptor.statSize
+        } ?: 0L
+    }
+
+    fun hasMediaOrAnimationHeader(file: File): Boolean {
+        return try {
+            val fis = FileInputStream(file)
+            val headerBytes = ByteArray(4096)
+            fis.read(headerBytes)
+            fis.close()
+            String(headerBytes).contains("ppt/media") // 粗略判断
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun hasMediaOrAnimationHeader(context: Context, uri: Uri): Boolean {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val headerBytes = ByteArray(4096)
+                inputStream.read(headerBytes)
+                String(headerBytes).contains("ppt/media") // 关键标识检测
+            } ?: false
+        } catch (e: Exception) {
+            false
         }
     }
 
@@ -40,6 +111,30 @@ object FileUtils {
             }
         }
         return fileName
+    }
+
+    // 视频分辨率校验（异步）
+    private fun checkVideoResolution(context: Context, uri: Uri) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(context, uri)
+
+                val width = retriever.extractMetadata(METADATA_KEY_VIDEO_WIDTH)?.toInt() ?: 0
+                val height = retriever.extractMetadata(METADATA_KEY_VIDEO_HEIGHT)?.toInt() ?: 0
+                retriever.release()
+
+                if (width > 1280 || height > 720) {
+                    withContext(Dispatchers.Main) {
+//                        showToast("视频分辨率需在720P以下")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+//                    showToast("无法读取视频信息")
+                }
+            }
+        }
     }
 
     fun calculateMD5(inputStream: InputStream): String {
@@ -71,7 +166,42 @@ object FileUtils {
         return md5String.toString()
     }
 
-    fun getFileType(file: File?): String {
+    // 工具方法：MIME 类型 → 具体文件类型
+    fun getFileExtensionFromMime(mimeType: String?): String? {
+        if (mimeType == null) return null
+
+        return when (mimeType) {
+            "audio/mpeg" -> "mp3"
+            "audio/mp4" -> "m4a"
+            "audio/ogg" -> "ogg"
+
+            "video/mp4" -> "mp4"
+            "video/avi" -> "avi"
+            "video/x-ms-wmv" -> "wmv"
+            "video/x-matroska" -> "mkv"
+            "video/quicktime" -> "mov"
+            "video/x-msvideo" -> "avi"
+            "video/x-flv" -> "flv"
+            "video/mpeg" -> "mpg"
+            "video/x-ms-asf" -> "asf"
+
+            "image/jpeg" -> "jpg"
+            "image/png" -> "png"
+            "image/gif" -> "gif"
+            "image/webp" -> "webp"
+
+            "application/msword" -> "doc"
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> "docx"
+            "application/vnd.ms-powerpoint" -> "ppt"
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation" -> "pptx"
+            "application/pdf" -> "pdf"
+            "text/plain" -> "txt"
+
+            else -> null
+        }
+    }
+
+    fun getFileMimeType(file: File?): String {
         if (file != null) {
             var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
             if (TextUtils.isEmpty(mimeType)) {
@@ -122,6 +252,7 @@ object FileUtils {
         }
         return null
     }
+
     @JvmStatic
     fun addWavHeaderToByteArray(
         audioData: ByteArray, sampleRate: Int, channelCount: Int, bitsPerSample: Int

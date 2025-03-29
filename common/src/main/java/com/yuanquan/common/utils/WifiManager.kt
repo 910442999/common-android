@@ -307,16 +307,6 @@ class WifiManager(
         }
     }
 
-    /**
-     * 获取网关地址
-     *
-     * @return 获取失败则返回空字符
-     */
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    fun getGateway(): String {
-        return NetworkUtils.getGateway(context)
-    }
-
     private companion object {
         const val TAG = "WifiManager"
     }

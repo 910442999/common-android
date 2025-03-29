@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.location.LocationManager
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.NetworkInfo
 import android.net.RouteInfo
 import android.net.wifi.SupplicantState
@@ -302,6 +303,60 @@ object NetworkUtils {
             Log.e("NetworkUtils", "Error getting Hotspot IP address ", e)
         }
         return ""
+    }
+
+
+    // 获取以太网网关
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun getEthGateway(context: Context): String? {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networks = connectivityManager.allNetworks
+        for (network in networks) {
+            val linkProperties = connectivityManager.getLinkProperties(network)
+            // 检查网络类型是否为以太网（需 API 23+）
+            val capabilities = connectivityManager.getNetworkCapabilities(network)
+            if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true) {
+                linkProperties?.routes?.forEach { route ->
+                    // 默认网关的路由目的地址为 0.0.0.0/0
+                    if (route.isDefaultRoute) {
+                        val gateway: InetAddress? = route.gateway
+                        if (gateway is Inet4Address) {
+                            var hostAddress = gateway.getHostAddress()
+                            return hostAddress
+                        }
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    // 获取以太网网关
+    @RequiresPermission(anyOf = [Manifest.permission.ACCESS_NETWORK_STATE])
+    fun getEthGateway2(context: Context): String? {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return null
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        // 检查是否为以太网且具备互联网能力
+        if (capabilities != null &&
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        ) {
+            // 使用 LinkProperties 的获取方式适配 API 31+
+            val linkProperties = connectivityManager.getLinkProperties(network)
+            linkProperties?.routes?.forEach { route ->
+                val gateway: InetAddress? = route.gateway
+                if (route.isDefaultRoute && gateway is Inet4Address) {
+                    (route.gateway as? Inet4Address)?.hostAddress?.let {
+                        return it
+                    }
+                }
+            }
+        }
+        return null
     }
 
     /**

@@ -8,11 +8,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.View;
 
 import java.io.ByteArrayInputStream;
@@ -231,6 +235,95 @@ public class BitmapUtil {
         bitmap.recycle();
 
         return circularBitmap;
+    }
+
+    /**
+     * 动态调整分辨率
+     */
+    public static Bitmap generateCircularBitmap(Context context, String nickname, int color, int size) {
+        // 获取设备屏幕密度信息
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+
+        // 根据屏幕密度动态计算缩放系数（优化内存和清晰度平衡）
+        final float scaleFactor = calculateScaleFactor(metrics);
+
+        // 计算缩放后的绘制尺寸
+        int scaledSize = (int) (size * scaleFactor);
+
+        // --- 创建高分辨率 Bitmap 开始 ---
+        Bitmap bitmap = Bitmap.createBitmap(scaledSize, scaledSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(color);
+
+        // 文字绘制配置
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+        textPaint.setColor(Color.WHITE);
+        textPaint.setTextSize(scaledSize * 0.5f);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+
+        // 精确计算文字位置
+        String displayName = (nickname == null || nickname.isEmpty()) ? "" : nickname.substring(0, 1);
+        Rect textBounds = new Rect();
+        textPaint.getTextBounds(displayName, 0, 1, textBounds);
+        float yPos = (scaledSize - textBounds.height()) / 2f - textBounds.top;
+
+        // 绘制文字
+        canvas.drawText(displayName, scaledSize / 2f, yPos, textPaint);
+        // --- 创建高分辨率 Bitmap 结束 ---
+
+        // --- 创建圆形遮罩开始 ---
+        Bitmap circularBitmap = Bitmap.createBitmap(scaledSize, scaledSize, Bitmap.Config.ARGB_8888);
+        Canvas circularCanvas = new Canvas(circularBitmap);
+
+        // 绘制圆形背景
+        Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        circularCanvas.drawCircle(scaledSize / 2f, scaledSize / 2f, scaledSize / 2f, circlePaint);
+
+        // 应用遮罩（SRC_IN模式）
+        circlePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        circularCanvas.drawBitmap(bitmap, 0, 0, circlePaint);
+        // --- 创建圆形遮罩结束 ---
+
+        // 缩放回目标尺寸（优化不同密度设备显示效果）
+        Bitmap finalBitmap = Bitmap.createScaledBitmap(
+                circularBitmap,
+                size,
+                size,
+                true // 启用双线性过滤
+        );
+
+        // 回收临时Bitmap（API Level 19+ 自动管理，此处显式释放）
+        bitmap.recycle();
+        circularBitmap.recycle();
+
+        return finalBitmap;
+    }
+
+    /**
+     * 智能缩放系数计算策略（可根据测试结果调整阈值）
+     * <p>
+     * 密度分级参考：
+     * ldpi    ~120dpi : 0.75x
+     * mdpi    ~160dpi : 1x (baseline)
+     * hdpi    ~240dpi : 1.5x
+     * xhdpi   ~320dpi : 2x
+     * xxhdpi  ~480dpi : 2.5x
+     * xxxhdpi ~640dpi : 3x
+     */
+    private static float calculateScaleFactor(DisplayMetrics metrics) {
+        final int densityDpi = metrics.densityDpi;
+        // 根据屏幕密度设置缩放系数（系数与密度成反比）
+        if (densityDpi >= DisplayMetrics.DENSITY_XXXHIGH) { // 640dpi+
+            return 1.25f;   // 超高密度设备使用较小缩放
+        } else if (densityDpi >= DisplayMetrics.DENSITY_XXHIGH) { // 480dpi
+            return 1.5f;
+        } else if (densityDpi >= DisplayMetrics.DENSITY_XHIGH) { // 320dpi
+            return 1.75f;
+        } else if (densityDpi >= DisplayMetrics.DENSITY_HIGH) { // 240dpi
+            return 2.0f;
+        } else { // 160dpi及以下
+            return 2.5f;   // 低密度设备需要更大缩放
+        }
     }
 
     public static Bitmap generateTextBitmap(String nickname, int color, int textSize, int width, int height, int left, int right, int top, int bottom) {
