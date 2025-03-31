@@ -13,6 +13,7 @@ import android.provider.Settings
 import android.view.WindowManager
 import com.yuanquan.common.R
 import java.io.File
+import java.util.Locale
 
 
 object SysUtils {
@@ -100,7 +101,7 @@ object SysUtils {
     @JvmStatic
     fun getDeviceManufacturer(): String? {
         return try {
-            Build.MANUFACTURER.toLowerCase()
+            Build.MANUFACTURER.lowercase(Locale.getDefault())
         } catch (e: Exception) {
             ""
         }
