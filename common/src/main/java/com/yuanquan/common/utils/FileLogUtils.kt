@@ -94,7 +94,6 @@ object FileLogUtils {
             BufferedWriter(FileWriter(logFile, true)).use { writer ->
                 writer.append(log)
             }
-            LogUtil.i("写入文件日志：" + message)
         } catch (e: Exception) {
             LogUtil.e(message)
         }
@@ -111,7 +110,6 @@ object FileLogUtils {
             var string = SPUtils.getInstance().getString(TAG)
             var s = string + log
             SPUtils.getInstance().put(TAG, s)
-            LogUtil.i("写入内存日志：" + message)
         } catch (e: Exception) {
             LogUtil.e(message)
         }

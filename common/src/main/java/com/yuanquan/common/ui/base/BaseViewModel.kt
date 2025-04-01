@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.viewbinding.ViewBinding
-import com.yuanquan.common.api.HttpUtil
 import com.yuanquan.common.api.error.ErrorResult
 import com.yuanquan.common.api.response.BaseResult
 import com.yuanquan.common.utils.LogUtil
