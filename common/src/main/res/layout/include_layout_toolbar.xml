@@ -12,14 +12,21 @@
         android:layout_height="54dp"
         android:paddingRight="15dp">
 
-        <ImageView
-            android:id="@+id/iv_back"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:layout_centerVertical="true"
-            android:onClick="finish"
-            android:padding="17dp"
-            android:src="@mipmap/iv_back" />
+        <RelativeLayout
+            android:id="@+id/rl_back"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:onClick="finish">
+
+            <ImageView
+                android:id="@+id/iv_back"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"
+                android:padding="16dp"
+                android:src="@mipmap/iv_back" />
+
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/title_toolbar"
