@@ -8,7 +8,6 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
@@ -20,7 +19,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.yuanquan.common.R;
-import com.yuanquan.common.widget.CircleTextImageView;
+import com.yuanquan.common.widget.TextAvatarDrawable;
 
 /**
  * glide加载图片
@@ -232,26 +231,19 @@ public class GlideManager {
         Glide.with(context).load(headerImageUrl).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new CircleCrop())).into(pvHeader);
     }
 
-    public static void headerImage(Context context, String headerImageUrl, CircleTextImageView pvHeader, String colourCode, String subNickName, Float textSize) {
+    public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader, String colourCode, String subNickName, Float textSize) {
         headerImage(context, headerImageUrl, pvHeader, colourCode, subNickName, textSize, R.mipmap.icon_header);
     }
 
-    public static void headerImage(Context context, String headerImageUrl, CircleTextImageView pvHeader, String colourCode, String subNickName, Float textSize, int resourceId) {
+    public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader, String colourCode, String subNickName, Float textSize, int resourceId) {
         if (headerImageUrl == null || headerImageUrl.isEmpty()) {
             if (subNickName != null && !subNickName.isEmpty()) {
-                if (colourCode != null && !colourCode.isEmpty()) {
-                    pvHeader.setCircleBackgroundColor(Color.parseColor(colourCode));
-                }
-                pvHeader.setTextColor(ContextCompat.getColor(context, R.color.white));
-                if (textSize != null) {
-                    pvHeader.setTextSize(SysUtils.dp2Px(context, textSize));
-                }
-                pvHeader.setText(subNickName);
+                TextAvatarDrawable avatarDrawable = new TextAvatarDrawable(subNickName, Color.parseColor(colourCode), SysUtils.dp2Px(context, textSize));
+                pvHeader.setImageDrawable(avatarDrawable);
             } else {
                 Glide.with(context).load(resourceId).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new CircleCrop())).into(pvHeader);
             }
         } else {
-            pvHeader.setText("");
             headerImage(context, headerImageUrl, pvHeader, resourceId);
         }
     }

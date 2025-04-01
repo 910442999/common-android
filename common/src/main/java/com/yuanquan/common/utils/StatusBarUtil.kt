@@ -1,7 +1,6 @@
 package com.yuanquan.common.utils
 
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
@@ -9,10 +8,8 @@ import android.graphics.Color
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsetsController
 import android.view.WindowManager
-import androidx.annotation.IntDef
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
 
 /**
  * Date 2019/5/30 7:32 PM
@@ -21,14 +18,6 @@ import java.lang.annotation.RetentionPolicy
  */
 
 object StatusBarUtil {
-    const val TYPE_MIUI = 0
-    const val TYPE_FLYME = 1
-    const val TYPE_M = 3//6.0
-
-    @IntDef(TYPE_MIUI, TYPE_FLYME, TYPE_M)
-    @Retention(RetentionPolicy.SOURCE)
-    internal annotation class ViewType
-
     /**
      * 修改状态栏颜色，支持4.4以上版本
      *
@@ -36,7 +25,6 @@ object StatusBarUtil {
      */
     @JvmStatic
     fun setStatusBarColor(activity: Activity, colorId: Int) {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             val window = activity.window
             window.statusBarColor = colorId
@@ -96,116 +84,6 @@ object StatusBarUtil {
         }
     }
 
-    /**
-     * 设置状态栏深色浅色切换
-     */
-    @JvmStatic
-    fun setStatusBarDarkTheme(activity: Activity, dark: Boolean): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                setStatusBarFontIconDark(activity, TYPE_M, dark)
-            } else if (RomUtils.isMiui) {
-                setStatusBarFontIconDark(activity, TYPE_MIUI, dark)
-            } else if (RomUtils.isFlyme) {
-                setStatusBarFontIconDark(activity, TYPE_FLYME, dark)
-            } else {//其他情况
-                return false
-            }
-
-            return true
-        }
-        return false
-    }
-
-    /**
-     * 设置 状态栏深色浅色切换
-     */
-    fun setStatusBarFontIconDark(activity: Activity, @ViewType type: Int, dark: Boolean): Boolean {
-        when (type) {
-            TYPE_MIUI -> return setMiuiUI(activity, dark)
-            TYPE_FLYME -> return setFlymeUI(activity, dark)
-            TYPE_M -> return setCommonUI(activity, dark)
-            else -> return setCommonUI(activity, dark)
-        }
-    }
-
-    //设置6.0 状态栏深色浅色切换
-    fun setCommonUI(activity: Activity, dark: Boolean): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val decorView = activity.window.decorView
-            if (decorView != null) {
-                var vis = decorView.systemUiVisibility
-                if (dark) {
-                    vis = vis or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                } else {
-                    vis = vis and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
-                }
-                if (decorView.systemUiVisibility != vis) {
-                    decorView.systemUiVisibility = vis
-                }
-                return true
-            }
-        }
-        return false
-
-    }
-
-    //设置Flyme 状态栏深色浅色切换
-    fun setFlymeUI(activity: Activity, dark: Boolean): Boolean {
-        try {
-            val window = activity.window
-            val lp = window.attributes
-            val darkFlag =
-                WindowManager.LayoutParams::class.java.getDeclaredField("MEIZU_FLAG_DARK_STATUS_BAR_ICON")
-            val meizuFlags = WindowManager.LayoutParams::class.java.getDeclaredField("meizuFlags")
-            darkFlag.isAccessible = true
-            meizuFlags.isAccessible = true
-            val bit = darkFlag.getInt(null)
-            var value = meizuFlags.getInt(lp)
-            if (dark) {
-                value = value or bit
-            } else {
-                value = value and bit.inv()
-            }
-            meizuFlags.setInt(lp, value)
-            window.attributes = lp
-            return true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return false
-        }
-
-    }
-
-    //设置MIUI 状态栏深色浅色切换
-    fun setMiuiUI(activity: Activity, dark: Boolean): Boolean {
-        try {
-            val window = activity.window
-            val clazz = activity.window.javaClass
-            @SuppressLint("PrivateApi") val layoutParams =
-                Class.forName("android.view.MiuiWindowManager\$LayoutParams")
-            val field = layoutParams.getField("EXTRA_FLAG_STATUS_BAR_DARK_MODE")
-            val darkModeFlag = field.getInt(layoutParams)
-            val extraFlagField =
-                clazz.getDeclaredMethod(
-                    "setExtraFlags",
-                    Int::class.javaPrimitiveType,
-                    Int::class.javaPrimitiveType
-                )
-            extraFlagField.isAccessible = true
-            if (dark) {    //状态栏亮色且黑色字体
-                extraFlagField.invoke(window, darkModeFlag, darkModeFlag)
-            } else {
-                extraFlagField.invoke(window, 0, darkModeFlag)
-            }
-            return true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return false
-        }
-
-    }
-
     //获取状态栏高度
     @JvmStatic
     fun getStatusBarHeight(context: Context): Int {
@@ -217,5 +95,78 @@ object StatusBarUtil {
             result = context.resources.getDimensionPixelSize(resourceId)
         }
         return result
+    }
+
+    /**
+     * 设置状态栏文字颜色
+     */
+    fun setStatusBarDarkTheme(activity: Activity, isDarkText: Boolean) {
+        val window = activity.window
+        val decorView = window.decorView
+
+        // 状态栏处理（原有逻辑）
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                window.insetsController?.apply {
+                    val statusBarAppearance = if (isDarkText) {
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    } else {
+                        0
+                    }
+                    setSystemBarsAppearance(
+                        statusBarAppearance,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                }
+            }
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
+                var flags = decorView.systemUiVisibility
+                flags = if (isDarkText) {
+                    flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                } else {
+                    flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                }
+                decorView.systemUiVisibility = flags
+            }
+        }
+
+        // 新增导航栏处理逻辑
+        when {
+            // Android 12L (API 32+) 新方式
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                window.insetsController?.apply {
+                    val navBarAppearance = if (isDarkText) {
+                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                    } else {
+                        0
+                    }
+                    setSystemBarsAppearance(
+                        navBarAppearance,
+                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                    )
+                }
+            }
+            // Android 8.0+ 传统方式（注意最低版本限制）
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                var flags = decorView.systemUiVisibility
+                flags = if (isDarkText) {
+                    flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                } else {
+                    flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+                }
+                decorView.systemUiVisibility = flags
+            }
+        }
+        //异形屏适配
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            window.isNavigationBarContrastEnforced = false
+//        }
+        //布局防遮挡处理
+//        window.decorView.apply {
+//            systemUiVisibility =
+//                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+//                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//        }
     }
 }
