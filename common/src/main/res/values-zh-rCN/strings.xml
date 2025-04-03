@@ -1,7 +1,7 @@
 <resources>
     <string name="format_date_year_week">EEE MMM d h:mm a</string>
-    <string name="format_date_week">EEE MMM d</string>
-    <string name="format_date">MMMM d</string>
+    <string name="format_date_week">M月d日 EEEE</string>
+    <string name="format_date">MM月d日</string>
     <string name="format_week">EEEE</string>
     <string name="format_time">h:mm a</string>
 </resources>

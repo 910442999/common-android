@@ -31,12 +31,12 @@ object SysUtils {
 
     // 获取当前APP名称
     @JvmStatic
-    fun getAppName(context: Context): String {
+    fun getAppName(context: Context, default: String = ""): String {
         val packageManager = context.packageManager
         val applicationInfo: ApplicationInfo = try {
             packageManager.getApplicationInfo(context.packageName, 0)
         } catch (e: java.lang.Exception) {
-            return context.resources.getString(R.string.app_name)
+            return default
         }
         return packageManager.getApplicationLabel(applicationInfo).toString()
     }
