@@ -7,13 +7,34 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
-
+<!--    &lt;!&ndash; Base application theme. &ndash;&gt;-->
+<!--    <style name="AppThemeTransparent" parent="Theme.AppCompat.Light.NoActionBar">-->
+<!--        &lt;!&ndash; Customize your theme here. &ndash;&gt;-->
+<!--        <item name="colorPrimary">@android:color/transparent</item>-->
+<!--        <item name="colorPrimaryDark">@android:color/transparent</item>-->
+<!--        <item name="colorAccent">@android:color/transparent</item>-->
+<!--    </style>-->
     <style name="FullScreenTheme" parent="AppTheme">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowNoTitle">true</item>
     </style>
+    <style name="ActivityFullScreenTheme" parent="DialogFullScreenTheme">
+        <!--API低于30 需要移除 android:windowIsFloating 或者将其设置为 false 将窗口设置为占满屏幕 -->
+        <item name="android:windowIsFloating">false</item>
+    </style>
 
+<!--    <style name="DialogFullScreenTheme" parent="AppThemeTransparent">-->
+<!--        &lt;!&ndash;        <item name="android:windowFullscreen">true</item>&ndash;&gt;-->
+<!--        <item name="android:windowCloseOnTouchOutside">false</item>-->
+<!--        <item name="android:windowBackground">@android:color/transparent</item>-->
+<!--        <item name="android:windowContentOverlay">@null</item>-->
+<!--        <item name="android:windowIsFloating">true</item>-->
+<!--        <item name="android:windowFrame">@null</item>-->
+<!--        <item name="android:backgroundDimEnabled">true</item>-->
+<!--        <item name="android:windowNoTitle">true</item>-->
+<!--        <item name="android:windowIsTranslucent">true</item>-->
+<!--    </style>-->
     <style name="DialogFullScreenTheme">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowCloseOnTouchOutside">true</item>
