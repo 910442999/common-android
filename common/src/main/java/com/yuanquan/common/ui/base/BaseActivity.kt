@@ -56,6 +56,14 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         loadingDialog = LoadingDialog(this)
         initClick()
         initData()
+        if (theScreenIsAlwaysOn()) SysUtils.theScreenIsAlwaysOn(mContext, true)
+    }
+
+    /**
+     * 屏幕常亮
+     */
+    protected open fun theScreenIsAlwaysOn(): Boolean {
+        return false
     }
 
     /**
@@ -72,10 +80,11 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this)
         dismissLoading()
         loadingDialog == null
+        if (theScreenIsAlwaysOn()) SysUtils.theScreenIsAlwaysOn(mContext, false)
+        super.onDestroy()
     }
 
     //事件传递

@@ -26,9 +26,6 @@ class WebViewFragment :
     var uploadMessageAboveL: ValueCallback<Array<Uri>>? = null
     var uploadMessage: ValueCallback<Uri>? = null
     var acceptTypes: Array<String>? = null
-
-    var theScreenIsAlwaysOn = false // 屏幕始终常亮
-
     var isCreate = true
     var statusBarHeight: Int = 0
 
@@ -49,10 +46,6 @@ class WebViewFragment :
         mWebView?.setOnLongClickListener { true }
         WebViewUtils.setWebViewSettings(requireContext(), mWebView)
         mWebView?.addJavascriptInterface(JavaScriptApp(), "app")
-    }
-
-    private fun theScreenIsAlwaysOn(boolean: Boolean) {
-        SysUtils.theScreenIsAlwaysOn(mContext, boolean)
     }
 
     private fun initWebView() {
@@ -332,9 +325,6 @@ class WebViewFragment :
     }
 
     override fun onDestroy() {
-        if (theScreenIsAlwaysOn) {
-            theScreenIsAlwaysOn(false)
-        }
         super.onDestroy()
     }
 
