@@ -36,7 +36,6 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
     @Suppress("UNCHECKED_CAST")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initResources()
         var pathfinders = ArrayList<GenericParadigmUtil.Pathfinder>()
         pathfinders.add(GenericParadigmUtil.Pathfinder(0, 0))
         val clazzVM = GenericParadigmUtil.parseGenericParadigm(javaClass, pathfinders) as Class<VM>
@@ -67,7 +66,7 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
     }
 
     /**
-     * 防止系统字体影响到app的字体
+     * 防止系统字体影响到app的字体(此方式会影响自动适配)
      *
      * @return
      */
