@@ -5,6 +5,7 @@ import android.util.Log
 object LogUtil {
     const val TAG = "LogUtil-LOG"
     const val TAG_NET = "LogUtil-NET"
+    const val TAG_FILTER_NET = "LogUtil-FILTER-NET"
 
     @JvmStatic
     fun i(message: Any?) {

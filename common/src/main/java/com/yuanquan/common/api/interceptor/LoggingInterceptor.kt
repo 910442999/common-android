@@ -23,22 +23,22 @@ class LoggingInterceptor : Interceptor {
 //            return chain.proceed(request)
 //        }
         val builder = StringBuilder()
-        var api = httpUrl.toString().replace(URLConstant.getHost(), "")
-        if (api.contains("?")) {
-            api = api.substring(0, api.indexOf("?"))
-        }
+        // 获取路径和查询参数部分（例如：/api/v1/user?id=123）
+//        val pathWithQuery = httpUrl.encodedPath() + if (httpUrl.encodedQuery() != null) "?${httpUrl.encodedQuery()}" else ""
+        val path = httpUrl.encodedPath()
         builder.append(
             String.format(
                 "%s%n%s%n%s%n%s%n%s%n%s%n", " ", "",
                 "请求Headers>>> " + request.headers().toString(),
                 "请求URL>>> $httpUrl",
-                "API>>> $api",
+                "API>>> $path",
                 "请求方法>>> " + request.method(),
             )
         )
         if (request.method() == "POST" || request.method() == "PUT") {
             builder.append(
-                String.format("%s%n",
+                String.format(
+                    "%s%n",
                     run {
                         var msg = bodyToString(request.body())
                         if (msg != null) {
@@ -65,7 +65,11 @@ class LoggingInterceptor : Interceptor {
             )
         )
         builder.append(String.format("%s%n%s%n%s%n", "请求结果>>> $result", " ", ""))
-        LogUtil.i(LogUtil.TAG_NET, builder.toString())
+        if (URLConstant.logNetFilter.contains(path)) {
+            LogUtil.i(LogUtil.TAG_FILTER_NET, builder.toString())
+        } else {
+            LogUtil.i(LogUtil.TAG_NET, builder.toString())
+        }
         return response
     }
 
