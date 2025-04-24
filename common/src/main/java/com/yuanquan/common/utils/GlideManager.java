@@ -248,4 +248,22 @@ public class GlideManager {
         }
     }
 
+    public static void headerGrayscaleImage(Context context, String headerImageUrl, ImageView pvHeader, String nickName, Float textSize, int resourceId) {
+        if (headerImageUrl == null || headerImageUrl.isEmpty()) {
+            if (nickName != null && !nickName.isEmpty()) {
+                TextAvatarDrawable avatarDrawable = new TextAvatarDrawable(nickName, Color.parseColor("#999999"), SysUtils.dp2Px(context, textSize));
+                pvHeader.setImageDrawable(avatarDrawable);
+            }
+        } else {
+            Glide.with(context).load(headerImageUrl)
+                    .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(resourceId)
+                    .error(resourceId)
+                    .apply(RequestOptions.bitmapTransform(new GrayCircleTransformation()))// 将图片转换成灰色
+                    .dontAnimate()
+                    .into(pvHeader);
+        }
+    }
+
 }
