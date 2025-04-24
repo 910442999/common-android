@@ -29,6 +29,7 @@ object GlideManager {
      * @param url
      * @param imageView
      */
+    @JvmStatic
     fun image(context: Context, url: String?, imageView: ImageView) {
         image(context, url, imageView, R.mipmap.empty1)
     }
@@ -41,6 +42,7 @@ object GlideManager {
      * @param iv
      * @param resourceId 展位图片
      */
+    @JvmStatic
     fun image(context: Context, url: String?, iv: ImageView, resourceId: Int) {
         load(context, url, iv, resourceId, null)
     }
@@ -53,6 +55,7 @@ object GlideManager {
      * @param iv
      * @param resourceId 展位图片
      */
+    @JvmStatic
     fun load(
         context: Context,
         url: String?,
@@ -71,6 +74,7 @@ object GlideManager {
      * @param iv
      * @param resourceId 展位图片
      */
+    @JvmStatic
     fun load(
         context: Context,
         url: String?,
@@ -96,6 +100,7 @@ object GlideManager {
      * @param url
      * @param iv
      */
+    @JvmStatic
     fun localImage(context: Context, url: Int, iv: ImageView) {
         Glide.with(context) //这里写入url
             .load(url).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).into(iv)
@@ -154,14 +159,17 @@ object GlideManager {
     //                .into(iv);
     //
     //    }
+    @JvmStatic
     fun asGif(context: Context, url: Int, imageView: ImageView) {
         Glide.with(context).asGif().load(url).into(imageView) //除非图像是动画gif ，否则将失败。
     }
 
+    @JvmStatic
     fun asGif(context: Context, url: String?, imageView: ImageView) {
         Glide.with(context).asGif().load(url).into(imageView) //除非图像是动画gif ，否则将失败。
     }
 
+    @JvmStatic
     fun asBitmap(context: Context, url: String?, listener: OnBitmapListener?) {
         Glide.with(context).asBitmap().load(url).into(object : SimpleTarget<Bitmap?>() {
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap?>?) {
@@ -170,6 +178,7 @@ object GlideManager {
         })
     }
 
+    @JvmStatic
     fun asBitmap(context: Context, url: String?, resourceId: Int, listener: OnBitmapListener?) {
         Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId)
             .into(object : SimpleTarget<Bitmap?>() {
@@ -182,6 +191,7 @@ object GlideManager {
             })
     }
 
+    @JvmStatic
     fun asBitmap(
         context: Context,
         url: String?,
@@ -202,6 +212,7 @@ object GlideManager {
             })
     }
 
+    @JvmStatic
     fun asDrawable(context: Context, url: String?, listener: OnDrawableListener?) {
         Glide.with(context).asDrawable().load(url).into(object : SimpleTarget<Drawable?>() {
             override fun onResourceReady(
@@ -213,6 +224,7 @@ object GlideManager {
         })
     }
 
+    @JvmStatic
     fun asDrawable(context: Context, url: String?, resourceId: Int, listener: OnDrawableListener?) {
         Glide.with(context).asDrawable().load(url).placeholder(resourceId).error(resourceId)
             .into(object : SimpleTarget<Drawable?>() {
@@ -225,6 +237,7 @@ object GlideManager {
             })
     }
 
+    @JvmStatic
     fun asDrawable(
         context: Context,
         url: String?,
@@ -292,6 +305,7 @@ object GlideManager {
         }
     }
 
+    @JvmStatic
     fun headerGrayscaleImage(
         context: Context,
         headerImageUrl: String?,
