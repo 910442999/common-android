@@ -122,7 +122,7 @@ object GlideManager {
      * @param iv
      * @param resourceId 图片占位图
      */
-    @JvmOverloads
+    @JvmStatic
     fun circular(
         context: Context,
         url: String?,
@@ -265,7 +265,7 @@ object GlideManager {
      * @param pvHeader
      * @param resourceId     图片占位图
      */
-    @JvmOverloads
+    @JvmStatic
     fun headerImage(
         context: Context,
         headerImageUrl: String?,
@@ -277,7 +277,7 @@ object GlideManager {
             .apply(RequestOptions.bitmapTransform(CircleCrop())).into(pvHeader)
     }
 
-    @JvmOverloads
+    @JvmStatic
     fun headerImage(
         context: Context,
         headerImageUrl: String?,
@@ -336,10 +336,10 @@ object GlideManager {
     }
 
     interface OnBitmapListener {
-        fun onResourceReady(bitmap: Bitmap?)
+        fun onResourceReady(bitmap: Bitmap)
     }
 
     interface OnDrawableListener {
-        fun onResourceReady(drawable: Drawable?)
+        fun onResourceReady(drawable: Drawable)
     }
 }

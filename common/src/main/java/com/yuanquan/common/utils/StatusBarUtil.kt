@@ -100,6 +100,7 @@ object StatusBarUtil {
     /**
      * 设置状态栏文字颜色
      */
+    @JvmStatic
     fun setStatusBarDarkTheme(activity: Activity, isDarkText: Boolean) {
         val window = activity.window
         val decorView = window.decorView
