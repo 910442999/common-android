@@ -12,10 +12,12 @@ import android.view.View
 import java.util.regex.Pattern
 
 object CommonUtils {
+    @JvmStatic
     fun killProcessApp(context: Context, clazz: Class<*>?) {
         killProcessApp(context, 0, clazz)
     }
 
+    @JvmStatic
     fun killProcessApp(context: Context, position: Int, clazz: Class<*>?) {
         Handler().postDelayed({ //重启app,这一步一定要加上，如果不重启app，可能打开新的页面显示的语言会不正确
             val intent = Intent(context, clazz)
@@ -31,6 +33,7 @@ object CommonUtils {
     // 需要点击几次 就设置几
     var mHits: LongArray? = null
 
+    @JvmStatic
     fun onTestDisplaySetting(context: Context?, onClickListener: View.OnClickListener) {
         if (mHits == null) {
             mHits = LongArray(5)
@@ -59,6 +62,7 @@ object CommonUtils {
     //        return getUniqueIdentificationCode;
     //    }
     //获取剪切板内容
+    @JvmStatic
     fun getClipboardContent(context: Context): String? {
         var str: String? = null
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -90,6 +94,7 @@ object CommonUtils {
      *
      * @param url
      */
+    @JvmStatic
     fun copy(context: Context, url: String?) {
         //获取剪贴板管理器：
         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -99,6 +104,7 @@ object CommonUtils {
         cm.setPrimaryClip(mClipData)
     }
 
+    @JvmStatic
     fun setWidthHeight(view: View, width: Int, bili: Float) {
         val heightFloat = (width / bili).toInt()
         val layoutParams = view.layoutParams
@@ -113,6 +119,7 @@ object CommonUtils {
      * @param data
      * @return
      */
+    @JvmStatic
     fun isNumeric(data: String?): Boolean {
         val matches = Pattern.matches("[0-9]*", data)
         if (!matches) {
@@ -121,6 +128,7 @@ object CommonUtils {
         return true
     }
 
+    @JvmStatic
     fun validatePassword(password: String?): Boolean {
         val x = "^(?![A-Z]*$)(?![a-z]*$)(?![0-9]*$)(?![^a-zA-Z0-9]*$)\\S+$" //4选2
         //        x = "^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\\W_]+$)(?![a-z0-9]+$)(?![a-z\\W_]+$)(?![0-9\\W_]+$)[a-zA-Z0-9\\W_]{8,16}$";//4选三
@@ -132,6 +140,7 @@ object CommonUtils {
 
     var regEx: String = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
 
+    @JvmStatic
     fun validateEmail(email: String): Boolean {
         val matcherObj = Pattern.compile(regEx).matcher(email)
         return matcherObj.matches()

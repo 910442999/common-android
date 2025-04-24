@@ -8,16 +8,19 @@ object UiUtils {
     /**
      * 设置Html.fromHtml(resource: String)
      */
+    @JvmStatic
     fun setHtmlText(text: String?): String {
         return Html.fromHtml(text).toString()
     }
 
+    @JvmStatic
     fun setMargins(v: View, l: Int, t: Int, r: Int, b: Int) {
         if (v.layoutParams is MarginLayoutParams) {
             val layoutParams = v.layoutParams as MarginLayoutParams
             layoutParams.setMargins(l, t, r, b)
         }
     }
+
     //根据文本获取颜色
     @JvmStatic
     fun getColourText(text: String?): String {
