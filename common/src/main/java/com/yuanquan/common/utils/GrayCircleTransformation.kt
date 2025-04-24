@@ -1,81 +1,81 @@
-package com.yuanquan.common.utils;
+package com.yuanquan.common.utils
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
+import android.graphics.*
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
+import java.nio.ByteBuffer
+import java.security.MessageDigest
 
-import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
-import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
-import com.bumptech.glide.load.resource.bitmap.TransformationUtils;
+class GrayCircleTransformation(
+    private val borderWidth: Float = 0f,
+    private val borderColor: Int = Color.TRANSPARENT
+) : BitmapTransformation() {
 
-import java.security.MessageDigest;
+    private val ID =
+        "com.yuanquan.common.utils.GrayCircleTransformation(border=$borderWidth,$borderColor)"
+    private val ID_BYTES = ID.toByteArray(CHARSET)
 
-public class GrayCircleTransformation extends BitmapTransformation {
+    override fun transform(
+        pool: BitmapPool,
+        source: Bitmap,
+        outWidth: Int,
+        outHeight: Int
+    ): Bitmap {
+        val size = source.width.coerceAtMost(source.height)
+        val width = (source.width - size) / 2
+        val height = (source.height - size) / 2
 
-    private int BORDER_COLOR = Color.TRANSPARENT;
-    private int BORDER_WIDTH;
+        val result = pool.get(size, size, Bitmap.Config.ARGB_8888)
 
-    public GrayCircleTransformation() {
-        super();
-    }
-
-    public GrayCircleTransformation(int borderWidth, int borderColor) {
-        super();
-        BORDER_WIDTH = borderWidth;
-        BORDER_COLOR = borderColor;
-    }
-
-    @Override
-    protected Bitmap transform(BitmapPool pool, Bitmap toTransform, int outWidth, int outHeight) {
-        Bitmap squaredBitmap = TransformationUtils.centerCrop(pool, toTransform, outWidth, outHeight);
-        Bitmap grayBitmap = toGrayscale(squaredBitmap);
-
-        Bitmap circleBitmap = pool.get(outWidth, outHeight, Bitmap.Config.ARGB_8888);
-        if (circleBitmap == null) {
-            circleBitmap = Bitmap.createBitmap(outWidth, outHeight, Bitmap.Config.ARGB_8888);
+        // 灰度处理
+        val colorMatrix = ColorMatrix().apply { setSaturation(0f) }
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            colorFilter = ColorMatrixColorFilter(colorMatrix)
         }
 
-        Canvas canvas = new Canvas(circleBitmap);
-        Paint paint = new Paint();
-        BitmapShader shader = new BitmapShader(grayBitmap, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
-        paint.setShader(shader);
-        paint.setAntiAlias(true);
-
-        float radius = Math.min(outWidth, outHeight) / 2f;
-        canvas.drawCircle(outWidth / 2f, outHeight / 2f, radius, paint);
-
-        if (BORDER_WIDTH > 0) {
-            // 绘制边框
-            Paint borderPaint = new Paint();
-            borderPaint.setStyle(Paint.Style.STROKE);
-            borderPaint.setStrokeWidth(BORDER_WIDTH);
-            borderPaint.setColor(BORDER_COLOR);
-            canvas.drawCircle(outWidth / 2f, outHeight / 2f, radius - BORDER_WIDTH / 2f, borderPaint);
+        // 圆形裁剪
+        val canvas = Canvas(result)
+        val path = Path().apply {
+            addCircle(size / 2f, size / 2f, size / 2f, Path.Direction.CCW)
         }
-        return circleBitmap;
+
+        // 绘制灰度圆形图片
+        canvas.save()
+        canvas.clipPath(path)
+        canvas.drawBitmap(source, -width.toFloat(), -height.toFloat(), paint)
+        canvas.restore()
+
+        // 绘制边框（当borderWidth > 0时）
+        if (borderWidth > 0) {
+            val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = borderColor
+                style = Paint.Style.STROKE
+                strokeWidth = borderWidth
+                strokeCap = Paint.Cap.ROUND
+            }
+            val radius = size / 2f - borderWidth / 2
+            canvas.drawCircle(size / 2f, size / 2f, radius, borderPaint)
+        }
+
+        return result
     }
 
-    @Override
-    public void updateDiskCacheKey(MessageDigest messageDigest) {
-        messageDigest.update("gray_circle_transformation".getBytes());
+    override fun updateDiskCacheKey(messageDigest: MessageDigest) {
+        messageDigest.update(ID_BYTES)
+        messageDigest.update(ByteBuffer.allocate(4).putFloat(borderWidth).array())
+        messageDigest.update(ByteBuffer.allocate(4).putInt(borderColor).array())
     }
 
-    private Bitmap toGrayscale(Bitmap bitmap) {
-        Bitmap grayBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(grayBitmap);
+    override fun equals(other: Any?): Boolean {
+        return other is GrayCircleTransformation &&
+                other.borderWidth == borderWidth &&
+                other.borderColor == borderColor
+    }
 
-        Paint paint = new Paint();
-        ColorMatrix colorMatrix = new ColorMatrix();
-        colorMatrix.setSaturation(0);
-        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
-        paint.setColorFilter(filter);
-
-        canvas.drawBitmap(bitmap, 0, 0, paint);
-
-        return grayBitmap;
+    override fun hashCode(): Int {
+        var result = ID.hashCode()
+        result = 31 * result + borderWidth.hashCode()
+        result = 31 * result + borderColor
+        return result
     }
 }
