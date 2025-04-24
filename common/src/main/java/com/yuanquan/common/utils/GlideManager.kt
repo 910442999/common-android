@@ -1,40 +1,27 @@
-package com.yuanquan.common.utils;
+package com.yuanquan.common.utils
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.widget.ImageView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestBuilder;
-import com.bumptech.glide.load.Transformation;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.bitmap.CircleCrop;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
-import com.yuanquan.common.R;
-import com.yuanquan.common.widget.TextAvatarDrawable;
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.widget.ImageView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.Transformation
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
+import com.yuanquan.common.R
+import com.yuanquan.common.utils.SysUtils.dp2Px
+import com.yuanquan.common.widget.TextAvatarDrawable
+import androidx.core.graphics.toColorInt
 
 /**
  * glide加载图片
  */
-
-public class GlideManager {
-    public interface OnBitmapListener {
-        void onResourceReady(Bitmap bitmap);
-    }
-
-    public interface OnDrawableListener {
-        void onResourceReady(Drawable drawable);
-    }
-
-
+object GlideManager {
     /**
      * 用glide加载图片
      *
@@ -42,8 +29,8 @@ public class GlideManager {
      * @param url
      * @param imageView
      */
-    public static void image(Context context, String url, ImageView imageView) {
-        image(context, url, imageView, R.mipmap.empty1);
+    fun image(context: Context, url: String?, imageView: ImageView) {
+        image(context, url, imageView, R.mipmap.empty1)
     }
 
     /**
@@ -54,8 +41,8 @@ public class GlideManager {
      * @param iv
      * @param resourceId 展位图片
      */
-    public static void image(Context context, String url, ImageView iv, int resourceId) {
-        load(context, url, iv, resourceId, null);
+    fun image(context: Context, url: String?, iv: ImageView, resourceId: Int) {
+        load(context, url, iv, resourceId, null)
     }
 
     /**
@@ -66,8 +53,14 @@ public class GlideManager {
      * @param iv
      * @param resourceId 展位图片
      */
-    public static void load(Context context, String url, ImageView iv, int resourceId, Transformation<Bitmap> transformation) {
-        load(context, url, iv, resourceId, true, DiskCacheStrategy.ALL, transformation);
+    fun load(
+        context: Context,
+        url: String?,
+        iv: ImageView,
+        resourceId: Int,
+        transformation: Transformation<Bitmap?>?
+    ) {
+        load(context, url, iv, resourceId, true, DiskCacheStrategy.ALL, transformation)
     }
 
     /**
@@ -78,14 +71,22 @@ public class GlideManager {
      * @param iv
      * @param resourceId 展位图片
      */
-    public static void load(Context context, String url, ImageView iv, int resourceId, boolean skip, DiskCacheStrategy strategy, Transformation<Bitmap> transformation) {
-        RequestBuilder<Drawable> builder = Glide.with(context)
-                //这里写入url
-                .load(url).placeholder(resourceId).error(resourceId).skipMemoryCache(skip).diskCacheStrategy(strategy);
+    fun load(
+        context: Context,
+        url: String?,
+        iv: ImageView,
+        resourceId: Int,
+        skip: Boolean,
+        strategy: DiskCacheStrategy,
+        transformation: Transformation<Bitmap?>?
+    ) {
+        var builder = Glide.with(context) //这里写入url
+            .load(url).placeholder(resourceId).error(resourceId).skipMemoryCache(skip)
+            .diskCacheStrategy(strategy)
         if (transformation != null) {
-            builder = builder.transform(transformation);
+            builder = builder.transform(transformation)
         }
-        builder.into(iv);
+        builder.into(iv)
     }
 
     /**
@@ -95,15 +96,9 @@ public class GlideManager {
      * @param url
      * @param iv
      */
-    public static void localImage(Context context, int url, ImageView iv) {
-        Glide.with(context)
-                //这里写入url
-                .load(url).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).into(iv);
-
-    }
-
-    public static void circular(Context context, String url, ImageView iv) {
-        circular(context, url, iv, R.mipmap.empty1);
+    fun localImage(context: Context, url: Int, iv: ImageView) {
+        Glide.with(context) //这里写入url
+            .load(url).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).into(iv)
     }
 
     /**
@@ -114,10 +109,6 @@ public class GlideManager {
      * @param iv
      * @param resourceId 图片占位图
      */
-    public static void circular(Context context, String url, ImageView iv, int resourceId) {
-        circular(context, url, iv, resourceId, 6);
-    }
-
     /**
      * 圆角图片
      *
@@ -126,11 +117,23 @@ public class GlideManager {
      * @param iv
      * @param resourceId 图片占位图
      */
-    public static void circular(Context context, String url, ImageView iv, int resourceId, int roundingRadius) {
-        Glide.with(context).load(url).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new RoundedCorners(SysUtils.dp2Px(context, roundingRadius))))
-                //                .transform(transformation)
-                .into(iv);
-
+    @JvmOverloads
+    fun circular(
+        context: Context,
+        url: String?,
+        iv: ImageView,
+        resourceId: Int = R.mipmap.empty1,
+        roundingRadius: Int = 6
+    ) {
+        Glide.with(context).load(url).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL)
+            .placeholder(resourceId).error(resourceId).apply(
+                RequestOptions.bitmapTransform(
+                    RoundedCorners(
+                        dp2Px(context, roundingRadius.toFloat())
+                    )
+                )
+            ) //                .transform(transformation)
+            .into(iv)
     }
 
     //    public static void circularRound(Context context, String url, ImageView iv, int resourceId, int roundingRadius, boolean leftTop, boolean rightTop, boolean leftBottom, boolean rightBottom) {
@@ -151,72 +154,94 @@ public class GlideManager {
     //                .into(iv);
     //
     //    }
-
-
-    public static void asGif(Context context, int url, ImageView imageView) {
-        Glide.with(context).asGif().load(url).into(imageView);//除非图像是动画gif ，否则将失败。
+    fun asGif(context: Context, url: Int, imageView: ImageView) {
+        Glide.with(context).asGif().load(url).into(imageView) //除非图像是动画gif ，否则将失败。
     }
 
-    public static void asGif(Context context, String url, ImageView imageView) {
-        Glide.with(context).asGif().load(url).into(imageView);//除非图像是动画gif ，否则将失败。
+    fun asGif(context: Context, url: String?, imageView: ImageView) {
+        Glide.with(context).asGif().load(url).into(imageView) //除非图像是动画gif ，否则将失败。
     }
 
-    public static void asBitmap(Context context, String url, OnBitmapListener listener) {
-        Glide.with(context).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
-            @Override
-            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                if (listener != null) listener.onResourceReady(resource);
+    fun asBitmap(context: Context, url: String?, listener: OnBitmapListener?) {
+        Glide.with(context).asBitmap().load(url).into(object : SimpleTarget<Bitmap?>() {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap?>?) {
+                listener?.onResourceReady(resource)
             }
-        });
+        })
     }
 
-    public static void asBitmap(Context context, String url, int resourceId, OnBitmapListener listener) {
-        Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId).into(new SimpleTarget<Bitmap>() {
-            @Override
-            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                if (listener != null) listener.onResourceReady(resource);
+    fun asBitmap(context: Context, url: String?, resourceId: Int, listener: OnBitmapListener?) {
+        Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId)
+            .into(object : SimpleTarget<Bitmap?>() {
+                override fun onResourceReady(
+                    resource: Bitmap,
+                    transition: Transition<in Bitmap?>?
+                ) {
+                    listener?.onResourceReady(resource)
+                }
+            })
+    }
+
+    fun asBitmap(
+        context: Context,
+        url: String?,
+        resourceId: Int,
+        skip: Boolean,
+        strategy: DiskCacheStrategy,
+        listener: OnBitmapListener?
+    ) {
+        Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId)
+            .skipMemoryCache(skip).diskCacheStrategy(strategy)
+            .into(object : SimpleTarget<Bitmap?>() {
+                override fun onResourceReady(
+                    resource: Bitmap,
+                    transition: Transition<in Bitmap?>?
+                ) {
+                    listener?.onResourceReady(resource)
+                }
+            })
+    }
+
+    fun asDrawable(context: Context, url: String?, listener: OnDrawableListener?) {
+        Glide.with(context).asDrawable().load(url).into(object : SimpleTarget<Drawable?>() {
+            override fun onResourceReady(
+                resource: Drawable,
+                transition: Transition<in Drawable?>?
+            ) {
+                listener?.onResourceReady(resource)
             }
-        });
+        })
     }
 
-    public static void asBitmap(Context context, String url, int resourceId, boolean skip, DiskCacheStrategy strategy, OnBitmapListener listener) {
-        Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId).skipMemoryCache(skip).diskCacheStrategy(strategy).into(new SimpleTarget<Bitmap>() {
-            @Override
-            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                if (listener != null) listener.onResourceReady(resource);
-            }
-        });
+    fun asDrawable(context: Context, url: String?, resourceId: Int, listener: OnDrawableListener?) {
+        Glide.with(context).asDrawable().load(url).placeholder(resourceId).error(resourceId)
+            .into(object : SimpleTarget<Drawable?>() {
+                override fun onResourceReady(
+                    resource: Drawable,
+                    transition: Transition<in Drawable?>?
+                ) {
+                    listener?.onResourceReady(resource)
+                }
+            })
     }
 
-    public static void asDrawable(Context context, String url, OnDrawableListener listener) {
-        Glide.with(context).asDrawable().load(url).into(new SimpleTarget<Drawable>() {
-            @Override
-            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                if (listener != null) listener.onResourceReady(resource);
-            }
-        });
-    }
-
-    public static void asDrawable(Context context, String url, int resourceId, OnDrawableListener listener) {
-        Glide.with(context).asDrawable().load(url).placeholder(resourceId).error(resourceId).into(new SimpleTarget<Drawable>() {
-            @Override
-            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                if (listener != null) listener.onResourceReady(resource);
-            }
-        });
-    }
-
-    public static void asDrawable(Context context, String url, int resourceId, boolean skip, DiskCacheStrategy strategy, OnDrawableListener listener) {
-        Glide.with(context).asDrawable().load(url).skipMemoryCache(skip).diskCacheStrategy(strategy).placeholder(resourceId).error(resourceId).into(new SimpleTarget<Drawable>() {
-            @Override
-            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                if (listener != null) listener.onResourceReady(resource);
-            }
-        });
-    }
-
-    public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader) {
-        headerImage(context, headerImageUrl, pvHeader, R.mipmap.icon_header);
+    fun asDrawable(
+        context: Context,
+        url: String?,
+        resourceId: Int,
+        skip: Boolean,
+        strategy: DiskCacheStrategy,
+        listener: OnDrawableListener?
+    ) {
+        Glide.with(context).asDrawable().load(url).skipMemoryCache(skip).diskCacheStrategy(strategy)
+            .placeholder(resourceId).error(resourceId).into(object : SimpleTarget<Drawable?>() {
+                override fun onResourceReady(
+                    resource: Drawable,
+                    transition: Transition<in Drawable?>?
+                ) {
+                    listener?.onResourceReady(resource)
+                }
+            })
     }
 
     /**
@@ -227,43 +252,80 @@ public class GlideManager {
      * @param pvHeader
      * @param resourceId     图片占位图
      */
-    public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader, int resourceId) {
-        Glide.with(context).load(headerImageUrl).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new CircleCrop())).into(pvHeader);
+    @JvmOverloads
+    fun headerImage(
+        context: Context,
+        headerImageUrl: String?,
+        pvHeader: ImageView,
+        resourceId: Int = R.mipmap.icon_header
+    ) {
+        Glide.with(context).load(headerImageUrl).skipMemoryCache(true)
+            .diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId)
+            .apply(RequestOptions.bitmapTransform(CircleCrop())).into(pvHeader)
     }
 
-    public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader, String colourCode, String subNickName, Float textSize) {
-        headerImage(context, headerImageUrl, pvHeader, colourCode, subNickName, textSize, R.mipmap.icon_header);
-    }
-
-    public static void headerImage(Context context, String headerImageUrl, ImageView pvHeader, String colourCode, String subNickName, Float textSize, int resourceId) {
-        if (headerImageUrl == null || headerImageUrl.isEmpty()) {
-            if (subNickName != null && !subNickName.isEmpty()) {
-                TextAvatarDrawable avatarDrawable = new TextAvatarDrawable(subNickName, Color.parseColor(colourCode), SysUtils.dp2Px(context, textSize));
-                pvHeader.setImageDrawable(avatarDrawable);
+    @JvmOverloads
+    fun headerImage(
+        context: Context,
+        headerImageUrl: String?,
+        pvHeader: ImageView,
+        subNickName: String?,
+        textSize: Float,
+        resourceId: Int = R.mipmap.icon_header
+    ) {
+        if (headerImageUrl.isNullOrEmpty()) {
+            if (!subNickName.isNullOrEmpty()) {
+                val avatarDrawable = TextAvatarDrawable(
+                    subNickName,
+                    UiUtils.getColourText(subNickName).toColorInt(),
+                    dp2Px(context, textSize)
+                )
+                pvHeader.setImageDrawable(avatarDrawable)
             } else {
-                Glide.with(context).load(resourceId).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId).apply(RequestOptions.bitmapTransform(new CircleCrop())).into(pvHeader);
+                Glide.with(context).load(resourceId).skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId)
+                    .error(resourceId).apply(RequestOptions.bitmapTransform(CircleCrop()))
+                    .into(pvHeader)
             }
         } else {
-            headerImage(context, headerImageUrl, pvHeader, resourceId);
+            headerImage(context, headerImageUrl, pvHeader, resourceId)
         }
     }
 
-    public static void headerGrayscaleImage(Context context, String headerImageUrl, ImageView pvHeader, String nickName, Float textSize, int resourceId) {
-        if (headerImageUrl == null || headerImageUrl.isEmpty()) {
-            if (nickName != null && !nickName.isEmpty()) {
-                TextAvatarDrawable avatarDrawable = new TextAvatarDrawable(nickName, Color.parseColor("#999999"), SysUtils.dp2Px(context, textSize));
-                pvHeader.setImageDrawable(avatarDrawable);
+    fun headerGrayscaleImage(
+        context: Context,
+        headerImageUrl: String?,
+        pvHeader: ImageView,
+        nickName: String?,
+        textSize: Float,
+        resourceId: Int
+    ) {
+        if (headerImageUrl.isNullOrEmpty()) {
+            if (!nickName.isNullOrEmpty()) {
+                val avatarDrawable = TextAvatarDrawable(
+                    nickName,
+                    "#999999".toColorInt(),
+                    dp2Px(context, textSize)
+                )
+                pvHeader.setImageDrawable(avatarDrawable)
             }
         } else {
             Glide.with(context).load(headerImageUrl)
-                    .skipMemoryCache(true)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(resourceId)
-                    .error(resourceId)
-                    .apply(RequestOptions.bitmapTransform(new GrayCircleTransformation()))// 将图片转换成灰色
-                    .dontAnimate()
-                    .into(pvHeader);
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(resourceId)
+                .error(resourceId)
+                .apply(RequestOptions.bitmapTransform(GrayCircleTransformation())) // 将图片转换成灰色
+                .dontAnimate()
+                .into(pvHeader)
         }
     }
 
+    interface OnBitmapListener {
+        fun onResourceReady(bitmap: Bitmap?)
+    }
+
+    interface OnDrawableListener {
+        fun onResourceReady(drawable: Drawable?)
+    }
 }
