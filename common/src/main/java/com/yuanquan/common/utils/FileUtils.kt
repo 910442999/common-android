@@ -1,10 +1,17 @@
 package com.yuanquan.common.utils
 
+import android.annotation.TargetApi
+import android.content.ContentUris
 import android.content.Context
+import android.database.Cursor
 import android.media.MediaMetadataRetriever
 import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
 import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.text.TextUtils
 import android.webkit.MimeTypeMap
@@ -29,6 +36,7 @@ object FileUtils {
         return fileName.substringAfterLast('.', "").lowercase()
     }
 
+    @JvmStatic
     fun removeFileExtension(filename: String): String {
         return filename.takeLastWhile { it != '.' }
     }
@@ -42,11 +50,13 @@ object FileUtils {
         }
     }
 
+    @JvmStatic
     // 校验非法字符
     fun hasIllegalCharacters(fileName: String): Boolean {
         return ILLEGAL_CHARS.any { fileName.contains(it) }
     }
 
+    @JvmStatic
     // 获取文件名
     fun getFileName(context: Context, uri: Uri): String? {
         return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -56,6 +66,7 @@ object FileUtils {
         }
     }
 
+    @JvmStatic
     // 获取文件名
     fun getFileSize(context: Context, uri: Uri): Long? {
         return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -73,6 +84,7 @@ object FileUtils {
         } ?: 0L
     }
 
+    @JvmStatic
     fun hasMediaOrAnimationHeader(file: File): Boolean {
         return try {
             val fis = FileInputStream(file)
@@ -85,6 +97,7 @@ object FileUtils {
         }
     }
 
+    @JvmStatic
     fun hasMediaOrAnimationHeader(context: Context, uri: Uri): Boolean {
         return try {
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -113,6 +126,7 @@ object FileUtils {
         return fileName
     }
 
+    @JvmStatic
     // 视频分辨率校验（异步）
     private fun checkVideoResolution(context: Context, uri: Uri) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -137,6 +151,7 @@ object FileUtils {
         }
     }
 
+    @JvmStatic
     fun calculateMD5(inputStream: InputStream): String {
         val md5Digest = MessageDigest.getInstance("MD5")
 
@@ -166,6 +181,7 @@ object FileUtils {
         return md5String.toString()
     }
 
+    @JvmStatic
     // 工具方法：MIME 类型 → 具体文件类型
     fun getFileExtensionFromMime(mimeType: String?): String? {
         if (mimeType == null) return null
@@ -201,6 +217,7 @@ object FileUtils {
         }
     }
 
+    @JvmStatic
     fun getFileMimeType(file: File?): String {
         if (file != null) {
             var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
@@ -218,11 +235,13 @@ object FileUtils {
      * @param file
      * @return
      */
+    @JvmStatic
     private fun getMimeType(file: File): String? {
         val fileNameMap = URLConnection.getFileNameMap()
         return fileNameMap.getContentTypeFor(file.name)
     }
 
+    @JvmStatic
     fun getMimeTypeFromMediaHttpUrl(url: String): String? {
         if (TextUtils.isEmpty(url)) {
             return null
@@ -319,4 +338,253 @@ object FileUtils {
 
         return header
     }
+
+    /**
+     * 获取存储的根目录
+     *
+     * @return
+     */
+    @JvmStatic
+    fun getExternalCacheDir(context: Context): File? {
+        return context.externalCacheDir
+    }
+
+    @JvmStatic
+    fun getExternalFilesDir(context: Context, type: String): File? {
+        return context.getExternalFilesDir(type)
+    }
+
+    @JvmStatic
+    val imageExts: ArrayList<String>
+        get() {
+            val imageTypes = arrayOf("png", "jpg", "jpeg", "bmp", "gif")
+            val imageExts = imageTypes.indices.mapTo(ArrayList()) { imageTypes[it] }
+
+            return imageExts
+        }
+
+    @JvmStatic
+    val videoExts: ArrayList<String>
+        get() {
+            val videoTypes = arrayOf("mpeg", "mp4", "gif", "wmv", "mov", "mpg", "3gp", "flv")
+            val videoExts = videoTypes.indices.mapTo(ArrayList()) { videoTypes[it] }
+            return videoExts
+        }
+
+    @JvmStatic
+    val docExts: ArrayList<String>
+        get() {
+            val docTypes = arrayOf("doc", "docx", "pdf", "txt")
+            val docExts = docTypes.indices.mapTo(ArrayList()) { docTypes[it] }
+            return docExts
+        }
+
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @JvmStatic
+    fun getPath(context: Context, uri: Uri): String? {
+
+        val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                val type = split[0]
+
+                if ("primary".equals(type, ignoreCase = true)) {
+                    return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                }
+            } else if (isDownloadsDocument(uri)) {
+
+                val decodedURI = Uri.decode(uri.toString())
+
+                if (decodedURI.contains("raw:")) {
+                    return decodedURI.substring(decodedURI.indexOf("raw:") + 4)
+                }
+
+                val id = DocumentsContract.getDocumentId(Uri.parse(decodedURI))
+
+                val contentUri = ContentUris.withAppendedId(
+                    Uri.parse("content://downloads/public_downloads"), java.lang.Long.valueOf(id)!!
+                )
+
+                return getDataColumn(context, contentUri, null, null)
+            } else if (isMediaDocument(uri)) {
+
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                val type = split[0]
+
+                var contentUri: Uri? = null
+                if ("image" == type) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                } else if ("video" == type) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                } else if ("audio" == type) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                } else if ("document" == type) {
+                    contentUri = MediaStore.Files.getContentUri("external")
+                }
+
+                val selection = "_id=?"
+                val selectionArgs = arrayOf(split[1])
+
+                return getDataColumn(context, contentUri, selection, selectionArgs)
+            }// MediaProvider
+            // DownloadsProvider
+        } else if ("content".equals(uri.scheme, ignoreCase = true)) {
+            return getDataColumn(context, uri, null, null)
+        } else if ("file".equals(uri.scheme, ignoreCase = true)) {
+            return uri.path
+        }// File
+        // MediaStore (and general)
+
+        return null
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for
+     * MediaStore Uris, and other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @param selection (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    @JvmStatic
+    fun getDataColumn(
+        context: Context, uri: Uri?, selection: String?,
+        selectionArgs: Array<String>?
+    ): String? {
+
+        var cursor: Cursor? = null
+        val column = "_data"
+        val projection = arrayOf(column)
+
+        try {
+            cursor =
+                context.contentResolver.query(uri!!, projection, selection, selectionArgs, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                val column_index = cursor.getColumnIndexOrThrow(column)
+                return cursor.getString(column_index)
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close()
+        }
+        return null
+    }
+
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    @JvmStatic
+    fun isExternalStorageDocument(uri: Uri): Boolean {
+        return "com.android.externalstorage.documents" == uri.authority
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    @JvmStatic
+    fun isDownloadsDocument(uri: Uri): Boolean {
+        return "com.android.providers.downloads.documents" == uri.authority
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    @JvmStatic
+    fun isMediaDocument(uri: Uri): Boolean {
+        return "com.android.providers.media.documents" == uri.authority
+    }
+
+
+    const val FILE_TYPE_IMAGE = 1
+    const val FILE_TYPE_AUDIO = 2
+    const val FILE_TYPE_VIDEO = 3
+    const val FILE_TYPE_UNKNOWN = 4
+
+    /**
+     * String filePath = "your_file_path";
+     * int fileType = FileTypeUtils.getFileType(filePath);
+     *
+     * switch (fileType) {
+     *     case FileTypeUtils.FILE_TYPE_IMAGE:
+     *         // 是图片类型
+     *         break;
+     *     case FileTypeUtils.FILE_TYPE_AUDIO:
+     *         // 是音频类型
+     *         break;
+     *     case FileTypeUtils.FILE_TYPE_VIDEO:
+     *         // 是视频类型
+     *         break;
+     *     case FileTypeUtils.FILE_TYPE_UNKNOWN:
+     *         // 文件类型未知
+     *         break;
+     * }
+     *
+     */
+    @JvmStatic
+    fun getFileType(file: File?): Int {
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file?.extension)
+        if (mimeType != null) {
+            if (mimeType.startsWith("image")) {
+                return FILE_TYPE_IMAGE
+            } else if (mimeType.startsWith("audio")) {
+                return FILE_TYPE_AUDIO
+            } else if (mimeType.startsWith("video")) {
+                return FILE_TYPE_VIDEO
+            }
+        }
+        return FILE_TYPE_UNKNOWN
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param filePath
+     */
+    fun deleteFile(filePath: String?) {
+        if (filePath == null) {
+            return
+        }
+        val file = File(filePath)
+        try {
+            if ((file.isFile)) {
+                file.delete()
+            }
+        } catch (e: java.lang.Exception) {
+        }
+    }
+
+    /**
+     * 删除文件夹的所有文件
+     *
+     * @param file
+     * @return
+     */
+    fun delAllFile(file: File?): Boolean {
+        if (file == null || !file.exists()) {
+            return false
+        }
+
+        if (file.isDirectory) {
+            val files = file.listFiles()
+            if (files != null) for (f in files) {
+                delAllFile(f)
+            }
+        }
+        return file.delete()
+    }
+
 }

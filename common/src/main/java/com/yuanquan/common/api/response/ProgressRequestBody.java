@@ -13,56 +13,56 @@ import okio.Okio;
 
 public class ProgressRequestBody extends RequestBody {
 
-    // 被代理的对象
-    private RequestBody mRequestBody;
-    //回调接口
-    private ProgressListener mListener;
-    //当前的长度
-    private long mCurrentLength;
-    //总长度
-    private long mTotalLength;
+    private final RequestBody requestBody;
+    private final ProgressListener progressListener;
+    private long currentBytesWritten;
+    private long totalContentLength;
+    private int lastReportedProgress = -1;
 
     public ProgressRequestBody(RequestBody requestBody, ProgressListener listener) {
-        this.mRequestBody = requestBody;
-        this.mListener = listener;
+        this.requestBody = requestBody;
+        this.progressListener = listener;
     }
 
     @Override
     public long contentLength() throws IOException {
-        return mRequestBody.contentLength();
+        return requestBody.contentLength();
     }
 
     @Override
     public MediaType contentType() {
-        return mRequestBody.contentType();
+        return requestBody.contentType();
     }
 
     @Override
     public void writeTo(BufferedSink sink) throws IOException {
-        //总长度
-        mTotalLength = contentLength();
-        //这里也是静态代理
-        //把sink传进去,也是跟MyMultipartBody这个静态代理如出一辙的手法,这样可以弄个中间件过一层
-        ForwardingSink forwardingSink = new ForwardingSink(sink) {
+        totalContentLength = contentLength();
+        BufferedSink bufferedSink = Okio.buffer(new ForwardingSink(sink) {
             @Override
             public void write(Buffer source, long byteCount) throws IOException {
-                //写内容就会来这里,其实也是sink在写
-                mCurrentLength += byteCount;
-                if (mTotalLength > 0) {
-                    int progress = (int) ((mCurrentLength * 100) / mTotalLength);
-                    if (mListener != null) {
-                        mListener.onProgress(progress);
-                    }
-                }
-
                 super.write(source, byteCount);
+                currentBytesWritten += byteCount;
+                notifyProgress();
             }
-        };
-        //包装成BufferedSink
-        BufferedSink buffer = Okio.buffer(forwardingSink);
-        // 最终调用者还是被代理对象的方法
-        mRequestBody.writeTo(buffer);
-        // 刷新，RealConnection 连接池
-        buffer.flush();
+
+            private void notifyProgress() {
+                if (progressListener == null) return;
+
+                if (totalContentLength > 0) {
+                    // 计算进度百分比，使用浮点避免整数溢出
+                    int progress = (int) ((currentBytesWritten * 100.0) / totalContentLength);
+                    if (progress != lastReportedProgress) {
+                        lastReportedProgress = progress;
+                        progressListener.onProgress(progress);
+                    }
+                } else {
+                    // 总长度未知时回调特殊值-1
+                    progressListener.onProgress(-1);
+                }
+            }
+        });
+
+        requestBody.writeTo(bufferedSink);
+        bufferedSink.flush();
     }
 }

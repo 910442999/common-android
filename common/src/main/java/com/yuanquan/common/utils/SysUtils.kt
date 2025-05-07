@@ -2,16 +2,18 @@ package com.yuanquan.common.utils
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Point
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import android.view.WindowManager
-import com.yuanquan.common.R
+import androidx.core.content.FileProvider
 import java.io.File
 import java.util.Locale
 
@@ -30,6 +32,11 @@ object SysUtils {
     }
 
     // 获取当前APP名称
+    @JvmStatic
+    fun getPackageName(context: Context): String {
+        return context.packageName
+    }
+
     @JvmStatic
     fun getAppName(context: Context, default: String = ""): String {
         val packageManager = context.packageManager
@@ -251,5 +258,38 @@ object SysUtils {
             Settings.System.ACCELEROMETER_ROTATION, 0
         )
         return rotationSetting == 1
+    }
+
+    /**
+     * 安装app
+     *
+     * @param context
+     * @param file
+     */
+    @JvmStatic
+    fun installApkFile(context: Context, file: File) {
+        this.installApkFile(
+            context = context,
+            authority = context.packageName + ".fileprovider",
+            file = file
+        )
+    }
+
+    @JvmStatic
+    fun installApkFile(context: Context, authority: String, file: File) {
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        var uri: Uri? = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            uri = FileProvider.getUriForFile(context, authority, file)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        } else {
+            uri = Uri.fromFile(file)
+        }
+        intent.setDataAndType(uri, "application/vnd.android.package-archive")
+        if (context.packageManager.queryIntentActivities(intent, 0).size > 0) {
+            context.startActivity(intent)
+        }
     }
 }
