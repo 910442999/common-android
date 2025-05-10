@@ -109,7 +109,7 @@ public class SearchEditText extends LinearLayout {
         });
         et_search.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
-                KeyBoardUtils.closeKeybord(v, context);
+                KeyBoardUtils.closeKeyboard(v, context);
             }
         });
         tv_search.setOnClickListener(view -> {

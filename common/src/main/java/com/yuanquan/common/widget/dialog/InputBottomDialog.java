@@ -99,7 +99,7 @@ public class InputBottomDialog extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mDialog.setCanceledOnTouchOutside(true);
-        KeyBoardUtils.openKeybord(view, context);
+        KeyBoardUtils.openKeyboard(view, context);
         EditText etName = view.findViewById(R.id.et_name);
         TextView tvSelect = view.findViewById(R.id.tv_select);
         TextView tv_text_size = view.findViewById(R.id.tv_text_size);
@@ -151,7 +151,7 @@ public class InputBottomDialog extends DialogFragment {
                     String name = etName.getText().toString().trim();
                     onSheetItemClickListener.onClick(name);
                 }
-                KeyBoardUtils.closeKeybord(view, context);
+                KeyBoardUtils.closeKeyboard(view, context);
                 dismiss();
             }
         });

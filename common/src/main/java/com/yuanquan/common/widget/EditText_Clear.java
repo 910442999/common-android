@@ -69,7 +69,7 @@ public class EditText_Clear extends AppCompatEditText {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
         setClearIconVisible(focused && length() > 0);
         if (!focused) {
-            KeyBoardUtils.closeKeybord(this, getContext());
+            KeyBoardUtils.closeKeyboard(this, getContext());
         }
         // focused = 是否获得焦点
         // 同样根据setClearIconVisible（）判断是否要显示删除图标

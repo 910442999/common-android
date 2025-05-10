@@ -89,7 +89,7 @@ public class SearchTextView extends LinearLayout {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    KeyBoardUtils.closeKeybord(v, context);
+                    KeyBoardUtils.closeKeyboard(v, context);
                 }
             }
         });

@@ -96,7 +96,7 @@ public class KeyBoardDialog {
         editSendMsg.setFocusableInTouchMode(true);
         editSendMsg.requestFocus();
 
-        KeyBoardUtils.openKeybord(editSendMsg, context);
+        KeyBoardUtils.openKeyboard(editSendMsg, context);
         editSendMsg.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -129,7 +129,7 @@ public class KeyBoardDialog {
             }
             editSendMsg.setText("");
         }
-        KeyBoardUtils.closeKeybord(editSendMsg, context);
+        KeyBoardUtils.closeKeyboard(editSendMsg, context);
         if (alertDialog != null && alertDialog.isShowing())
             alertDialog.dismiss();
     }
