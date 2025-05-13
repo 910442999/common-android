@@ -1,8 +1,11 @@
 package com.yuanquan.common.utils
 
 import android.annotation.TargetApi
+import android.app.Activity
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.media.MediaMetadataRetriever
 import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
@@ -15,10 +18,13 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.text.TextUtils
 import android.webkit.MimeTypeMap
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -26,7 +32,23 @@ import java.net.URLConnection
 import java.security.MessageDigest
 import java.util.Locale
 
-
+/**
+ * 1、根据指定类型打开文件管理
+ *  val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+ *     type = "*\/" // 必须设置 type 才能应用 EXTRA_MIME_TYPES
+ *      putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+ *      putExtra(
+ *          Intent.EXTRA_MIME_TYPES,
+ *          arrayOf(
+ *              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // XLSX
+ *              "application/vnd.ms-excel" // XLS
+ *          )
+ *      )
+ *      addCategory(Intent.CATEGORY_OPENABLE)
+ *  }
+ *  startActivityForResult(intent, FILE_REQUEST_CODE)
+ *
+ */
 object FileUtils {
     val ILLEGAL_CHARS = arrayOf("\\", "/") // 可根据需要扩展
 
@@ -212,7 +234,8 @@ object FileUtils {
             "application/vnd.openxmlformats-officedocument.presentationml.presentation" -> "pptx"
             "application/pdf" -> "pdf"
             "text/plain" -> "txt"
-
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> "xlsx"
+            "application/vnd.ms-excel" -> "xls"
             else -> null
         }
     }
@@ -554,6 +577,7 @@ object FileUtils {
      *
      * @param filePath
      */
+    @JvmStatic
     fun deleteFile(filePath: String?) {
         if (filePath == null) {
             return
@@ -573,6 +597,7 @@ object FileUtils {
      * @param file
      * @return
      */
+    @JvmStatic
     fun delAllFile(file: File?): Boolean {
         if (file == null || !file.exists()) {
             return false
@@ -587,4 +612,38 @@ object FileUtils {
         return file.delete()
     }
 
+    /**
+     * 将应用里的文件复制到指定Download路径
+     */
+    @JvmStatic
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun saveAssetToDownloads(context: Context, assetFileName: String, targetFileName: String) {
+        try {
+            // 1. 打开Asset文件流
+            val assetManager = context.assets
+            BufferedInputStream(assetManager.open(assetFileName)).use { inputStream ->
+
+                // 2. 创建目标文件元数据
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Downloads.DISPLAY_NAME, targetFileName)
+//                    put(MediaStore.Downloads.MIME_TYPE, getMimeType(targetFileName))
+                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
+
+                // 3. 通过MediaStore插入文件
+                val resolver = context.contentResolver
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                    ?: throw Exception("创建文件失败")
+
+                // 4. 写入文件内容
+                BufferedOutputStream(resolver.openOutputStream(uri)).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                    outputStream.flush()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // 处理错误
+        }
+    }
 }

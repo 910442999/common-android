@@ -21,6 +21,7 @@ import okhttp3.internal.Util
 import okio.BufferedSink
 import okio.Okio
 import okio.Source
+import retrofit2.http.Part
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -61,12 +62,22 @@ class HttpUtil {
     }
 
     /**
-     * 生成上传图片请求的文件参数
+     * 生成上传请求的文件参数
      * @param file 上传文件
      */
-    fun getUploadImageFile(file: File): MultipartBody.Part {
+    fun getMultipartBody(file: File, name: String = "file"): MultipartBody.Part {
         return MultipartBody.Part.createFormData(
-            "fileName", file.name, RequestBody.create(null, file)
+            name, file.name, RequestBody.create(null, file)
+        )
+    }
+
+    fun getMultipartBody(
+        elements: ByteArray,
+        name: String = "file",
+        fileName: String = "fileName"
+    ): MultipartBody.Part {
+        return MultipartBody.Part.createFormData(
+            name, fileName, RequestBody.create(null, elements)
         )
     }
 
@@ -113,6 +124,50 @@ class HttpUtil {
                 }
             }
         }
+    }
+
+    fun uploadFile(
+        url: String, body: MultipartBody.Part, listener: OnUpdateListener
+    ) {
+        var uploadFile = mService.uploadFile(url = url, file = body)
+        uploadFile.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<Any> { // 替换为实际类型
+                override fun onSubscribe(d: Disposable) {
+                    uploadDisposable = d
+                    listener.onStart()
+                }
+
+                override fun onNext(url: Any) {
+                    listener.onComplete(url) // 假设此处有最终URL
+                }
+
+                override fun onError(e: Throwable) {
+                    val isCanceled = when {
+                        e is CompositeException -> e.exceptions.any(::isCancelCause)
+                        else -> isCancelCause(e)
+                    }
+                    if (isCanceled) {
+                        LogUtil.e("上传已取消")
+                        listener.onDisposed(e.message)
+                    } else {
+                        LogUtil.e("文件连接失败 :${e.message}")
+                        listener.onError(e.message)
+                    }
+                    cancelUpload()
+                }
+
+                override fun onComplete() {
+                    cancelUpload()
+                }
+
+                private fun isCancelCause(e: Throwable): Boolean {
+                    return e is InterruptedIOException
+                            || e.message?.contains("disposed") == true
+//                            || e is DisposedException
+                            || e.cause?.let(::isCancelCause) == true
+                }
+            })
     }
 
     /**
