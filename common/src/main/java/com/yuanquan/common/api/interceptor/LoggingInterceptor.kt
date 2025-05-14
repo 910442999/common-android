@@ -50,27 +50,50 @@ class LoggingInterceptor : Interceptor {
             )
         }
 
-        val response = chain.proceed(request)
-        val responseBody = response.peekBody(1024 * 1024.toLong())
-        val result = responseBody.string()
-        val endTime = System.currentTimeMillis() // 记录请求结束时间
+        try {
+            val response = chain.proceed(request)
+            val responseBody = response.peekBody(1024 * 1024.toLong())
+            val result = responseBody.string()
+            val endTime = System.currentTimeMillis() // 记录请求结束时间
 
-        val durationMillis = endTime - startTime // 计算请求时长，单位为毫秒
-        // 将毫秒转换为分:秒:毫秒格式
-        val seconds: Long = (durationMillis % 60000) / 1000
-        val milliseconds: Long = durationMillis % 1000
-        builder.append(
-            String.format(
-                "%s%n", String.format("请求耗时>>> %02d秒%03d毫秒", seconds, milliseconds)
+            val durationMillis = endTime - startTime // 计算请求时长，单位为毫秒
+            // 将毫秒转换为分:秒:毫秒格式
+            val seconds: Long = (durationMillis % 60000) / 1000
+            val milliseconds: Long = durationMillis % 1000
+            builder.append(
+                String.format(
+                    "%s%n", String.format("请求耗时>>> %02d秒%03d毫秒", seconds, milliseconds)
+                )
             )
-        )
-        builder.append(String.format("%s%n%s%n%s%n", "请求结果>>> $result", " ", ""))
-        if (URLConstant.logNetFilter.contains(path)) {
-            LogUtil.i(LogUtil.TAG_FILTER_NET, builder.toString())
-        } else {
-            LogUtil.i(LogUtil.TAG_NET, builder.toString())
+            builder.append(String.format("%s%n%s%n%s%n", "请求结果>>> $result", " ", ""))
+            if (URLConstant.logNetFilter.contains(path)) {
+                LogUtil.i(LogUtil.TAG_FILTER_NET, builder.toString())
+            } else {
+                LogUtil.i(LogUtil.TAG_NET, builder.toString())
+            }
+            return response
+        } catch (e: Exception) {
+            val endTime = System.currentTimeMillis() // 记录请求结束时间
+            val durationMillis = endTime - startTime // 计算请求时长，单位为毫秒
+            // 将毫秒转换为分:秒:毫秒格式
+            val seconds: Long = (durationMillis % 60000) / 1000
+            val milliseconds: Long = durationMillis % 1000
+            builder.append(
+                String.format(
+                    "%s%n", String.format("请求耗时>>> %02d秒%03d毫秒", seconds, milliseconds)
+                )
+            )
+            builder.append("网络请求异常：$e")
+            if (URLConstant.logNetFilter.contains(path)) {
+                LogUtil.i(
+                    LogUtil.TAG_FILTER_NET,
+                    builder.toString()
+                )
+            } else {
+                LogUtil.i(LogUtil.TAG_NET, builder.toString())
+            }
+            throw e
         }
-        return response
     }
 
     fun bodyToString(request: RequestBody?): String? {
