@@ -23,8 +23,9 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
 
     private val AUTH_SECRET = "123456"//前后台协议密钥
 
-    var isShowLoading = MutableLiveData<Boolean>()//是否显示loading
+    var isShowLoading = MutableLiveData<ErrorResult>()//是否显示loading
     var errorData = MutableLiveData<ErrorResult>()//错误信息
+    private var errorResult = ErrorResult()
     lateinit var vb: VB
 
     fun binding(vb: VB) {
@@ -39,12 +40,16 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
 
     }
 
-    private fun showLoading() {
-        isShowLoading.value = true
+    private fun showLoading(message: String? = null) {
+        errorResult.showLoading = true
+        errorResult.errMsg = message
+        isShowLoading.value = errorResult
     }
 
     private fun dismissLoading() {
-        isShowLoading.value = false
+        errorResult.showLoading = false
+        errorResult.errMsg = null
+        isShowLoading.value = errorResult
     }
 
     private fun showError(error: ErrorResult) {
@@ -122,7 +127,9 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
         liveData: MutableLiveData<T>,
         isShowLoading: Boolean = true,
         isShowError: Boolean = true,
-        code: Int = 0
+        code: Int = 0,
+        index: Int = 0,
+        method: String? = null,
     ) {
         if (isShowLoading) showLoading()
         viewModelScope.launch {
@@ -133,17 +140,27 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
                 } else {
                     var message: String? =
                         if (result.message.isNullOrBlank()) result.msg else result.message
-                    showError(ErrorResult(result.code, message, isShowError))
+                    showError(
+                        ErrorResult(
+                            result.code, message, isShowError, index = index,
+                            method = method
+                        )
+                    )
                 }
             } catch (e: Exception) {//接口请求失败
                 val errorResult = ErrorResult()
                 if (e is HttpException) {
                     errorResult.code = e.code()
+                    LogUtil.e("请求异常>>$e")
+                } else {
+                    errorResult.code = 500
                 }
                 LogUtil.e("请求异常>>$e")
                 errorResult.errMsg = e.message
 //                if (errorResult.errMsg.isNullOrEmpty()) errorResult.errMsg = "网络请求失败，请重试"
-                errorResult.show = isShowError
+                errorResult.showToast = isShowError
+                errorResult.index = index
+                errorResult.method = method
                 showError(errorResult)
             } finally {//请求结束
                 if (isShowLoading) dismissLoading()

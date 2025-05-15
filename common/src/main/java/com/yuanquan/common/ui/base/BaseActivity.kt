@@ -124,20 +124,26 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this)
         //loading
         (vm as BaseViewModel<*>).isShowLoading.observe(this, Observer {
-            if (it) showLoading() else dismissLoading()
+            if (it.showLoading) showLoading(it.errMsg) else dismissLoading()
         })
         //错误信息
         (vm as BaseViewModel<*>).errorData.observe(this, Observer {
-            if (it.show) showToast(it.errMsg)
+            if (it.showToast) showToast(it.errMsg)
             errorResult(it)
         })
     }
 
-    open fun showLoading() {
+    open fun showLoading(content: String? = null) {
         if (loadingDialog != null && !loadingDialog!!.isShowing) {
             loadingDialog?.setCancelable(false)
             loadingDialog?.setCanceledOnTouchOutside(false)
-            loadingDialog?.show()
+            loadingDialog?.show(content)
+        }
+    }
+
+    fun setLoadContent(content: String?) {
+        if (loadingDialog != null && loadingDialog!!.isShowing) {
+            loadingDialog?.setLoadContent(content)
         }
     }
 

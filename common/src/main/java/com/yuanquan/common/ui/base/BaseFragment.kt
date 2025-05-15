@@ -84,11 +84,11 @@ abstract class BaseFragment<VM : BaseViewModel<VB>, VB : ViewBinding> : Fragment
         if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this)
         //loading
         vm.isShowLoading.observe(viewLifecycleOwner, Observer {
-            if (it) showLoading() else dismissLoding()
+            if (it.showLoading) showLoading() else dismissLoding()
         })
         //错误信息
         vm.errorData.observe(viewLifecycleOwner, Observer {
-            if (it.show) showToast(it.errMsg)
+            if (it.showToast) showToast(it.errMsg)
             errorResult(it)
         })
     }
