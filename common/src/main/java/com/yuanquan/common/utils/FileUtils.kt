@@ -58,6 +58,18 @@ object FileUtils {
         return fileName.substringAfterLast('.', "").lowercase()
     }
 
+    // 获取文件扩展名的扩展方法
+    @JvmStatic
+    fun getFileExtension(context: Context, uri: Uri): String {
+        return when (uri.scheme) {
+            "content" -> MimeTypeMap.getSingleton()
+                .getExtensionFromMimeType(context.contentResolver.getType(uri)) ?: ""
+
+            "file" -> uri.path?.substringAfterLast('.', "") ?: ""
+            else -> ""
+        }
+    }
+
     @JvmStatic
     fun removeFileExtension(filename: String): String {
         return filename.takeLastWhile { it != '.' }
@@ -236,6 +248,8 @@ object FileUtils {
             "text/plain" -> "txt"
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> "xlsx"
             "application/vnd.ms-excel" -> "xls"
+
+            "application/vnd.android.package-archive" -> "apk"
             else -> null
         }
     }
