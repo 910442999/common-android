@@ -1,39 +1,60 @@
-package com.yuanquan.common.utils;
+package com.yuanquan.common.utils
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
+import android.graphics.*
+import com.bumptech.glide.load.Key
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
+import java.security.MessageDigest
 
-import androidx.annotation.NonNull;
+class GrayscaleTransformation : BitmapTransformation() {
 
-import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
-import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
-
-import java.security.MessageDigest;
-
-public class GrayscaleTransformation extends BitmapTransformation {
-
-    public GrayscaleTransformation() {
-        super();
+    // 唯一标识符用于缓存
+    override fun updateDiskCacheKey(messageDigest: MessageDigest) {
+        messageDigest.update("grayscale_transformation".toByteArray(Key.CHARSET))
     }
 
-    @Override
-    protected Bitmap transform(BitmapPool pool, @NonNull Bitmap toTransform, int outWidth, int outHeight) {
-        Bitmap bitmap = pool.get(outWidth, outHeight, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        Paint paint = new Paint();
-        ColorMatrix colorMatrix = new ColorMatrix();
-        colorMatrix.setSaturation(0);
-        ColorMatrixColorFilter colorFilter = new ColorMatrixColorFilter(colorMatrix);
-        paint.setColorFilter(colorFilter);
-        canvas.drawBitmap(toTransform, 0, 0, paint);
-        return bitmap;
+    override fun transform(
+        pool: BitmapPool,
+        source: Bitmap,
+        outWidth: Int,
+        outHeight: Int
+    ): Bitmap {
+        // 从缓存池获取可复用Bitmap
+        val config = getNonNullConfig(source)
+        val result = pool.get(outWidth, outHeight, config)
+        result.setHasAlpha(source.hasAlpha())
+
+        // 创建灰度画布
+        val canvas = Canvas(result)
+        val paint = Paint().apply {
+            colorFilter = ColorMatrixColorFilter(createGrayscaleMatrix())
+            isAntiAlias = true
+            isDither = true
+            isFilterBitmap = true
+        }
+
+        // 绘制处理后的图像
+        canvas.drawBitmap(source, 0f, 0f, paint)
+        return result
     }
 
-    @Override
-    public void updateDiskCacheKey(@NonNull MessageDigest messageDigest) {
-        messageDigest.update("GrayscaleTransformation".getBytes());
+    // 生成灰度颜色矩阵
+    private fun createGrayscaleMatrix(): ColorMatrix {
+        return ColorMatrix().apply {
+            setSaturation(0f)
+        }
+    }
+
+    // 获取非空Bitmap配置
+    private fun getNonNullConfig(bitmap: Bitmap): Bitmap.Config {
+        return bitmap.config ?: Bitmap.Config.ARGB_8888
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is GrayscaleTransformation
+    }
+
+    override fun hashCode(): Int {
+        return "grayscale_transformation".hashCode()
     }
 }

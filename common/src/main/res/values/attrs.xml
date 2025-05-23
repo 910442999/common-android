@@ -31,6 +31,7 @@
         <attr name="android:text" />
         <attr name="backgroundColor" format="color" />
         <attr name="textPadding" format="dimension" />
+        <attr name="grayscale" format="boolean"/>
     </declare-styleable>
     <!-- 仪表盘自定义属性 -->
     <declare-styleable name="MySeekBar">
@@ -119,6 +120,6 @@
     <declare-styleable name="CircleImageView">
         <attr name="circleImageBorderWidth" format="dimension"/>
         <attr name="circleImageBorderColor" format="color"/>
-        <attr name="grayscale" format="boolean"/>
+        <attr name="circleImageGrayscale" format="boolean"/>
     </declare-styleable>
 </resources>

@@ -7,6 +7,8 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -84,6 +86,12 @@ public class CircleTextImageView extends AppCompatImageView {
     private boolean mBorderOverlay;
     private boolean mDisableCircularTransformation;
 
+    private boolean mIsGrayscale = false;
+    private final ColorMatrix mColorMatrix = new ColorMatrix();
+    private final ColorMatrixColorFilter mGrayscaleFilter = new ColorMatrixColorFilter(mColorMatrix);
+    private final ColorMatrixColorFilter mNormalFilter = new ColorMatrixColorFilter(new ColorMatrix());
+
+
     public CircleTextImageView(Context context) {
         super(context);
 
@@ -96,7 +104,7 @@ public class CircleTextImageView extends AppCompatImageView {
 
     public CircleTextImageView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-
+        initGrayscaleMatrix();
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.CircleTextImageView, defStyle, 0);
 
         mBorderWidth = typedArray.getDimensionPixelSize(R.styleable.CircleTextImageView_borderWidth, DEFAULT_BORDER_WIDTH);
@@ -108,6 +116,7 @@ public class CircleTextImageView extends AppCompatImageView {
         mTextPadding = typedArray.getDimensionPixelSize(R.styleable.CircleTextImageView_textPadding, DEFAULT_TEXT_PADDING);
         mCircleBackgroundColor = typedArray.getColor(R.styleable.CircleTextImageView_backgroundColor,
                 DEFAULT_CIRCLE_BACKGROUND_COLOR);
+        mIsGrayscale = typedArray.getBoolean(R.styleable.CircleTextImageView_grayscale, false);
         typedArray.recycle();
 
         init();
@@ -124,6 +133,26 @@ public class CircleTextImageView extends AppCompatImageView {
         if (mSetupPending) {
             setup();
             mSetupPending = false;
+        }
+    }
+    private void initGrayscaleMatrix() {
+        mColorMatrix.setSaturation(0f);
+    }
+    // 新增公共方法
+    public void setGrayscale(boolean grayscale) {
+        if (mIsGrayscale != grayscale) {
+            mIsGrayscale = grayscale;
+            updateColorFilter();
+            invalidate();
+        }
+    }
+    public boolean isGrayscale() {
+        return mIsGrayscale;
+    }
+
+    private void updateColorFilter() {
+        if (mBitmapPaint != null) {
+            mBitmapPaint.setColorFilter(mIsGrayscale ? mGrayscaleFilter : mNormalFilter);
         }
     }
 
@@ -430,6 +459,9 @@ public class CircleTextImageView extends AppCompatImageView {
         //画简单的圆
         if (mBitmap != null) {
             mBitmapShader = new BitmapShader(mBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            //增加灰度
+            mBitmapPaint.setColorFilter(mIsGrayscale ? mGrayscaleFilter : null);
+
             mBitmapHeight = mBitmap.getHeight();
             mBitmapWidth = mBitmap.getWidth();
             mBitmapPaint.setAntiAlias(true);

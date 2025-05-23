@@ -25,8 +25,9 @@ class CircleImageView @JvmOverloads constructor(
         // 初始化自定义属性
         val ta = context.obtainStyledAttributes(attrs, R.styleable.CircleImageView)
         borderWidth = ta.getDimension(R.styleable.CircleImageView_circleImageBorderWidth, 0f)
-        borderColor = ta.getColor(R.styleable.CircleImageView_circleImageBorderColor, Color.TRANSPARENT)
-        isGray = ta.getBoolean(R.styleable.CircleImageView_grayscale, false)
+        borderColor =
+            ta.getColor(R.styleable.CircleImageView_circleImageBorderColor, Color.TRANSPARENT)
+        isGray = ta.getBoolean(R.styleable.CircleImageView_circleImageGrayscale, false)
         ta.recycle()
 
         // 开启硬件加速层
@@ -67,6 +68,7 @@ class CircleImageView @JvmOverloads constructor(
                 dx = (viewWidth - drawableWidth * scale) * 0.5f
                 dy = (viewHeight - drawableHeight * scale) * 0.5f
             }
+
             else -> {
                 val widthRatio = viewWidth / drawableWidth.toFloat()
                 val heightRatio = viewHeight / drawableHeight.toFloat()

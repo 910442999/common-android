@@ -65,9 +65,14 @@ object ToastUtils {
             }
 
             view.findViewById<ImageView>(R.id.toast_image)?.apply {
-                visibility = if (imageRes != -1) View.VISIBLE else View.GONE
-                setImageResource(imageRes)
+                if (imageRes != -1) {
+                    visibility = View.VISIBLE
+                    setImageResource(imageRes)
+                } else {
+                    visibility = View.GONE
+                }
             }
+
 
             setView(view)
             duration = Toast.LENGTH_SHORT
