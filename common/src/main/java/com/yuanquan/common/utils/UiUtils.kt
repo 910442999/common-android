@@ -1,8 +1,14 @@
 package com.yuanquan.common.utils
 
+import android.content.Context
 import android.text.Html
+import android.text.InputType
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView
+import com.yuanquan.common.widget.EditText_Clear
 
 object UiUtils {
     /**
@@ -49,4 +55,41 @@ object UiUtils {
         return hes
     }
 
+    @JvmStatic
+    fun setupEditTextNavigation(
+        context: Context,
+        currentEditText: EditText_Clear?,
+        nextEditText: EditText_Clear?,
+        confirmButton: TextView?,
+        inputType: Int? = null
+    ) {
+        // 设置IME选项（需配合inputType）
+        currentEditText?.imeOptions = if (nextEditText != null) {
+            EditorInfo.IME_ACTION_NEXT
+        } else inputType ?: EditorInfo.IME_ACTION_DONE
+        // 保证IME选项生效的inputType配置
+        currentEditText?.inputType =
+            EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_VARIATION_NORMAL
+        currentEditText?.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT ||
+                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER)
+            ) {
+                when {
+                    // 有下一个输入框时切换焦点
+                    nextEditText != null -> {
+                        nextEditText.requestFocus()
+                        KeyBoardUtils.openKeyboard(nextEditText, context)
+                    }
+                    // 最后一个输入框触发确认操作
+                    else -> {
+                        confirmButton?.performClick()
+                        KeyBoardUtils.closeKeyboard(currentEditText, context)
+                    }
+                }
+                true
+            } else {
+                false
+            }
+        }
+    }
 }
