@@ -2,7 +2,6 @@ package com.yuanquan.common.utils
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import com.bumptech.glide.Glide
@@ -17,6 +16,7 @@ import com.yuanquan.common.R
 import com.yuanquan.common.utils.SysUtils.dp2Px
 import com.yuanquan.common.widget.TextAvatarDrawable
 import androidx.core.graphics.toColorInt
+import com.yuanquan.common.widget.CircleImageView
 
 /**
  * glide加载图片
@@ -305,11 +305,14 @@ object GlideManager {
         }
     }
 
+    /**
+     * 使用 CircleImageView 在xml中设置饱和度即可
+     */
     @JvmStatic
     fun headerGrayscaleImage(
         context: Context,
         headerImageUrl: String?,
-        pvHeader: ImageView,
+        pvHeader: CircleImageView,
         nickName: String?,
         textSize: Float,
         resourceId: Int
@@ -329,7 +332,6 @@ object GlideManager {
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(resourceId)
                 .error(resourceId)
-                .apply(RequestOptions.bitmapTransform(GrayCircleTransformation())) // 将图片转换成灰色
                 .dontAnimate()
                 .into(pvHeader)
         }
