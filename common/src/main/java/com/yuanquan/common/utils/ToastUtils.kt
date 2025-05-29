@@ -75,7 +75,7 @@ object ToastUtils {
 
 
             setView(view)
-            duration = Toast.LENGTH_SHORT
+            duration = Toast.LENGTH_LONG
             setGravity(Gravity.TOP, 0, SysUtils.dp2Px(context = context, 100F))
         }
 
