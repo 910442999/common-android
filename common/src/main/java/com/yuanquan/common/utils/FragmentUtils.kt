@@ -15,6 +15,112 @@ import androidx.fragment.app.FragmentTransaction
  * 4. 支持返回栈管理
  * 5. 支持自定义动画
  * 6. 包含错误恢复机制
+ *
+ * 使用示例
+ *
+ * 在 Activity 中使用
+ *
+ * class MainActivity : AppCompatActivity() {
+ *
+ *     override fun onCreate(savedInstanceState: Bundle?) {
+ *         super.onCreate(savedInstanceState)
+ *         setContentView(R.layout.activity_main)
+ *
+ *         // 检查是否需要添加初始Fragment
+ *         if (savedInstanceState == null) {
+ *             val fragment = HomeFragment.newInstance()
+ *             FragmentUtils.addFragmentSafely(
+ *                 manager = supportFragmentManager,
+ *                 containerId = R.id.fragment_container,
+ *                 fragment = fragment,
+ *                 tag = "home_fragment",
+ *                 enterAnim = R.anim.slide_in_right,
+ *                 exitAnim = R.anim.slide_out_left
+ *             )
+ *         }
+ *     }
+ *
+ *     fun openSettings() {
+ *         val settingsFragment = SettingsFragment.newInstance()
+ *
+ *         FragmentUtils.replaceFragmentSafely(
+ *             manager = supportFragmentManager,
+ *             containerId = R.id.fragment_container,
+ *             fragment = settingsFragment,
+ *             tag = "settings_fragment",
+ *             enterAnim = R.anim.slide_in_bottom,
+ *             exitAnim = R.anim.fade_out
+ *         )
+ *     }
+ *
+ *     fun openProfile() {
+ *         // 防止重复添加相同的Fragment
+ *         val profileTag = "profile_fragment"
+ *
+ *         if (FragmentUtils.isFragmentExists(supportFragmentManager, profileTag)) {
+ *             // 如果已经存在，只需显示它
+ *             FragmentUtils.showExistingFragment(
+ *                 manager = supportFragmentManager,
+ *                 tag = profileTag
+ *             )
+ *         } else {
+ *             val profileFragment = ProfileFragment.newInstance()
+ *
+ *             FragmentUtils.addFragmentSafely(
+ *                 manager = supportFragmentManager,
+ *                 containerId = R.id.fragment_container,
+ *                 fragment = profileFragment,
+ *                 tag = profileTag,
+ *                 enterAnim = android.R.anim.fade_in,
+ *                 exitAnim = android.R.anim.fade_out
+ *             )
+ *         }
+ *     }
+ *
+ *     override fun onBackPressed() {
+ *         // 处理返回栈中的Fragment
+ *         if (supportFragmentManager.backStackEntryCount > 0) {
+ *             supportFragmentManager.popBackStack()
+ *         } else {
+ *             super.onBackPressed()
+ *         }
+ *     }
+ * }
+ *
+ * 在 Fragment 中使用
+ *
+ * class HomeFragment : Fragment() {
+ *
+ *     companion object {
+ *         fun newInstance() = HomeFragment()
+ *     }
+ *
+ *     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+ *         return inflater.inflate(R.layout.fragment_home, container, false)
+ *     }
+ *
+ *     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+ *         super.onViewCreated(view, savedInstanceState)
+ *
+ *         view.findViewById<Button>(R.id.btn_details).setOnClickListener {
+ *             openDetailsFragment()
+ *         }
+ *     }
+ *
+ *     private fun openDetailsFragment() {
+ *         val detailsFragment = DetailsFragment.newInstance()
+ *
+ *         // 在Fragment中使用时需要父Activity的FragmentManager
+ *         FragmentUtils.addFragmentSafely(
+ *             manager = requireActivity().supportFragmentManager,
+ *             containerId = R.id.fragment_container,
+ *             fragment = detailsFragment,
+ *             tag = "details_fragment",
+ *             enterAnim = R.anim.slide_in_bottom
+ *         )
+ *     }
+ * }
+ *
  */
 object FragmentUtils {
 
