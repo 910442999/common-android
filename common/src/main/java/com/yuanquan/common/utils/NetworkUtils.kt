@@ -18,6 +18,7 @@ import android.text.TextUtils
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
 import java.math.BigInteger
 import java.net.Inet4Address
 import java.net.InetAddress
@@ -213,14 +214,13 @@ object NetworkUtils {
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun getIPv4Address(context: Context): String? {
-        var connectivityManager: ConnectivityManager =
-            context.getSystemService(ComponentActivity.CONNECTIVITY_SERVICE) as ConnectivityManager
-        var network = connectivityManager.boundNetworkForProcess
+        val connectivityManager = ContextCompat.getSystemService(context, ConnectivityManager::class.java)
+        var network = connectivityManager?.boundNetworkForProcess
         if (network == null) {
-            network = connectivityManager.activeNetwork
+            network = connectivityManager?.activeNetwork
         }
         if (network == null) return null
-        val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
+        val linkProperties = connectivityManager?.getLinkProperties(network) ?: return null
         linkProperties.linkAddresses.forEach { address ->
             if (address.address is Inet4Address) {
                 return address.address.hostAddress
@@ -265,14 +265,13 @@ object NetworkUtils {
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun getIPv4GatewayAddress(context: Context): String? {
-        var connectivityManager: ConnectivityManager =
-            context.getSystemService(ComponentActivity.CONNECTIVITY_SERVICE) as ConnectivityManager
-        var network = connectivityManager.boundNetworkForProcess
+        val connectivityManager = ContextCompat.getSystemService(context, ConnectivityManager::class.java)
+        var network = connectivityManager?.boundNetworkForProcess
         if (network == null) {
-            network = connectivityManager.activeNetwork
+            network = connectivityManager?.activeNetwork
         }
         if (network == null) return null
-        val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
+        val linkProperties = connectivityManager?.getLinkProperties(network) ?: return null
         val routes: List<RouteInfo> = linkProperties.routes
         for (route in routes) {
             if (route.isDefaultRoute) {

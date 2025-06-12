@@ -14,14 +14,17 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.exceptions.CompositeException
 import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
-import okhttp3.internal.Util
 import okio.BufferedSink
 import okio.Okio
 import okio.Source
-import retrofit2.http.Part
+import okio.source
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -31,7 +34,8 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.*
 import java.util.concurrent.TimeoutException
-
+import okio.buffer
+import okio.source
 
 class HttpUtil {
     private var uploadDisposable: Disposable? = null
@@ -67,7 +71,7 @@ class HttpUtil {
      */
     fun getMultipartBody(file: File, name: String = "file"): MultipartBody.Part {
         return MultipartBody.Part.createFormData(
-            name, file.name, RequestBody.create(null, file)
+            name, file.name, file.asRequestBody(null)
         )
     }
 
@@ -82,12 +86,12 @@ class HttpUtil {
     }
 
     fun getRequestBody(json: String): RequestBody {
-        return RequestBody.create(MediaType.parse("application/json; charset=utf-8"), json)
+        return json.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
     }
 
     fun getRequestBody(file: File?): RequestBody {
         if (file == null) throw NullPointerException("file == null")
-        return RequestBody.create(MediaType.parse("application/octet-stream"), file)
+        return file.asRequestBody("application/octet-stream".toMediaTypeOrNull())
     }
 
     fun getRequestBody(file: File?, progressListener: ProgressListener): ProgressRequestBody {
@@ -96,31 +100,25 @@ class HttpUtil {
     }
 
     /**
+     * 处理大文件流
      * Returns a new request body that transmits the content of `file`.
      */
-    fun getRequestBody(inputStream: InputStream?): RequestBody {
+    fun getRequestBody(
+        inputStream: InputStream?,
+        contentType: String = "application/octet-stream"
+    ): RequestBody {
         if (inputStream == null) throw NullPointerException("inputStream == null")
         return object : RequestBody() {
             override fun contentType(): MediaType {
-                return MediaType.parse("application/octet-stream")!!
+                return contentType.toMediaTypeOrNull()!!
             }
 
-            override fun contentLength(): Long {
-                return try {
-                    inputStream.available().toLong()
-                } catch (e: IOException) {
-                    0
-                }
-            }
+            override fun contentLength(): Long = -1 // 使用分块传输
 
             @Throws(IOException::class)
             override fun writeTo(sink: BufferedSink) {
-                var source: Source? = null
-                try {
-                    source = Okio.source(inputStream)
+                inputStream.source().buffer().use { source ->
                     sink.writeAll(source)
-                } finally {
-                    Util.closeQuietly(source)
                 }
             }
         }

@@ -13,7 +13,7 @@ class LoggingInterceptor : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val httpUrl = request.url()
+        val httpUrl = request.url
         val startTime = System.currentTimeMillis() // 记录请求开始时间
 
 //        if (httpUrl.toString().contains(".png") || httpUrl.toString()
@@ -25,22 +25,22 @@ class LoggingInterceptor : Interceptor {
         val builder = StringBuilder()
         // 获取路径和查询参数部分（例如：/api/v1/user?id=123）
 //        val pathWithQuery = httpUrl.encodedPath() + if (httpUrl.encodedQuery() != null) "?${httpUrl.encodedQuery()}" else ""
-        val path = httpUrl.encodedPath()
+        val path = httpUrl.encodedPath
         builder.append(
             String.format(
                 "%s%n%s%n%s%n%s%n%s%n%s%n", " ", "",
-                "请求Headers>>> " + request.headers().toString(),
+                "请求Headers>>> " + request.headers.toString(),
                 "请求URL>>> $httpUrl",
                 "API>>> $path",
-                "请求方法>>> " + request.method(),
+                "请求方法>>> " + request.method,
             )
         )
-        if (request.method() == "POST" || request.method() == "PUT") {
+        if (request.method == "POST" || request.method == "PUT") {
             builder.append(
                 String.format(
                     "%s%n",
                     run {
-                        var msg = bodyToString(request.body())
+                        var msg = bodyToString(request.body)
                         if (msg != null) {
                             msg = msg.replace("%(?![0-9a-fA-F]{2})".toRegex(), "%25")
                             msg = msg.replace("\\+".toRegex(), "%2B");

@@ -20,6 +20,7 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 
 /**
@@ -35,12 +36,10 @@ class WifiManager(
     private val context: Context
 ) {
 
-    //���ӹ�����
-    private var connectivityManager: ConnectivityManager =
-        context.getSystemService(ComponentActivity.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-    private var wifiManager: WifiManager =
-        context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private var connectivityManager =
+        ContextCompat.getSystemService(context, ConnectivityManager::class.java)
+    private var wifiManager =
+        ContextCompat.getSystemService(context, WifiManager::class.java)
 
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
@@ -48,7 +47,7 @@ class WifiManager(
      * 判断模块是否开启
      */
     fun isEnabled(): Boolean {
-        return wifiManager.isWifiEnabled
+        return wifiManager?.isWifiEnabled ?: false
     }
 
     /**
@@ -59,7 +58,7 @@ class WifiManager(
             this.context.startActivity(Intent(Settings.Panel.ACTION_WIFI))
             return true
         }
-        return wifiManager.setWifiEnabled(true)
+        return wifiManager?.setWifiEnabled(true) ?: false
     }
 
     /**
@@ -70,7 +69,7 @@ class WifiManager(
             this.context.startActivity(Intent(Settings.Panel.ACTION_WIFI))
             return true
         }
-        return wifiManager.setWifiEnabled(false)
+        return wifiManager?.setWifiEnabled(false) ?: false
     }
 
     /**
@@ -101,7 +100,7 @@ class WifiManager(
             Log.d(TAG, "û��wifiȨ��")
             return list
         }
-        for (scanResult in wifiManager.scanResults) {
+        for (scanResult in wifiManager?.scanResults ?: arrayListOf()) {
             val indexOfElement = list.indexOfElement(scanResult)
             if (indexOfElement != -1) {
                 val old = list[indexOfElement]
@@ -184,13 +183,13 @@ class WifiManager(
             }
         }
         if (networkCallback != null) {
-            connectivityManager.requestNetwork(request, networkCallback!!)
+            connectivityManager?.requestNetwork(request, networkCallback!!)
         }
     }
 
     fun unregisterNetworkCallback() {
         if (networkCallback != null) {
-            connectivityManager.unregisterNetworkCallback(networkCallback!!)
+            connectivityManager?.unregisterNetworkCallback(networkCallback!!)
             LogUtil.e("解绑网络回调")
         }
     }
@@ -213,14 +212,14 @@ class WifiManager(
         var isSuccess = false
 
         isExist(ssid).elif({
-            isSuccess = wifiManager.enableNetwork(it.networkId, true)
+            isSuccess = wifiManager?.enableNetwork(it.networkId, true) == true
         }, {
             val wifiConfiguration =
                 createWifiConfig(ssid, password, WifiCapability.WIFI_CIPHER_WPA)
-            val netId = wifiManager.addNetwork(wifiConfiguration)
-            wifiManager.disconnect()
-            isSuccess = wifiManager.enableNetwork(netId, true)
-            wifiManager.reconnect()
+            val netId = wifiManager?.addNetwork(wifiConfiguration)
+            wifiManager?.disconnect()
+            isSuccess = wifiManager?.enableNetwork(netId ?: 0, true) == true
+            wifiManager?.reconnect()
         })
         callback(isSuccess)
     }
@@ -239,8 +238,8 @@ class WifiManager(
             SSID = "\"$ssid\""
         }
         isExist(ssid).elif({
-            wifiManager.removeNetwork(it.networkId)
-            wifiManager.saveConfiguration()
+            wifiManager?.removeNetwork(it.networkId)
+            wifiManager?.saveConfiguration()
         }, {})
 
 
@@ -286,8 +285,8 @@ class WifiManager(
         ) {
             return null
         }
-        val existingConfigs = wifiManager.configuredNetworks
-        existingConfigs.forEach {
+        val existingConfigs = wifiManager?.configuredNetworks
+        existingConfigs?.forEach {
             if (it.SSID == "\"$ssid\"") {
                 return it
             }
