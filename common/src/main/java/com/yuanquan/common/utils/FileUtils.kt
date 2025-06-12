@@ -660,4 +660,23 @@ object FileUtils {
             // 处理错误
         }
     }
+
+
+    fun resolveFileType(context: Context, uri: Uri): Int {
+        // 第一优先级：MIME 类型
+        context.contentResolver.getType(uri)?.let { mime ->
+            if (mime.startsWith("image/")) return 1
+            if (mime.startsWith("video/")) return 3
+            if (mime.startsWith("audio/")) return 2
+        }
+
+        //URI 路径
+        uri.toString().let { path ->
+            if (path.contains("/image/")) return 1
+            if (path.contains("/video/")) return 3
+            if (path.contains("/audio/")) return 2
+        }
+
+        return 4 // Unknown
+    }
 }
