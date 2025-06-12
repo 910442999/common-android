@@ -47,7 +47,6 @@ public class ProgressRequestBody extends RequestBody {
 
             private void notifyProgress() {
                 if (progressListener == null) return;
-
                 if (totalContentLength > 0) {
                     // 计算进度百分比，使用浮点避免整数溢出
                     int progress = (int) ((currentBytesWritten * 100.0) / totalContentLength);
@@ -56,8 +55,8 @@ public class ProgressRequestBody extends RequestBody {
                         progressListener.onProgress(progress);
                     }
                 } else {
-                    // 总长度未知时回调特殊值-1
-                    progressListener.onProgress(-1);
+                    // 总长度未知时回调特殊值
+                    progressListener.onProgress(0);
                 }
             }
         });

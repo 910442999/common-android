@@ -21,6 +21,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
+import okio.Buffer
 import okio.BufferedSink
 import okio.Okio
 import okio.Source
@@ -109,9 +110,10 @@ class HttpUtil {
     ): RequestBody {
         if (inputStream == null) throw NullPointerException("inputStream == null")
         return object : RequestBody() {
-            override fun contentType(): MediaType {
-                return contentType.toMediaTypeOrNull()!!
-            }
+            private val mediaType: MediaType = contentType.toMediaTypeOrNull()
+                ?: "application/octet-stream".toMediaTypeOrNull()!!
+
+            override fun contentType() = mediaType
 
             override fun contentLength(): Long = -1 // 使用分块传输
 
