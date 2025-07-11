@@ -259,6 +259,7 @@ class HttpUtil {
             .subscribe(object : Observer<File> {
                 override fun onSubscribe(d: Disposable) {
                     downloadDisposable = d
+                    progressListener?.onStart()
                 }
 
                 override fun onNext(file: File) {
