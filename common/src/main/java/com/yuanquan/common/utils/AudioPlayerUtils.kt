@@ -38,11 +38,11 @@ class AudioPlayerUtils {
         }
     }
 
-    private fun enableAcousticEchoCanceler(enable: Boolean) {
+    fun enableAcousticEchoCanceler(enable: Boolean) {
         enableAcousticEchoCanceler.set(enable)
     }
 
-    private fun setAudioSessionId(audioSession: Int) {
+    fun setAudioSessionId(audioSession: Int) {
         this.audioSession = audioSession
     }
 
