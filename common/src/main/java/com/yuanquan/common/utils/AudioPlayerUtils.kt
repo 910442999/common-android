@@ -10,6 +10,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 class AudioPlayerUtils {
@@ -23,6 +24,7 @@ class AudioPlayerUtils {
     private val isPaused = AtomicBoolean(false)
     private val isReleased = AtomicBoolean(false)
     private val enableAcousticEchoCanceler = AtomicBoolean(false)
+    private var audioSession: Int? = null
 
     // 强制退出标志
     private val shouldExit = AtomicBoolean(false)
@@ -38,6 +40,10 @@ class AudioPlayerUtils {
 
     private fun enableAcousticEchoCanceler(enable: Boolean) {
         enableAcousticEchoCanceler.set(enable)
+    }
+
+    private fun setAudioSessionId(audioSession: Int) {
+        this.audioSession = audioSession
     }
 
     fun prepare(sampleRate: Int = 44100) {
@@ -56,20 +62,26 @@ class AudioPlayerUtils {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
         ).setAudioFormat(
             AudioFormat.Builder().setEncoding(audioFormat).setSampleRate(sampleRate)
-                .setChannelMask(channelConfig).build()
-        ).setBufferSizeInBytes(bufferSize * 2).build().apply {
+                .setChannelMask(channelConfig)
+                .build()
+        ).setBufferSizeInBytes(bufferSize * 2)
+        if (audioSession != null) {
+            newAudioTrack.setSessionId(audioSession!!)
+        }
+        var audioTrackBuild = newAudioTrack.build()
+        audioTrackBuild.apply {
             play()
         }
-        val sessionId: Int = newAudioTrack.audioSessionId
         // 确保启用AEC
         if (enableAcousticEchoCanceler.get() && AcousticEchoCanceler.isAvailable()) {
+            val sessionId: Int = audioTrackBuild.audioSessionId
             val aec: AcousticEchoCanceler = AcousticEchoCanceler.create(sessionId);
             aec.setEnabled(true)
-            LogUtil.e("")
+            LogUtil.e("启用回声消除")
         }
 
         // 原子操作设置audioTrack
-        audioTrackRef.set(newAudioTrack)
+        audioTrackRef.set(audioTrackBuild)
 
         // 启动处理线程（如果尚未启动）
         startProcessingThread()
