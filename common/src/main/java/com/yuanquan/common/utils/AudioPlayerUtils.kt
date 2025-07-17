@@ -2,7 +2,9 @@ package com.yuanquan.common.utils
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.media.AudioTrack
+import android.media.audiofx.AcousticEchoCanceler
 import android.os.Build
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
@@ -20,6 +22,7 @@ class AudioPlayerUtils {
     private val isProcessing = AtomicBoolean(false)
     private val isPaused = AtomicBoolean(false)
     private val isReleased = AtomicBoolean(false)
+    private val enableAcousticEchoCanceler = AtomicBoolean(false)
 
     // 强制退出标志
     private val shouldExit = AtomicBoolean(false)
@@ -33,6 +36,10 @@ class AudioPlayerUtils {
         }
     }
 
+    private fun enableAcousticEchoCanceler(enable: Boolean) {
+        enableAcousticEchoCanceler.set(enable)
+    }
+
     fun prepare(sampleRate: Int = 44100) {
         // 如果已经释放，不再重新准备
         if (isReleased.get()) return
@@ -42,7 +49,6 @@ class AudioPlayerUtils {
         val bufferSize = AudioTrack.getMinBufferSize(
             sampleRate, channelConfig, audioFormat
         )
-
         // 创建新的AudioTrack并立即设置引用
         val newAudioTrack = AudioTrack.Builder().setAudioAttributes(
             AudioAttributes.Builder()
@@ -53,6 +59,13 @@ class AudioPlayerUtils {
                 .setChannelMask(channelConfig).build()
         ).setBufferSizeInBytes(bufferSize * 2).build().apply {
             play()
+        }
+        val sessionId: Int = newAudioTrack.audioSessionId
+        // 确保启用AEC
+        if (enableAcousticEchoCanceler.get() && AcousticEchoCanceler.isAvailable()) {
+            val aec: AcousticEchoCanceler = AcousticEchoCanceler.create(sessionId);
+            aec.setEnabled(true)
+            LogUtil.e("")
         }
 
         // 原子操作设置audioTrack
