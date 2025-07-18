@@ -2,7 +2,6 @@ package com.yuanquan.common.utils
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.audiofx.AcousticEchoCanceler
 import android.os.Build
@@ -10,7 +9,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 class AudioPlayerUtils {
@@ -25,6 +23,11 @@ class AudioPlayerUtils {
     private val isReleased = AtomicBoolean(false)
     private val enableAcousticEchoCanceler = AtomicBoolean(false)
     private var audioSession: Int? = null
+    private var contentType: Int? = null
+    private var usage: Int? = null
+    private var channelConfig = AudioFormat.CHANNEL_OUT_MONO
+    private var audioFormat = AudioFormat.ENCODING_PCM_16BIT
+    private var sampleRate = 44100
 
     // 强制退出标志
     private val shouldExit = AtomicBoolean(false)
@@ -46,20 +49,39 @@ class AudioPlayerUtils {
         this.audioSession = audioSession
     }
 
-    fun prepare(sampleRate: Int = 44100) {
+    fun setUsage(usage: Int) {
+        this.usage = usage
+    }
+
+    fun setContentType(contentType: Int) {
+        this.contentType = contentType
+    }
+
+    fun setChannelConfig(channelConfig: Int) {
+        this.channelConfig = channelConfig
+    }
+
+    fun setAudioFormat(audioFormat: Int) {
+        this.audioFormat = audioFormat
+    }
+
+    fun setSampleRate(sampleRate: Int) {
+        this.sampleRate = sampleRate
+    }
+
+    fun prepare() {
         // 如果已经释放，不再重新准备
         if (isReleased.get()) return
 
-        val channelConfig = AudioFormat.CHANNEL_OUT_MONO
-        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
         val bufferSize = AudioTrack.getMinBufferSize(
             sampleRate, channelConfig, audioFormat
         )
         // 创建新的AudioTrack并立即设置引用
         val newAudioTrack = AudioTrack.Builder().setAudioAttributes(
             AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+                .setUsage(if (usage != null) usage!! else AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                .setContentType(if (contentType != null) contentType!! else AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build()
         ).setAudioFormat(
             AudioFormat.Builder().setEncoding(audioFormat).setSampleRate(sampleRate)
                 .setChannelMask(channelConfig)
@@ -186,19 +208,19 @@ class AudioPlayerUtils {
     /**
      * 恢复播放
      */
-    fun resume(sampleRate: Int = 44100) {
+    fun resume() {
         if (!isPaused.getAndSet(false)) return
 
         LogUtil.e("音频播放已恢复")
 
         // 重新准备音频轨道
-        prepare(sampleRate)
+        prepare()
     }
 
     /**
      * 立即重置音频轨道（无锁版本）
      */
-    fun resetAudioTrack(sampleRate: Int = 44100) {
+    fun resetAudioTrack() {
         LogUtil.e("立即重置音频轨道")
 
         // 直接获取当前音频轨道并置空
@@ -217,7 +239,7 @@ class AudioPlayerUtils {
         }
 
         // 立即准备新轨道
-        prepare(sampleRate)
+        prepare()
     }
 
     /**
