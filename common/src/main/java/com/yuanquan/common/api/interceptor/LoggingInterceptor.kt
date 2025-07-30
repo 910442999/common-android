@@ -7,102 +7,105 @@ import okhttp3.RequestBody
 import okhttp3.Response
 import okio.Buffer
 import java.io.IOException
-
-
+/**
+ * 如果添加RetryInterceptor拦截器，需要线添加RetryInterceptor后在添加LoggingInterceptor
+ */
 class LoggingInterceptor : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val httpUrl = request.url
-        val startTime = System.currentTimeMillis() // 记录请求开始时间
-
-//        if (httpUrl.toString().contains(".png") || httpUrl.toString()
+        val startTime = System.currentTimeMillis()
+        //        if (httpUrl.toString().contains(".png") || httpUrl.toString()
 //                .contains(".jpg") || httpUrl.toString().contains(".jpeg") || httpUrl.toString()
 //                .contains(".gif")
 //        ) {
 //            return chain.proceed(request)
 //        }
-        val builder = StringBuilder()
-        // 获取路径和查询参数部分（例如：/api/v1/user?id=123）
-//        val pathWithQuery = httpUrl.encodedPath() + if (httpUrl.encodedQuery() != null) "?${httpUrl.encodedQuery()}" else ""
         val path = httpUrl.encodedPath
-        builder.append(
-            String.format(
-                "%s%n%s%n%s%n%s%n%s%n%s%n", " ", "",
-                "请求Headers>>> " + request.headers.toString(),
-                "请求URL>>> $httpUrl",
-                "API>>> $path",
-                "请求方法>>> " + request.method,
-            )
-        )
-        if (request.method == "POST" || request.method == "PUT") {
-            builder.append(
-                String.format(
-                    "%s%n",
-                    run {
-                        var msg = bodyToString(request.body)
-                        if (msg != null) {
-                            msg = msg.replace("%(?![0-9a-fA-F]{2})".toRegex(), "%25")
-                            msg = msg.replace("\\+".toRegex(), "%2B");
-                        }
-                        "请求参数>>> $msg"
-                    })
-            )
+
+        val builder = StringBuilder().apply {
+            append("\n")
+            append("请求Headers>>> ${request.headers}\n")
+            append("请求URL>>> $httpUrl\n")
+            append("API>>> $path\n")
+            append("请求方法>>> ${request.method}\n")
+
+            if (request.method == "POST" || request.method == "PUT") {
+                append("请求参数>>> ${bodyToString(request.body)}\n")
+            }
         }
 
-        try {
-            val response = chain.proceed(request)
-            val responseBody = response.peekBody(1024 * 1024.toLong())
-            val result = responseBody.string()
-            val endTime = System.currentTimeMillis() // 记录请求结束时间
-
-            val durationMillis = endTime - startTime // 计算请求时长，单位为毫秒
-            // 将毫秒转换为分:秒:毫秒格式
-            val seconds: Long = (durationMillis % 60000) / 1000
-            val milliseconds: Long = durationMillis % 1000
-            builder.append(
-                String.format(
-                    "%s%n", String.format("请求耗时>>> %02d秒%03d毫秒", seconds, milliseconds)
-                )
-            )
-            builder.append(String.format("%s%n%s%n%s%n", "请求结果>>> $result", " ", ""))
-            if (URLConstant.logNetFilter.contains(path)) {
-                LogUtil.i(LogUtil.TAG_FILTER_NET, builder.toString())
-            } else {
-                LogUtil.i(LogUtil.TAG_NET, builder.toString())
+        val response = try {
+            chain.proceed(request).also { res ->
+                // 使用响应副本记录日志，不影响原始响应
+                logResponse(res, builder, startTime, path)
             }
-            return response
         } catch (e: Exception) {
-            val endTime = System.currentTimeMillis() // 记录请求结束时间
-            val durationMillis = endTime - startTime // 计算请求时长，单位为毫秒
-            // 将毫秒转换为分:秒:毫秒格式
-            val seconds: Long = (durationMillis % 60000) / 1000
-            val milliseconds: Long = durationMillis % 1000
-            builder.append(
-                String.format(
-                    "%s%n", String.format("请求耗时>>> %02d秒%03d毫秒", seconds, milliseconds)
-                )
-            )
-            builder.append("网络请求异常：$e")
-            if (URLConstant.logNetFilter.contains(path)) {
-                LogUtil.i(
-                    LogUtil.TAG_FILTER_NET,
-                    builder.toString()
-                )
-            } else {
-                LogUtil.i(LogUtil.TAG_NET, builder.toString())
-            }
+            logError(e, builder, startTime, path)
             throw e
+        }
+
+        return response
+    }
+
+    private fun logResponse(
+        response: Response,
+        builder: StringBuilder,
+        startTime: Long,
+        path: String
+    ) {
+        // 创建响应副本，不影响原始响应流
+        val responseBody = response.peekBody(Long.MAX_VALUE)
+        val result = responseBody.string()
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+        val seconds = duration / 1000
+        val millis = duration % 1000
+
+        builder.apply {
+            append("响应状态码>>> ${response.code}\n")
+            append("请求耗时>>> ${seconds}秒${millis}毫秒\n")
+            append("响应结果>>> $result\n")
+        }
+
+        logFinal(builder, path)
+    }
+
+    private fun logError(
+        e: Exception,
+        builder: StringBuilder,
+        startTime: Long,
+        path: String
+    ) {
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+        val seconds = duration / 1000
+        val millis = duration % 1000
+
+        builder.apply {
+            append("请求耗时>>> ${seconds}秒${millis}毫秒\n")
+            append("网络请求异常>>> ${e.message}\n")
+        }
+
+        logFinal(builder, path)
+    }
+
+    private fun logFinal(builder: StringBuilder, path: String) {
+        if (URLConstant.logNetFilter.contains(path)) {
+            LogUtil.i(LogUtil.TAG_FILTER_NET, builder.toString())
+        } else {
+            LogUtil.i(LogUtil.TAG_NET, builder.toString())
         }
     }
 
-    fun bodyToString(request: RequestBody?): String? {
+    private fun bodyToString(request: RequestBody?): String? {
         return try {
             val buffer = Buffer()
-            if (request != null) request.writeTo(buffer) else return ""
+            request?.writeTo(buffer)
             buffer.readUtf8()
         } catch (e: IOException) {
-            "did not work"
+            "无法读取请求体: ${e.message}"
         }
     }
 }

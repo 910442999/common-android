@@ -7,24 +7,26 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+/**
+ * 如果添加LoggingInterceptor拦截器，需要线添加RetryInterceptor后在添加LoggingInterceptor
+ */
 class RetryInterceptor(
-    private val maxRetries: Int = 3,          // 最大重试次数
-    private val retryDelayMillis: Long = 1000, // 重试延迟时间（毫秒）
-    private val logTag: String = "RetryInterceptor", // 日志标签
-    private val logEnabled: Boolean = false,   // 日志开关
+    private val maxRetries: Int = 3,
+    private val retryDelayMillis: Long = 1000,
+    private val logTag: String = "RetryInterceptor",
+    private val logEnabled: Boolean = true,
     private val retryConditions: List<(Response) -> Boolean> = listOf(
-        // 默认重试条件：服务器错误（5xx）或网络错误
         { response ->
             val shouldRetry = response.code in 500..599
             if (shouldRetry && logEnabled) {
-                LogUtil.d(logTag, "Retry condition: Server error (${response.code})")
+                LogUtil.d(logTag, "重试条件: 服务器错误 (${response.code})")
             }
             shouldRetry
         },
         { response ->
             val shouldRetry = response.code == 429
             if (shouldRetry && logEnabled) {
-                LogUtil.d(logTag, "Retry condition: Rate limited (429)")
+                LogUtil.d(logTag, "重试条件: 请求过多 (429)")
             }
             shouldRetry
         }
@@ -37,82 +39,68 @@ class RetryInterceptor(
         val method = request.method
 
         if (logEnabled) {
-            LogUtil.d(logTag, "Starting request: $method $url")
+            LogUtil.d(logTag, "开始请求: $method $url")
         }
 
-        var response = doRequest(chain, request, url, method)
+        var response: Response? = null
         var retryCount = 0
 
-        while (shouldRetry(response, retryCount, url, method)) {
-            retryCount++
-
-            if (logEnabled) {
-                LogUtil.w(logTag, "Retry #$retryCount for $method $url")
-            }
+        while (true) {
+            // 关闭前一次响应（如果存在）
+            response?.close()
 
             try {
+                response = chain.proceed(request)
+
+                if (logEnabled) {
+                    val status = if (response.isSuccessful) "成功" else "失败"
+                    LogUtil.d(logTag, "响应: $method $url - ${response.code} ($status)")
+                }
+
+                // 检查是否需要重试
+                if (!shouldRetry(response, retryCount, url, method)) {
+                    return response
+                }
+
+                retryCount++
+
+                if (logEnabled) {
+                    LogUtil.w(logTag, "重试 #$retryCount: $method $url")
+                }
+
                 // 指数退避策略
                 val delay = retryDelayMillis * (1 shl retryCount)
 
                 if (logEnabled) {
-                    LogUtil.d(logTag, "Waiting ${delay}ms before retry...")
+                    LogUtil.d(logTag, "等待 ${delay}ms 后重试...")
                 }
 
                 TimeUnit.MILLISECONDS.sleep(delay)
-            } catch (e: InterruptedException) {
-                Thread.currentThread().interrupt()
+
                 if (logEnabled) {
-                    LogUtil.e(logTag, "Retry interrupted for $method $url", e)
+                    LogUtil.d(logTag, "开始重试 #$retryCount: $method $url")
                 }
-                throw e
-            }
 
-            if (logEnabled) {
-                LogUtil.d(logTag, "Attempting retry #$retryCount for $method $url")
-            }
-
-            response = doRequest(chain, request, url, method)
-        }
-
-        if (retryCount > 0) {
-            if (response != null && response.isSuccessful) {
+            } catch (e: IOException) {
                 if (logEnabled) {
-                    LogUtil.i(logTag, "Request succeeded after $retryCount retries: $method $url")
+                    LogUtil.e(logTag, "网络错误: $method $url - ${e.message}")
                 }
-            } else {
+
+                // 检查是否需要重试网络错误
+                if (!shouldRetry(null, retryCount, url, method)) {
+                    throw e
+                }
+
+                retryCount++
+
                 if (logEnabled) {
-                    LogUtil.e(logTag, "Request failed after $retryCount retries: $method $url")
+                    LogUtil.w(logTag, "因网络错误重试 #$retryCount: $method $url")
                 }
+
+                // 指数退避策略
+                val delay = retryDelayMillis * (1 shl retryCount)
+                TimeUnit.MILLISECONDS.sleep(delay)
             }
-        }
-
-        return response ?: throw IOException("All retries failed for $method $url")
-    }
-
-    private fun doRequest(
-        chain: Interceptor.Chain,
-        request: Request,
-        url: String,
-        method: String
-    ): Response? {
-        return try {
-            val response = chain.proceed(request)
-
-            if (logEnabled) {
-                val logMsg = "Response for $method $url: ${response.code}"
-                if (response.isSuccessful) {
-                    LogUtil.d(logTag, logMsg)
-                } else {
-                    LogUtil.w(logTag, logMsg)
-                }
-            }
-
-            response
-        } catch (e: IOException) {
-            if (logEnabled) {
-                LogUtil.e(logTag, "Network error for $method $url: ${e.message}")
-            }
-            null // 网络异常时返回null
         }
     }
 
@@ -122,29 +110,34 @@ class RetryInterceptor(
         url: String,
         method: String
     ): Boolean {
-        // 检查重试次数
         if (retryCount >= maxRetries) {
             if (logEnabled) {
-                LogUtil.w(logTag, "Max retries reached ($maxRetries) for $method $url")
+                LogUtil.w(logTag, "达到最大重试次数 ($maxRetries): $method $url")
             }
             return false
         }
 
-        // 检查响应是否为空（网络异常）
-        if (response == null) {
-            if (logEnabled) {
-                LogUtil.d(logTag, "Retrying due to network error for $method $url")
+        return when {
+            // 网络错误情况
+            response == null -> {
+                if (logEnabled) {
+                    LogUtil.d(logTag, "因网络错误重试: $method $url")
+                }
+                true
             }
-            return true
+            // 检查自定义重试条件
+            retryConditions.any { it(response) } -> {
+                if (logEnabled) {
+                    LogUtil.d(logTag, "满足重试条件: $method $url (状态码: ${response.code})")
+                }
+                true
+            }
+            else -> {
+                if (logEnabled) {
+                    LogUtil.d(logTag, "不满足重试条件: $method $url (状态码: ${response.code})")
+                }
+                false
+            }
         }
-
-        // 检查自定义重试条件
-        val shouldRetry = retryConditions.any { condition -> condition(response) }
-
-        if (!shouldRetry && logEnabled) {
-            LogUtil.d(logTag, "No retry conditions met for $method $url (code: ${response.code})")
-        }
-
-        return shouldRetry
     }
 }
