@@ -11,8 +11,8 @@ android {
         applicationId "com.yuanquan.common"
         minSdk 24
         targetSdk 34
-        versionCode 122
-        versionName "1.2.2"
+        versionCode 125
+        versionName "1.2.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
