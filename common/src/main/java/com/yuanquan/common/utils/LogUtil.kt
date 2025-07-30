@@ -36,4 +36,9 @@ object LogUtil {
     fun e(tag: String, message: Any?) {
         Log.e(tag, message.toString())
     }
+
+    @JvmStatic
+    fun e(tag: String, message: Any?, e: Throwable) {
+        Log.e(tag, message.toString(), e)
+    }
 }
