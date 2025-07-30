@@ -11,7 +11,7 @@ class RetryInterceptor(
     private val maxRetries: Int = 3,          // 最大重试次数
     private val retryDelayMillis: Long = 1000, // 重试延迟时间（毫秒）
     private val logTag: String = "RetryInterceptor", // 日志标签
-    private val logEnabled: Boolean = true,   // 日志开关
+    private val logEnabled: Boolean = false,   // 日志开关
     private val retryConditions: List<(Response) -> Boolean> = listOf(
         // 默认重试条件：服务器错误（5xx）或网络错误
         { response ->
