@@ -3,10 +3,15 @@ package com.yuanquan.common.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Build;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 /**
  * 软键盘工具类
@@ -43,66 +48,44 @@ public class KeyBoardUtils {
         }
     }
 
-    //纪录根视图的显示高度
-    private static int rootViewVisibleHeight;
-    private OnSoftKeyBoardChangeListener onSoftKeyBoardChangeListener;
-
-    private void setOnSoftKeyBoardChangeListener(OnSoftKeyBoardChangeListener onSoftKeyBoardChangeListener) {
-        this.onSoftKeyBoardChangeListener = onSoftKeyBoardChangeListener;
+    public interface OnKeyboardListener {
+        void onKeyboardChanged(boolean isVisible);
     }
 
-    public interface OnSoftKeyBoardChangeListener {
-        void keyBoardShow(int height);
-
-        void keyBoardHide(int height);
-    }
-
-    public static void setListener(Activity activity, OnSoftKeyBoardChangeListener onSoftKeyBoardChangeListener) {
-//获取activity的根视图
-        View rootView = activity.getWindow().getDecorView();
-        Rect r = new Rect();
-        rootView.getWindowVisibleDisplayFrame(r);
-        rootViewVisibleHeight = r.height();
-        //监听视图树中全局布局发生改变或者视图树中的某个视图的可视状态发生改变
-        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                //获取当前根视图在屏幕上显示的大小
-                Rect r = new Rect();
-                rootView.getWindowVisibleDisplayFrame(r);
-
-                int visibleHeight = r.height();
-                LogUtil.i("KeyBoardListener", "height: " + visibleHeight);
-                if (rootViewVisibleHeight == 0) {
-                    rootViewVisibleHeight = visibleHeight;
-                    return;
+    public static void setKeyboardListener(Activity activity, OnKeyboardListener listener) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            View rootView = activity.getWindow().getDecorView();
+            final boolean[] isKeyboardVisible = {false};
+            ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+                boolean isVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+                if (isKeyboardVisible[0] != isVisible) {
+                    isKeyboardVisible[0] = isVisible;
+                    listener.onKeyboardChanged(isVisible);
                 }
+                return insets;
+            });
+        } else {
+            // 老方法
+            final View contentView = activity.findViewById(android.R.id.content);
+            contentView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                private final Rect r = new Rect();
+                private boolean wasOpened = false;
 
-                //根视图显示高度没有变化，可以看作软键盘显示／隐藏状态没有改变
-                if (rootViewVisibleHeight == visibleHeight) {
-                    return;
-                }
-
-                //根视图显示高度变小超过200，可以看作软键盘显示了
-                if (rootViewVisibleHeight - visibleHeight > 200) {
-                    if (onSoftKeyBoardChangeListener != null) {
-                        onSoftKeyBoardChangeListener.keyBoardShow(rootViewVisibleHeight - visibleHeight);
+                @Override
+                public void onGlobalLayout() {
+                    contentView.getWindowVisibleDisplayFrame(r);
+                    int screenHeight = contentView.getRootView().getHeight();
+                    int heightDiff = screenHeight - (r.bottom - r.top);
+                    // 这里我们使用200dp作为阈值，因为很多设备上导航栏高度不超过200dp
+                    int threshold = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, activity.getResources().getDisplayMetrics());
+                    boolean isOpen = heightDiff > threshold;
+                    if (isOpen != wasOpened) {
+                        wasOpened = isOpen;
+                        listener.onKeyboardChanged(isOpen);
                     }
-                    rootViewVisibleHeight = visibleHeight;
-                    return;
                 }
-
-                //根视图显示高度变大超过200，可以看作软键盘隐藏了
-                if (visibleHeight - rootViewVisibleHeight > 200) {
-                    if (onSoftKeyBoardChangeListener != null) {
-                        onSoftKeyBoardChangeListener.keyBoardHide(visibleHeight - rootViewVisibleHeight);
-                    }
-                    rootViewVisibleHeight = visibleHeight;
-                    return;
-                }
-
-            }
-        });
+            });
+        }
     }
 
     private static View rootView;
