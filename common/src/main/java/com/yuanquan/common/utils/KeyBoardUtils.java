@@ -13,6 +13,10 @@ import android.view.inputmethod.InputMethodManager;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 软键盘工具类
  */
@@ -48,45 +52,182 @@ public class KeyBoardUtils {
         }
     }
 
+    // 全局监听器管理器
+    private static final KeyboardListenerManager listenerManager = new KeyboardListenerManager();
+
     public interface OnKeyboardListener {
         void onKeyboardChanged(boolean isVisible);
     }
 
-    public static void setKeyboardListener(Activity activity, OnKeyboardListener listener) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            View rootView = activity.getWindow().getDecorView();
-            final boolean[] isKeyboardVisible = {false};
-            ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
-                boolean isVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
-                if (isKeyboardVisible[0] != isVisible) {
-                    isKeyboardVisible[0] = isVisible;
-                    listener.onKeyboardChanged(isVisible);
-                }
-                return insets;
-            });
-        } else {
-            // 老方法
-            final View contentView = activity.findViewById(android.R.id.content);
-            contentView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                private final Rect r = new Rect();
-                private boolean wasOpened = false;
+    public static void setKeyboardListener(final Activity activity, final OnKeyboardListener listener) {
+        // 使用弱引用防止内存泄漏
+        WeakReference<Activity> activityRef = new WeakReference<>(activity);
 
-                @Override
-                public void onGlobalLayout() {
-                    contentView.getWindowVisibleDisplayFrame(r);
-                    int screenHeight = contentView.getRootView().getHeight();
-                    int heightDiff = screenHeight - (r.bottom - r.top);
-                    // 这里我们使用200dp作为阈值，因为很多设备上导航栏高度不超过200dp
-                    int threshold = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, activity.getResources().getDisplayMetrics());
-                    boolean isOpen = heightDiff > threshold;
-                    if (isOpen != wasOpened) {
-                        wasOpened = isOpen;
-                        listener.onKeyboardChanged(isOpen);
+        if (listener != null) {
+            listenerManager.addListener(activity, listener);
+        } else {
+            listenerManager.removeListenersForActivity(activity);
+            return;
+        }
+
+        // 确保只添加一次根视图监听
+        if (listenerManager.shouldAttachListener(activity)) {
+            View rootView = activity.getWindow().getDecorView();
+            boolean[] isKeyboardVisible = new boolean[]{false};
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+                    boolean isVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+                    if (isKeyboardVisible[0] != isVisible) {
+                        isKeyboardVisible[0] = isVisible;
+                        listenerManager.notifyListeners(activity, isVisible);
                     }
-                }
-            });
+                    return insets;
+                });
+            } else {
+                // 兼容旧版API
+                final View contentView = activity.findViewById(android.R.id.content);
+                final ViewTreeObserver.OnGlobalLayoutListener layoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+                    private final Rect r = new Rect();
+                    private boolean wasOpened = false;
+
+                    @Override
+                    public void onGlobalLayout() {
+                        Activity currentActivity = activityRef.get();
+                        if (currentActivity == null || currentActivity.isFinishing()) {
+                            removeListener();
+                            return;
+                        }
+
+                        contentView.getWindowVisibleDisplayFrame(this.r);
+                        int screenHeight = contentView.getRootView().getHeight();
+                        int heightDiff = screenHeight - (this.r.bottom - this.r.top);
+                        int threshold = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                200.0f, activity.getResources().getDisplayMetrics());
+                        boolean isOpen = heightDiff > threshold;
+
+                        if (isOpen != this.wasOpened) {
+                            this.wasOpened = isOpen;
+                            listenerManager.notifyListeners(activity, isOpen);
+                        }
+                    }
+
+                    private void removeListener() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            contentView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        } else {
+                            contentView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                        }
+                    }
+                };
+
+                contentView.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
+
+                // 在Activity销毁时自动移除监听器
+                rootView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(View v) {
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(View v) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            contentView.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
+                        } else {
+                            contentView.getViewTreeObserver().removeGlobalOnLayoutListener(layoutListener);
+                        }
+                        rootView.removeOnAttachStateChangeListener(this);
+                    }
+                });
+            }
         }
     }
+
+    // 移除特定监听器
+    public static void removeKeyboardListener(Activity activity, OnKeyboardListener listener) {
+        listenerManager.removeListener(activity, listener);
+    }
+
+    // 移除特定Activity的所有监听器
+    public static void removeAllListenersForActivity(Activity activity) {
+        listenerManager.removeListenersForActivity(activity);
+    }
+
+    // 监听器管理器
+    private static class KeyboardListenerManager {
+        private final List<ActivityListener> listeners = new ArrayList<>();
+
+        public void addListener(Activity activity, OnKeyboardListener listener) {
+            // 检查是否已存在相同Activity和listener的组合
+            for (ActivityListener al : listeners) {
+                if (al.activityRef.get() == activity && al.listener == listener) {
+                    return;
+                }
+            }
+
+            listeners.add(new ActivityListener(activity, listener));
+        }
+
+        public void removeListener(Activity activity, OnKeyboardListener listener) {
+            for (int i = listeners.size() - 1; i >= 0; i--) {
+                ActivityListener al = listeners.get(i);
+                Activity storedActivity = al.activityRef.get();
+
+                if (storedActivity == null || storedActivity == activity && al.listener == listener) {
+                    listeners.remove(i);
+                }
+            }
+        }
+
+        public void removeListenersForActivity(Activity activity) {
+            for (int i = listeners.size() - 1; i >= 0; i--) {
+                ActivityListener al = listeners.get(i);
+                Activity storedActivity = al.activityRef.get();
+
+                if (storedActivity == null || storedActivity == activity) {
+                    listeners.remove(i);
+                }
+            }
+        }
+
+        public void notifyListeners(Activity sourceActivity, boolean isVisible) {
+            for (ActivityListener al : listeners) {
+                Activity storedActivity = al.activityRef.get();
+                if (storedActivity != null && storedActivity == sourceActivity) {
+                    try {
+                        al.listener.onKeyboardChanged(isVisible);
+                    } catch (Exception e) {
+                        // 防止个别listener出错影响其他
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        public boolean shouldAttachListener(Activity activity) {
+            // 如果已有该Activity的监听器，则不再附加新的根监听
+            for (ActivityListener al : listeners) {
+                Activity storedActivity = al.activityRef.get();
+                if (storedActivity != null && storedActivity == activity) {
+                    // 当前Activity已有监听，不需要再次附加根监听
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    // 包装类，存储Activity和监听器的关联
+    private static class ActivityListener {
+        final WeakReference<Activity> activityRef;
+        final OnKeyboardListener listener;
+
+        ActivityListener(Activity activity, OnKeyboardListener listener) {
+            this.activityRef = new WeakReference<>(activity);
+            this.listener = listener;
+        }
+    }
+
 
     private static View rootView;
     private static int initialScrollY;
