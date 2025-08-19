@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -87,12 +88,25 @@ public class ClipboardUtils {
      * @return 剪贴板图片 Bitmap
      */
     @Nullable
-    public static Uri getImage(@NonNull Context context, boolean clearAfterAccess) {
-        Uri result = getImage(context);
+    public static Uri getImageUri(@NonNull Context context, boolean clearAfterAccess) {
+        Uri result = getImageUri(context);
         if (clearAfterAccess && result != null) {
             clearClipboard(context);
         }
         return result;
+    }
+
+    @Nullable
+    public static Bitmap getImageBitmap(@NonNull Context context, boolean clearAfterAccess) throws IOException {
+        Uri result = getImageUri(context);
+        if (clearAfterAccess && result != null) {
+            clearClipboard(context);
+        }
+        if (result != null) {
+            Bitmap bitmap = BitmapUtil.getBitmapForUri(context, result);
+            return bitmap;
+        }
+        return null;
     }
 
     /**
@@ -102,7 +116,7 @@ public class ClipboardUtils {
      * @return 剪贴板图片 Uri
      */
     @Nullable
-    public static Uri getImage(@NonNull Context context) {
+    public static Uri getImageUri(@NonNull Context context) {
         ClipboardManager clipboard = (ClipboardManager)
                 context.getSystemService(Context.CLIPBOARD_SERVICE);
 

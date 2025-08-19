@@ -22,6 +22,7 @@ import android.view.View;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 
@@ -93,6 +94,10 @@ public class BitmapUtil {
         return false;
     }
 
+    public static Bitmap getBitmapForUri(Context context, Uri uri) throws IOException {
+        Bitmap bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), uri);
+        return bitmap;
+    }
 //    public static String getLubanCompressImage(Context context, String path) {
 //        File lubanCompress = getLubanCompress(context, path);
 //        if (lubanCompress == null) {
