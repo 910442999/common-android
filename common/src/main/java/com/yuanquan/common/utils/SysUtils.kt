@@ -53,10 +53,10 @@ object SysUtils {
         val manager: PackageManager = context.packageManager
         return try {
             val info: PackageInfo = manager.getPackageInfo(context.packageName, 0)
-            info.versionName
+            info.versionName ?: ""
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
-            "1.0.0"
+            ""
         }
     }
 
