@@ -7,6 +7,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
+import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
 import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH
@@ -27,7 +28,10 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.net.URLConnection
 import java.security.MessageDigest
 import java.util.Locale
@@ -661,7 +665,7 @@ object FileUtils {
         }
     }
 
-
+    @JvmStatic
     fun resolveFileType(context: Context, uri: Uri): Int {
         // 第一优先级：MIME 类型
         context.contentResolver.getType(uri)?.let { mime ->
@@ -678,5 +682,89 @@ object FileUtils {
         }
 
         return 4 // Unknown
+    }
+
+    /**
+     * 创建临时文件从Uri，需要配置 provider，如<cache-path name="cache_files" path="." />
+     * @param uri
+     * @return file
+     */
+    @JvmStatic
+    @Throws(IOException::class)
+    fun createTempFileForUri(context: Context, uri: Uri): File {
+        return createTempFileForUri(context, uri, "temp_image", ".png", context.cacheDir)
+    }
+
+    /**
+     * 创建临时文件从Uri，需要配置 provider，如<cache-path name="cache_files" path="." />
+     * @param uri
+     * @param prefix 临时文件名，如：temp_image
+     * @param suffix 临时文件后缀，如：.jpg
+     * @param directory 文件目录
+     * @return file
+     */
+    @JvmStatic
+    @Throws(IOException::class)
+    fun createTempFileForUri(
+        context: Context,
+        uri: Uri,
+        prefix: String,
+        suffix: String,
+        directory: File
+    ): File {
+        // 创建临时文件
+        val file = File.createTempFile(prefix, suffix, directory)
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            FileOutputStream(file).use { outputStream ->
+                // 创建缓冲区 (建议 4-8KB)
+                val buffer = ByteArray(4096)
+                var bytesRead: Int
+
+                // 直接复制数据流
+                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+                outputStream.flush()
+            }
+        }
+        return file
+    }
+
+    @JvmStatic
+    @Throws(IOException::class)
+    fun createTempFileForBitmap(context: Context, bitmap: Bitmap): File? {
+        return createTempFileForBitmap(
+            bitmap,
+            "temp_image", ".png",
+            Bitmap.CompressFormat.PNG,
+            context.cacheDir
+        )
+    }
+
+
+    /**
+     * 创建临时文件从Uri，需要配置 provider，如<cache-path name="cache_files" path="." />
+     * @param uri
+     * @param prefix 临时文件名，如：temp_image
+     * @param suffix 临时文件后缀，如：.jpg
+     * @param format Bitmap的格式，如：Bitmap.CompressFormat.PNG.
+     * @param directory 文件目录
+     * @return file
+     */
+    @JvmStatic
+    @Throws(IOException::class)
+    fun createTempFileForBitmap(
+        bitmap: Bitmap,
+        prefix: String,
+        suffix: String,
+        format: Bitmap.CompressFormat,
+        directory: File
+    ): File? {
+        val file = File.createTempFile(prefix, suffix, directory)
+        val os: OutputStream = FileOutputStream(file)
+        bitmap.compress(format, 90, os)
+        os.flush()
+        os.close()
+        return file
     }
 }

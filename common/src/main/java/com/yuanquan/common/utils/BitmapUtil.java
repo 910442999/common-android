@@ -17,12 +17,14 @@ import android.provider.MediaStore;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 
@@ -97,6 +99,20 @@ public class BitmapUtil {
     public static Bitmap getBitmapForUri(Context context, Uri uri) throws IOException {
         Bitmap bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), uri);
         return bitmap;
+    }
+
+    public static Bitmap getBitmapForUri2(Context context, Uri uri) {
+        Bitmap clipboardBitmap = null;
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+            if (inputStream != null) {
+                clipboardBitmap = BitmapFactory.decodeStream(inputStream);
+                inputStream.close();
+            }
+        } catch (Exception e) {
+            LogUtil.e("Error loading image from URI", e);
+        }
+        return clipboardBitmap;
     }
 //    public static String getLubanCompressImage(Context context, String path) {
 //        File lubanCompress = getLubanCompress(context, path);
