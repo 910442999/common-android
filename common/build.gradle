@@ -69,7 +69,6 @@ dependencies {
     api 'com.github.mysiga:CircleTextView:V1.1'
     //背景阴影
     api 'com.github.lihangleo2:ShadowLayout:3.3.2'
-    api 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
     api "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     //微信支付
 //    api 'com.tencent.mm.opensdk:wechat-sdk-android:6.8.24'
