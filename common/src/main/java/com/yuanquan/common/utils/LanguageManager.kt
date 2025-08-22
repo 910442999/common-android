@@ -94,7 +94,7 @@ object LanguageManager {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val language: String = prefs.getString(KEY_LANGUAGE, "") ?: ""
         val country: String = prefs.getString(KEY_COUNTRY, "") ?: ""
-        if (!TextUtils.isEmpty(language) && !TextUtils.isEmpty(country)) {
+        if (!TextUtils.isEmpty(language)) {
             return Locale(language, country)
         }
         return this.getSystemLanguage(context)
