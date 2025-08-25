@@ -38,7 +38,7 @@ public class InputBottomDialog extends DialogFragment {
     private String textHint = "";
     private String textSend = "";
     public Dialog mDialog;
-
+    private int inputType = 0;
     public InputBottomDialog(Context context) {
         this.context = context;
     }
@@ -54,7 +54,9 @@ public class InputBottomDialog extends DialogFragment {
     public void setTextSend(String textSend) {
         this.textSend = textSend;
     }
-
+    public void setInputType(int type) {
+        inputType = type;
+    }
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -108,6 +110,9 @@ public class InputBottomDialog extends DialogFragment {
         if (maxLength > 0)
             etName.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLength)});
         etName.setHint(textHint);
+        if (inputType != 0) {
+            etName.setInputType(inputType);
+        }
         etName.setFocusable(true);
         etName.requestFocus();
         etName.setOnKeyListener(new View.OnKeyListener() {

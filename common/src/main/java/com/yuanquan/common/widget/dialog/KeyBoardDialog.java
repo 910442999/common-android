@@ -27,6 +27,8 @@ public class KeyBoardDialog {
     String text;
     private String textHint = "";
     private String textSend = "";
+    private int inputType = 0;
+    private Dialog alertDialog;
 
     public KeyBoardDialog(Context context) {
         this.context = context;
@@ -44,12 +46,14 @@ public class KeyBoardDialog {
         this.textHint = textHint;
     }
 
+    public void setInputType(int type) {
+        inputType = type;
+    }
+
     public void show() {
         View dialoglayout = LayoutInflater.from(context).inflate(R.layout.dialog_input_bottom_alert, null, false);
-        final Dialog alertDialog;
 //            alertDialog = new Dialog(context, R.style.DialogFullScreenTheme);
         alertDialog = new Dialog(context, R.style.DialogNoFullScreenTheme);
-
         alertDialog.setContentView(dialoglayout);
         Window dialogWindow = alertDialog.getWindow();
         if (dialogWindow != null) {
@@ -75,17 +79,20 @@ public class KeyBoardDialog {
         View iv_close = dialoglayout.findViewById(R.id.v_view);
         TextView tx_send_msg = dialoglayout.findViewById(R.id.tv_select);
         tx_send_msg.setText(textSend);
+        if (inputType != 0) {
+            tx_send_msg.setInputType(inputType);
+        }
         tx_send_msg.setEnabled(false);
         iv_close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessage(2, editSendMsg.getText().toString(), editSendMsg, context, alertDialog);
+                sendMessage(2, editSendMsg.getText().toString(), editSendMsg);
             }
         });
         tx_send_msg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessage(1, editSendMsg.getText().toString(), editSendMsg, context, alertDialog);
+                sendMessage(1, editSendMsg.getText().toString(), editSendMsg);
             }
         });
         editSendMsg.setHint(textHint);
@@ -101,7 +108,7 @@ public class KeyBoardDialog {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (KeyEvent.KEYCODE_ENTER == keyCode && KeyEvent.ACTION_UP == event.getAction()) {
-                    sendMessage(1, editSendMsg.getText().toString(), editSendMsg, context, alertDialog);
+                    sendMessage(1, editSendMsg.getText().toString(), editSendMsg);
                     return true;
                 }
                 //                else if (KeyEvent.ACTION_UP == event.getAction()) {
@@ -120,7 +127,7 @@ public class KeyBoardDialog {
         alertDialog.show();
     }
 
-    private void sendMessage(int type, String text, AppCompatEditText editSendMsg, Context context, Dialog alertDialog) {
+    private void sendMessage(int type, String text, AppCompatEditText editSendMsg) {
         if (onClickListener != null) {
             if (type == 1) {
                 onClickListener.sendText(text);
@@ -130,6 +137,10 @@ public class KeyBoardDialog {
             editSendMsg.setText("");
         }
         KeyBoardUtils.closeKeyboard(editSendMsg, context);
+        dismiss();
+    }
+
+    public void dismiss() {
         if (alertDialog != null && alertDialog.isShowing())
             alertDialog.dismiss();
     }
