@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
@@ -138,14 +139,11 @@ public class ClipboardUtils {
         if (!isImage) {
             return null;
         }
-
         ClipData clip = clipboard.getPrimaryClip();
         if (clip == null || clip.getItemCount() == 0) {
             return null;
         }
-
         ClipData.Item item = clip.getItemAt(0);
-
         // 首先尝试通过URI获取
         Uri uri = item.getUri();
         return uri;
@@ -159,11 +157,13 @@ public class ClipboardUtils {
     public static void clearClipboard(@NonNull Context context) {
         ClipboardManager clipboard = (ClipboardManager)
                 context.getSystemService(Context.CLIPBOARD_SERVICE);
-
         try {
             // 使用空ClipData覆盖剪贴板
             ClipData clip = ClipData.newPlainText("", "");
             clipboard.setPrimaryClip(clip);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                clipboard.clearPrimaryClip();
+            }
         } catch (Exception e) {
             // 处理可能的安全异常
             e.printStackTrace();
