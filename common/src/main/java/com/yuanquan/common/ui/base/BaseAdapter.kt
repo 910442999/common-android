@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import com.yuanquan.common.utils.onClick
+import com.yuanquan.common.utils.ClickUtils.onClick
 import java.lang.reflect.ParameterizedType
 
 /**

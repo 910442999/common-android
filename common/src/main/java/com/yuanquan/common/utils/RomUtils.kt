@@ -7,6 +7,7 @@ import android.text.TextUtils
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import java.util.Locale.getDefault
 
 /**
  * Date 2019/5/30 7:33 PM
@@ -87,11 +88,11 @@ object RomUtils {
             sRomName = ROM_SMARTISAN
         } else {
             sRomVersion = Build.DISPLAY
-            if (sRomVersion!!.toUpperCase().contains(ROM_FLYME)) {
+            if (sRomVersion!!.uppercase(getDefault()).contains(ROM_FLYME)) {
                 sRomName = ROM_FLYME
             } else {
                 sRomVersion = Build.UNKNOWN
-                sRomName = Build.MANUFACTURER.toUpperCase()
+                sRomName = Build.MANUFACTURER.uppercase(getDefault())
             }
         }
         return sRomName == rom

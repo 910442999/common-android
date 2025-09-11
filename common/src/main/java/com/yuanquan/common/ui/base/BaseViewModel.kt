@@ -16,6 +16,7 @@ import retrofit2.HttpException
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.Locale.getDefault
 import kotlin.collections.set
 
 
@@ -87,7 +88,7 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
             }
             sb.append("$key=$value&")
         }
-        val s = sb.toString().substring(0, sb.toString().length - 1).toLowerCase() + AUTH_SECRET
+        val s = sb.toString().substring(0, sb.toString().length - 1).lowercase(getDefault()) + AUTH_SECRET
         return encryption(s)
     }
 
