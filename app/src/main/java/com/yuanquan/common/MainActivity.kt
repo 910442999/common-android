@@ -47,5 +47,9 @@ class MainActivity : Activity() {
             var intent: Intent = Intent(this, ColorPickerActivity::class.java)
             startActivity(intent)
         }
+        findViewById<TextView>(R.id.tv_text8).setOnClickListener {
+            var intent: Intent = Intent(this, DefaultDragAndSwipeActivity::class.java)
+            startActivity(intent)
+        }
     }
 }

@@ -22,9 +22,9 @@ import android.view.View.OnScrollChangeListener
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.widget.NestedScrollView
+import com.yuanquan.common.utils.ClickUtils.onClick
 import com.yuanquan.common.utils.LogUtil
 import com.yuanquan.common.utils.SysUtils
-import com.yuanquan.common.utils.onClick
 import com.yuanquan.common.widget.popup.CommonPopupWindow
 
 

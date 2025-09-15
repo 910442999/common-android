@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!--拖动滑动列表按住震动-->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".MyApp"
@@ -19,6 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Commonandroid"
         tools:targetApi="31">
+        <activity
+            android:name=".DefaultDragAndSwipeActivity"
+            android:exported="false" />
         <activity
             android:name=".selecttext.MainActivity2"
             android:exported="false" />

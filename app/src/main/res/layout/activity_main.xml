@@ -56,4 +56,11 @@
         android:gravity="center"
         android:text="ColorPickerActivity" />
 
+    <TextView
+        android:id="@+id/tv_text8"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:text="拖拽滑动列表" />
+
 </LinearLayout>
