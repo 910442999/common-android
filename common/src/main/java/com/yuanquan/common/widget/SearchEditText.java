@@ -28,7 +28,7 @@ public class SearchEditText extends LinearLayout {
     private Context context;
 
     // 搜索框组件
-    private EditText et_search; // 搜索按键
+    private EditText_Clear et_search; // 搜索按键
     private View ll_search;
     private TextView tv_search;
     // 数据库变量
@@ -130,7 +130,7 @@ public class SearchEditText extends LinearLayout {
 
         // 2. 绑定搜索框EditText
         ll_search = (View) findViewById(R.id.ll_search);
-        et_search = (EditText) findViewById(R.id.et_search);
+        et_search = (EditText_Clear) findViewById(R.id.et_search);
         tv_search = (TextView) findViewById(R.id.tv_search);
     }
 
@@ -170,6 +170,14 @@ public class SearchEditText extends LinearLayout {
     public void setSearchButtonText(String text) {
         tv_search.setVisibility(View.VISIBLE);
         tv_search.setText(text);
+    }
+
+    /**
+     * 关注1
+     * 作用：判断是否显示删除图标
+     */
+    public void setEnableClear(boolean visible) {
+        et_search.setEnableClear(visible);
     }
 
     /**

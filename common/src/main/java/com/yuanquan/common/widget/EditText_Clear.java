@@ -24,6 +24,7 @@ public class EditText_Clear extends AppCompatEditText {
      */
     private Drawable clearDrawable;
     private boolean visible;
+    private boolean enableClear = true;
 
     public EditText_Clear(Context context) {
         super(context);
@@ -59,7 +60,9 @@ public class EditText_Clear extends AppCompatEditText {
     @Override
     protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
         super.onTextChanged(text, start, lengthBefore, lengthAfter);
-        setClearIconVisible(hasFocus() && text.length() > 0);
+        if (enableClear) {
+            setClearIconVisible(hasFocus() && text.length() > 0);
+        }
         // hasFocus()返回是否获得EditTEXT的焦点，即是否选中
         // setClearIconVisible（） = 根据传入的是否选中 & 是否有输入来判断是否显示删除图标->>关注1
     }
@@ -67,12 +70,19 @@ public class EditText_Clear extends AppCompatEditText {
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        setClearIconVisible(focused && length() > 0);
+        if (enableClear) {
+            setClearIconVisible(focused && length() > 0);
+        }
         if (!focused) {
             KeyBoardUtils.closeKeyboard(this, getContext());
         }
         // focused = 是否获得焦点
         // 同样根据setClearIconVisible（）判断是否要显示删除图标
+    }
+
+
+    public void setEnableClear(boolean visible) {
+        enableClear = visible;
     }
 
     /**

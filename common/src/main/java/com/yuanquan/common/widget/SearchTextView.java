@@ -30,6 +30,7 @@ public class SearchTextView extends LinearLayout {
     //    private ICallBack mCallBack;
     private boolean visible;
     private Drawable clearDrawable;
+    private boolean enableClear = true;
 
     /**
      * 构造函数
@@ -73,7 +74,9 @@ public class SearchTextView extends LinearLayout {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                setClearIconVisible(s.length() > 0);
+                if (enableClear) {
+                    setClearIconVisible(s.length() > 0);
+                }
             }
 
             // 输入文本后调用该方法
@@ -109,6 +112,10 @@ public class SearchTextView extends LinearLayout {
                 return false;
             }
         });
+    }
+
+    public void setEnableClear(boolean visible) {
+        enableClear = visible;
     }
 
     /**
