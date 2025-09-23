@@ -7,24 +7,19 @@ import com.yuanquan.common.interfaces.OnUpdateListener
 import com.yuanquan.common.interfaces.ProgressListener
 import com.yuanquan.common.utils.LogUtil
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.*
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.exceptions.CompositeException
 import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
-import okio.Buffer
 import okio.BufferedSink
-import okio.Okio
-import okio.Source
 import okio.source
 import java.io.File
 import java.io.FileOutputStream
@@ -33,10 +28,8 @@ import java.io.InputStream
 import java.io.InterruptedIOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.util.*
 import java.util.concurrent.TimeoutException
 import okio.buffer
-import okio.source
 
 class HttpUtil {
     private var uploadDisposable: Disposable? = null
@@ -174,26 +167,34 @@ class HttpUtil {
      * 上传文件
      */
     fun uploadFile(
-        url: String, body: RequestBody, listener: OnUpdateListener, method: String = "POST"
+        url: String,
+        body: RequestBody,
+        listener: OnUpdateListener,
+        method: String = "POST",
+        isCancelled: Boolean = false
     ) {
         var uploadFile: Observable<Any>
         if (method == "PUT") {
             uploadFile = mService.putUploadFile(
                 url = url, body = ProgressRequestBody(
-                    body
-                ) { progress ->
-                    //更新UI需切换到UI线程
-                    listener.onProgress(progress)
-                }
+                    body, progressListener = object : ProgressListener {
+                        override fun onProgress(progress: Int) {
+                            //更新UI需切换到UI线程
+                            listener.onProgress(progress)
+                        }
+                    }, isCancelled = { isCancelled }
+                )
             )
         } else {
             uploadFile = mService.postUploadFile(
                 url = url, body = ProgressRequestBody(
-                    body
-                ) { progress ->
-                    //更新UI需切换到UI线程
-                    listener.onProgress(progress)
-                }
+                    body, progressListener = object : ProgressListener {
+                        override fun onProgress(progress: Int) {
+                            //更新UI需切换到UI线程
+                            listener.onProgress(progress)
+                        }
+                    }, isCancelled = { isCancelled }
+                )
             )
         }
         uploadFile.subscribeOn(Schedulers.io())

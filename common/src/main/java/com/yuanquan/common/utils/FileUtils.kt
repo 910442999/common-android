@@ -2,6 +2,7 @@ package com.yuanquan.common.utils
 
 import android.annotation.TargetApi
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
@@ -104,8 +105,10 @@ object FileUtils {
         }
     }
 
+    /**
+     * 获取文件大小
+     */
     @JvmStatic
-    // 获取文件名
     fun getFileSize(context: Context, uri: Uri): Long? {
         return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
@@ -153,8 +156,7 @@ object FileUtils {
         var fileName: String? = null
         try {
             fileName = url.substring(
-                url.lastIndexOf("/") + 1,
-                url.lastIndexOf(".")
+                url.lastIndexOf("/") + 1, url.lastIndexOf(".")
             ) + System.currentTimeMillis()
         } finally {
             if (TextUtils.isEmpty(fileName)) {
@@ -190,33 +192,29 @@ object FileUtils {
     }
 
     @JvmStatic
+    fun calculateMD5(inputStream: InputStream, close: Boolean = false): String {
+        var calculateMD5 = this.calculateMD5(inputStream)
+        if (close) {
+            inputStream.close()
+        }
+        return calculateMD5
+    }
+
     fun calculateMD5(inputStream: InputStream): String {
-        val md5Digest = MessageDigest.getInstance("MD5")
-
-        // 使用缓冲区读取文件内容
+        val md = MessageDigest.getInstance("MD5")
         val buffer = ByteArray(8192)
-        var bytesRead: Int
-
-        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-            if (bytesRead > 0) {
-                md5Digest.update(buffer, 0, bytesRead)
-            }
+        var read: Int
+        while (inputStream.read(buffer).also { read = it } != -1) {
+            md.update(buffer, 0, read)
         }
+        val digest = md.digest()
+        return digest.joinToString("") { "%02x".format(it) }
+    }
 
-        inputStream.close()
-
-        // 获取计算得到的MD5值
-        val md5Bytes = md5Digest.digest()
-
-        // 将字节数组转换为十六进制字符串表示
-        val md5String = StringBuilder()
-        for (i in md5Bytes.indices) {
-            md5String.append(
-                Integer.toString((md5Bytes[i].toInt() and 0xff) + 0x100, 16).substring(1)
-            )
-        }
-
-        return md5String.toString()
+    fun calculateMd5FromUri(contentResolver: ContentResolver, uri: Uri): String {
+        val inputStream =
+            contentResolver.openInputStream(uri) ?: throw IOException("Cannot open stream")
+        return inputStream.use { calculateMD5(it) }
     }
 
     @JvmStatic
@@ -499,8 +497,7 @@ object FileUtils {
      */
     @JvmStatic
     fun getDataColumn(
-        context: Context, uri: Uri?, selection: String?,
-        selectionArgs: Array<String>?
+        context: Context, uri: Uri?, selection: String?, selectionArgs: Array<String>?
     ): String? {
 
         var cursor: Cursor? = null
@@ -515,8 +512,7 @@ object FileUtils {
                 return cursor.getString(column_index)
             }
         } finally {
-            if (cursor != null)
-                cursor.close()
+            if (cursor != null) cursor.close()
         }
         return null
     }
@@ -706,11 +702,7 @@ object FileUtils {
     @JvmStatic
     @Throws(IOException::class)
     fun createTempFileForUri(
-        context: Context,
-        uri: Uri,
-        prefix: String,
-        suffix: String,
-        directory: File
+        context: Context, uri: Uri, prefix: String, suffix: String, directory: File
     ): File {
         // 创建临时文件
         val file = File.createTempFile(prefix, suffix, directory)
@@ -734,10 +726,7 @@ object FileUtils {
     @Throws(IOException::class)
     fun createTempFileForBitmap(context: Context, bitmap: Bitmap): File? {
         return createTempFileForBitmap(
-            bitmap,
-            "temp_image", ".png",
-            Bitmap.CompressFormat.PNG,
-            context.cacheDir
+            bitmap, "temp_image", ".png", Bitmap.CompressFormat.PNG, context.cacheDir
         )
     }
 
