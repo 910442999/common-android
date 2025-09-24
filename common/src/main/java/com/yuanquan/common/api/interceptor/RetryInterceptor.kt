@@ -1,168 +1,340 @@
 package com.yuanquan.common.api.interceptor
 
+import com.yuanquan.common.api.URLConstant
 import com.yuanquan.common.utils.LogUtil
 import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.Response
+import okio.Buffer
 import java.io.IOException
-import java.util.concurrent.TimeUnit
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import javax.net.ssl.SSLHandshakeException
+import kotlin.math.pow
 
 /**
- * 如果添加LoggingInterceptor拦截器，需要线添加RetryInterceptor后在添加LoggingInterceptor
  * 智能重试拦截器，支持基于重试次数的自定义时间间隔
+ * 增强功能：允许子类重写 logFinal 方法自定义日志输出
  *
- * @param maxRetries 最大重试次数，默认3次
- * @param retryDelays 重试延迟时间列表（毫秒），默认[1000, 3000, 3000]
- * @param logTag 日志标签，默认"RetryInterceptor"
- * @param logEnabled 日志开关，默认开启
- * @param retryConditions 重试条件列表
+ * 使用说明：
+ * 1. 创建子类继承 RetryInterceptor
+ * 2. 重写 logFinal 方法实现自定义日志输出
+ * 3. 在拦截器链中使用自定义子类
  */
-class RetryInterceptor(
+open class RetryInterceptor(
     private val maxRetries: Int = 3,
-    private val retryDelays: List<Long> = listOf(1000, 3000, 3000),
-    private val logTag: String = "RetryInterceptor",
+    private val maxDelay: Long = 9000, // 最大9秒
+    private val retryDelay: Long = 3000,
+    private val retryableStatusCodes: Set<Int> = setOf(500, 502, 503, 504, 429),
     private val logEnabled: Boolean = false,
-    private val retryConditions: List<(Response) -> Boolean> = listOf(
-        { response ->
-            val shouldRetry = response.code in 500..599
-            if (shouldRetry && logEnabled) {
-                LogUtil.d(logTag, "重试条件: 服务器错误 (${response.code})")
-            }
-            shouldRetry
-        },
-        { response ->
-            val shouldRetry = response.code == 429
-            if (shouldRetry && logEnabled) {
-                LogUtil.d(logTag, "重试条件: 请求过多 (429)")
-            }
-            shouldRetry
-        }
-    )
+    private val retryPredicate: (Request, Response?, Throwable?) -> Boolean = { _, response, exception ->
+        exception is IOException ||
+                (response != null && response.code in retryableStatusCodes)
+    }
 ) : Interceptor {
 
-    init {
-        // 验证延迟列表是否有效
-        require(retryDelays.isNotEmpty()) { "重试延迟列表不能为空" }
-        require(retryDelays.all { it >= 0 }) { "重试延迟时间不能为负数" }
-    }
+    // 重试计数器
+    protected var totalRetryAttempts = 0
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val url = request.url.toString()
-        val method = request.method
+        val httpUrl = request.url
+        val path = httpUrl.encodedPath
+        val startTime = System.currentTimeMillis()
 
+        // 重置计数器
+        totalRetryAttempts = 0
+
+        // 创建日志构建器
+        val logBuilder = StringBuilder()
         if (logEnabled) {
-            LogUtil.d(logTag, "开始请求: $method $url")
+            logBuilder.apply {
+                append("\n")
+                append("请求Headers>>> ${request.headers}\n")
+                append("请求URL>>> $httpUrl\n")
+                append("API>>> $path\n")
+                append("请求方法>>> ${request.method}\n")
+                if (totalRetryAttempts != 0) {
+                    append("最大重试次数>>> $maxRetries\n")
+                    append("基础重试延迟>>> ${retryDelay}ms\n")
+                }
+                if (request.method == "POST" || request.method == "PUT") {
+                    append("请求参数>>> ${bodyToString(request.body)}\n")
+                }
+
+                append("初始请求时间>>> ${System.currentTimeMillis()}")
+                logRetryAttempt(0, "初始请求", logBuilder)
+            }
         }
 
         var response: Response? = null
-        var retryCount = 0
+        var exception: IOException? = null
 
-        while (true) {
-            // 关闭前一次响应（如果存在）
-            response?.close()
-
+        for (attempt in 0..maxRetries) {
             try {
+                // 记录重试尝试（排除初始请求）
+                if (attempt > 0) {
+                    totalRetryAttempts++
+                }
                 response = chain.proceed(request)
 
-                if (logEnabled) {
-                    val status = if (response.isSuccessful) "成功" else "失败"
-                    LogUtil.d(logTag, "响应: $method $url - ${response.code} ($status)")
-                }
-
                 // 检查是否需要重试
-                if (!shouldRetry(response, retryCount, url, method)) {
-                    return response
+                if (attempt < maxRetries && shouldRetry(request, response, null)) {
+                    response.close()
+
+                    // 计算延迟时间
+                    val delay = calculateExponentialBackoffDelay(attempt, retryDelay)
+
+                    // 获取重试原因
+                    val reason = getRetryReason(response, null)
+
+                    // 记录重试日志
+                    if (logEnabled) {
+                        logRetryAttempt(attempt + 1, reason, logBuilder, delay)
+                    }
+
+                    delayRetry(delay)
+                    continue
                 }
 
-                retryCount++
-
-                // 获取当前重试的延迟时间
-                val delay = getDelayForRetry(retryCount)
-
-                if (logEnabled) {
-                    LogUtil.w(logTag, "重试 #$retryCount: $method $url")
-                    LogUtil.d(logTag, "使用延迟: ${delay}ms")
-                    LogUtil.d(logTag, "等待 ${delay}ms 后重试...")
-                }
-
-                TimeUnit.MILLISECONDS.sleep(delay)
-
-                if (logEnabled) {
-                    LogUtil.d(logTag, "开始重试 #$retryCount: $method $url")
-                }
-
+                // 记录成功响应日志
+                logResponse(response, logBuilder, startTime, path)
+                return response
             } catch (e: IOException) {
-                if (logEnabled) {
-                    LogUtil.e(logTag, "网络错误: $method $url - ${e.message}")
+                exception = e
+                // 记录重试尝试（排除初始请求）
+                if (attempt > 0) {
+                    totalRetryAttempts++
+                }
+                // 检查是否需要重试
+                if (attempt < maxRetries && shouldRetry(request, null, e)) {
+                    // 计算延迟时间
+                    val delay = calculateExponentialBackoffDelay(attempt, retryDelay, e)
+
+                    // 获取重试原因
+                    val reason = getRetryReason(null, e)
+
+                    // 记录重试日志
+                    if (logEnabled) {
+                        logRetryAttempt(attempt + 1, reason, logBuilder, delay)
+                    }
+
+                    delayRetry(delay)
+                    continue
                 }
 
-                // 检查是否需要重试网络错误
-                if (!shouldRetry(null, retryCount, url, method)) {
-                    throw e
+                // 记录错误日志
+                logError(e, logBuilder, startTime, path)
+                throw e
+            }
+        }
+
+        // 所有重试尝试都失败
+        logError(
+            exception ?: IOException("Unknown error after $maxRetries retries"),
+            logBuilder, startTime, path
+        )
+        throw exception ?: IOException("Unknown error after $maxRetries retries")
+    }
+
+    /**
+     * 获取详细的重试原因
+     */
+    protected open fun getRetryReason(response: Response?, exception: Throwable?): String {
+        return when {
+            exception != null -> {
+                when (exception) {
+                    is SocketTimeoutException -> "连接超时"
+                    is ConnectException -> "连接失败"
+                    is SSLHandshakeException -> "SSL握手失败"
+                    else -> "网络异常: ${exception.javaClass.simpleName}"
                 }
+            }
 
-                retryCount++
-
-                // 获取当前重试的延迟时间
-                val delay = getDelayForRetry(retryCount)
-
-                if (logEnabled) {
-                    LogUtil.w(logTag, "因网络错误重试 #$retryCount: $method $url")
-                    LogUtil.d(logTag, "使用延迟: ${delay}ms")
+            response != null -> {
+                when (response.code) {
+                    500 -> "服务器内部错误"
+                    502 -> "网关错误"
+                    503 -> "服务不可用"
+                    504 -> "网关超时"
+                    429 -> "请求过多"
+                    else -> "HTTP状态码: ${response.code}"
                 }
+            }
 
-                TimeUnit.MILLISECONDS.sleep(delay)
+            else -> "未知原因"
+        }
+    }
+
+    /**
+     * 判断是否需要重试
+     */
+    protected open fun shouldRetry(
+        request: Request,
+        response: Response?,
+        exception: Throwable?
+    ): Boolean {
+        return retryPredicate(request, response, exception)
+    }
+
+    /**
+     * 延迟重试
+     */
+    protected open fun delayRetry(delay: Long) {
+        Thread.sleep(delay)
+    }
+
+    /**
+     * 计算指数退避延迟
+     */
+    protected open fun calculateExponentialBackoffDelay(
+        attempt: Int,
+        baseDelay: Long
+    ): Long {
+        var exponentialDelay = (baseDelay * 2.0.pow(attempt.toDouble())).toLong()
+        // 添加随机抖动（0.8 - 1.2倍）
+        // 需要抖动：
+        //避免多个客户端同步重试
+        //减少"重试风暴"（Retry Storm）
+        val jitter = 0.8 + (0.4 * Math.random()) // 0.8到1.2之间的随机数
+        exponentialDelay = (exponentialDelay * jitter).toLong()
+        // 设置最大延迟上限
+        return minOf(exponentialDelay, maxDelay)
+    }
+
+    protected open fun calculateExponentialBackoffDelay(
+        attempt: Int,
+        baseDelay: Long,
+        exception: Exception? = null
+    ): Long {
+        // 1. 计算基础指数延迟
+        val baseExponent = when {
+            exception is SocketTimeoutException -> 1.5  // 连接超时
+            exception is ConnectException -> 2.0       // 连接失败
+            exception is SSLHandshakeException -> 3.0  // SSL错误
+            else -> 2.0                                // 默认
+        }
+
+        var delay = (baseDelay * baseExponent.pow(attempt.toDouble())).toLong()
+
+        // 2. 添加随机抖动（0.8 - 1.2倍）
+        // 需要抖动：
+        //避免多个客户端同步重试
+        //减少"重试风暴"（Retry Storm）
+        val jitter = 0.8 + (0.4 * Math.random()) // 0.8到1.2之间的随机数
+        delay = (delay * jitter).toLong()
+
+        // 3. 设置最大延迟上限
+        return minOf(delay, maxDelay)
+    }
+
+    /**
+     * 记录重试尝试
+     */
+    protected open fun logRetryAttempt(
+        attempt: Int,
+        reason: String,
+        builder: StringBuilder,
+        delay: Long? = null
+    ) {
+        if (attempt != 0) {
+            builder.apply {
+                append("\n")
+                append("重试尝试 #$attempt\n")
+                append("重试原因>>> $reason\n")
+                if (delay != null) {
+                    append("下次重试延迟>>> ${delay}ms\n")
+                }
+                append("重试时间>>> ${System.currentTimeMillis()}\n")
             }
         }
     }
 
     /**
-     * 根据重试次数获取延迟时间
-     *
-     * @param retryCount 当前重试次数（从1开始）
-     * @return 延迟时间（毫秒）
+     * 记录响应日志
      */
-    private fun getDelayForRetry(retryCount: Int): Long {
-        // 如果重试次数超过列表长度，使用最后一个延迟时间
-        val index = (retryCount - 1).coerceAtMost(retryDelays.size - 1)
-        return retryDelays[index]
+    protected open fun logResponse(
+        response: Response?,
+        builder: StringBuilder,
+        startTime: Long,
+        path: String
+    ) {
+        if (!logEnabled) return
+        response?.let {
+            // 创建响应副本，不影响原始响应流
+            val responseBody = it.peekBody(Long.MAX_VALUE)
+            val result = responseBody.string()
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            val seconds = duration / 1000
+            val millis = duration % 1000
+
+            builder.apply {
+                append("\n")
+                append("最终响应状态码>>> ${it.code}\n")
+                append("总请求耗时>>> ${seconds}秒${millis}毫秒\n")
+                if (totalRetryAttempts != 0) append("总重试次数>>> $totalRetryAttempts\n")
+                append("响应结果>>> $result\n")
+            }
+
+            logFinal(builder, path)
+        }
     }
 
-    private fun shouldRetry(
-        response: Response?,
-        retryCount: Int,
-        url: String,
-        method: String
-    ): Boolean {
-        if (retryCount >= maxRetries) {
-            if (logEnabled) {
-                LogUtil.w(logTag, "达到最大重试次数 ($maxRetries): $method $url")
-            }
-            return false
+    /**
+     * 记录错误日志
+     */
+    protected open fun logError(
+        e: Exception,
+        builder: StringBuilder,
+        startTime: Long,
+        path: String
+    ) {
+        if (!logEnabled) return
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+        val seconds = duration / 1000
+        val millis = duration % 1000
+
+        builder.apply {
+            append("\n")
+            append("最终错误>>> ${e.javaClass.simpleName}\n")
+            append("错误信息>>> ${e.message}\n")
+            append("总请求耗时>>> ${seconds}秒${millis}毫秒\n")
+            append("总重试次数>>> $totalRetryAttempts\n")
         }
 
-        return when {
-            // 网络错误情况
-            response == null -> {
-                if (logEnabled) {
-                    LogUtil.d(logTag, "因网络错误重试: $method $url")
-                }
-                true
-            }
-            // 检查自定义重试条件
-            retryConditions.any { it(response) } -> {
-                if (logEnabled) {
-                    LogUtil.d(logTag, "满足重试条件: $method $url (状态码: ${response.code})")
-                }
-                true
-            }
+        logFinal(builder, path)
+    }
 
-            else -> {
-                if (logEnabled) {
-                    LogUtil.d(logTag, "不满足重试条件: $method $url (状态码: ${response.code})")
-                }
-                false
-            }
+    /**
+     * 最终日志输出 - 子类可重写此方法实现自定义日志输出
+     * @param builder 日志内容构建器
+     * @param path 请求路径
+     */
+    protected open fun logFinal(builder: StringBuilder, path: String) {
+        // 默认实现：根据路径过滤规则输出日志
+        if (URLConstant.logNetFilter.contains(path)) {
+            LogUtil.i(
+                LogUtil.TAG_FILTER_NET,
+                builder.toString()
+            )
+        } else {
+            LogUtil.i(LogUtil.TAG_NET, builder.toString())
+        }
+    }
+
+    /**
+     * 请求体转字符串
+     */
+    protected open fun bodyToString(request: RequestBody?): String? {
+        return try {
+            val buffer = Buffer()
+            request?.writeTo(buffer)
+            buffer.readUtf8()
+        } catch (e: IOException) {
+            "无法读取请求体: ${e.message}"
         }
     }
 }

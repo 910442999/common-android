@@ -3,27 +3,30 @@ package com.yuanquan.common.api.interceptor
 import com.yuanquan.common.api.URLConstant
 import com.yuanquan.common.utils.LogUtil
 import okhttp3.Interceptor
+import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import okio.Buffer
 import java.io.IOException
+
 /**
- * 如果添加RetryInterceptor拦截器，需要线添加RetryInterceptor后在添加LoggingInterceptor
- */
-class LoggingInterceptor : Interceptor {
+* 日志拦截器（支持自定义日志输出）
+*
+* 使用说明：
+* 1. 创建子类继承 LoggingInterceptor
+* 2. 重写 logFinal 方法实现自定义日志输出
+* 3. 在拦截器链中使用自定义子类
+*/
+open class LoggingInterceptor : Interceptor {
+
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val httpUrl = request.url
         val startTime = System.currentTimeMillis()
-        //        if (httpUrl.toString().contains(".png") || httpUrl.toString()
-//                .contains(".jpg") || httpUrl.toString().contains(".jpeg") || httpUrl.toString()
-//                .contains(".gif")
-//        ) {
-//            return chain.proceed(request)
-//        }
         val path = httpUrl.encodedPath
 
+        // 创建日志构建器
         val builder = StringBuilder().apply {
             append("\n")
             append("请求Headers>>> ${request.headers}\n")
@@ -49,7 +52,10 @@ class LoggingInterceptor : Interceptor {
         return response
     }
 
-    private fun logResponse(
+    /**
+    * 记录响应日志
+    */
+    protected open fun logResponse(
         response: Response,
         builder: StringBuilder,
         startTime: Long,
@@ -72,7 +78,10 @@ class LoggingInterceptor : Interceptor {
         logFinal(builder, path)
     }
 
-    private fun logError(
+    /**
+    * 记录错误日志
+    */
+    protected open fun logError(
         e: Exception,
         builder: StringBuilder,
         startTime: Long,
@@ -91,7 +100,13 @@ class LoggingInterceptor : Interceptor {
         logFinal(builder, path)
     }
 
-    private fun logFinal(builder: StringBuilder, path: String) {
+    /**
+    * 最终日志输出 - 子类可重写此方法实现自定义日志输出
+    * @param builder 日志内容构建器
+    * @param path 请求路径
+    */
+    protected open fun logFinal(builder: StringBuilder, path: String) {
+        // 默认实现：根据路径过滤规则输出日志
         if (URLConstant.logNetFilter.contains(path)) {
             LogUtil.i(LogUtil.TAG_FILTER_NET, builder.toString())
         } else {
@@ -99,7 +114,10 @@ class LoggingInterceptor : Interceptor {
         }
     }
 
-    private fun bodyToString(request: RequestBody?): String? {
+    /**
+    * 请求体转字符串
+    */
+    protected open fun bodyToString(request: RequestBody?): String? {
         return try {
             val buffer = Buffer()
             request?.writeTo(buffer)
