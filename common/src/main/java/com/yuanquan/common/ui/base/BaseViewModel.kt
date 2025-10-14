@@ -88,7 +88,8 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
             }
             sb.append("$key=$value&")
         }
-        val s = sb.toString().substring(0, sb.toString().length - 1).lowercase(getDefault()) + AUTH_SECRET
+        val s = sb.toString().substring(0, sb.toString().length - 1)
+            .lowercase(getDefault()) + AUTH_SECRET
         return encryption(s)
     }
 
@@ -152,11 +153,19 @@ open class BaseViewModel<VB : ViewBinding> : ViewModel() {
                 val errorResult = ErrorResult()
                 if (e is HttpException) {
                     errorResult.code = e.code()
-                    LogUtil.e("请求异常>>$e")
+                    if (e.response() == null) {
+                        LogUtil.e(
+                            "请求异常>>${e.code()} ${e.message()}"
+                        )
+                    } else {
+                        LogUtil.e(
+                            "请求异常>>${e.response().toString()}"
+                        )
+                    }
                 } else {
                     errorResult.code = 500
+                    LogUtil.e("请求异常>>$e")
                 }
-                LogUtil.e("请求异常>>$e")
                 errorResult.errMsg = e.message
 //                if (errorResult.errMsg.isNullOrEmpty()) errorResult.errMsg = "网络请求失败，请重试"
                 errorResult.showToast = isShowError
