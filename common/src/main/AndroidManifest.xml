@@ -27,6 +27,7 @@
     <!--        </intent>-->
     <!--    </queries>-->
 
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <application>
         <activity
             android:name=".ui.test.ColorPickerActivity"

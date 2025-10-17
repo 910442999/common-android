@@ -1,11 +1,16 @@
 package com.yuanquan.common.utils
 
+import android.Manifest
 import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
 import android.hardware.usb.UsbManager
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothClass
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothProfile
+import androidx.annotation.RequiresPermission
 import com.yuanquan.common.utils.MicrophoneUtils.MicrophoneInfo
 
 object MicrophoneUtils {
@@ -21,6 +26,7 @@ object MicrophoneUtils {
     /**
      * 获取所有麦克风设备
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun getAllMicrophones(context: Context): List<MicrophoneInfo> {
         val microphones = mutableListOf<MicrophoneInfo>()
 
@@ -113,7 +119,10 @@ object MicrophoneUtils {
 
     /**
      * 获取蓝牙麦克风
+     * 注意：此方法部分设备需要需要蓝牙权限，否则报
+     *     java.lang.SecurityException: Need android.permission.BLUETOOTH_CONNECT permission for android.content.AttributionSource@f5a2f3b5: AdapterService getBondedDevices
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun getBluetoothMicrophones(context: Context): List<MicrophoneInfo> {
         val bluetoothMicrophones = mutableListOf<MicrophoneInfo>()
 
@@ -190,10 +199,11 @@ object MicrophoneUtils {
     /**
      * 检查蓝牙设备是否为麦克风
      */
-    private fun isBluetoothMicrophone(device: android.bluetooth.BluetoothDevice): Boolean {
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    private fun isBluetoothMicrophone(device: BluetoothDevice): Boolean {
         return device.bluetoothClass.majorDeviceClass ==
-                android.bluetooth.BluetoothClass.Device.Major.AUDIO_VIDEO &&
-                (device.bluetoothClass.hasService(android.bluetooth.BluetoothProfile.HEADSET)/* ||
+                BluetoothClass.Device.Major.AUDIO_VIDEO &&
+                (device.bluetoothClass.hasService(BluetoothProfile.HEADSET)/* ||
                         device.bluetoothClass.hasService(android.bluetooth.BluetoothProfile.HANDSFREE)*/)
     }
 }
