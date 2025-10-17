@@ -1,12 +1,10 @@
 package com.yuanquan.common.utils
 
 import android.annotation.TargetApi
-import android.app.Activity
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
@@ -35,7 +33,10 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.URLConnection
 import java.security.MessageDigest
+import java.text.DecimalFormat
 import java.util.Locale
+import kotlin.math.log10
+import kotlin.math.pow
 
 /**
  * 1、根据指定类型打开文件管理
@@ -755,5 +756,157 @@ object FileUtils {
         os.flush()
         os.close()
         return file
+    }
+
+
+    // 获取文件路径（实际是读取为流）
+    @JvmStatic
+    fun getAssetFilePath(context: Context, fileName: String): File? {
+        // 创建缓存目录路径
+        val cacheDir = context.getCacheDir()
+        val assetsCacheDir = File(cacheDir, "assets_cache")
+
+        // 确保缓存目录存在
+        if (!assetsCacheDir.exists()) {
+            assetsCacheDir.mkdirs()
+        }
+
+        // 创建目标文件路径（使用原始文件名）
+        val targetFile = File(assetsCacheDir, fileName)
+
+        // 检查文件是否已存在
+        if (targetFile.exists()) {
+            return targetFile
+        }
+
+        try {
+            // 获取 AssetManager
+            val assetManager = context.getAssets()
+
+            // 打开文件流
+            val inputStream = assetManager.open(fileName)
+
+            FileOutputStream(targetFile).use { outputStream ->
+                val buffer = ByteArray(1024)
+                var read: Int
+                while ((inputStream.read(buffer).also { read = it }) != -1) {
+                    outputStream.write(buffer, 0, read)
+                }
+            }
+            // 返回文件路径
+            return targetFile
+        } catch (e: IOException) {
+            e.printStackTrace()
+            // 删除可能创建的不完整文件
+            if (targetFile.exists()) {
+                targetFile.delete()
+            }
+            return null
+        }
+    }
+
+    /**
+     * 删除指定的 assets 缓存文件
+     * @param context 上下文
+     * @param fileName 原始文件名（如 "config.json"）
+     * @return 是否删除成功
+     */
+    @JvmStatic
+    fun deleteAssetCacheFile(context: Context, fileName: String): Boolean {
+        val cacheDir = context.getCacheDir()
+        val assetsCacheDir = File(cacheDir, "assets_cache")
+        val targetFile = File(assetsCacheDir, fileName)
+
+        if (targetFile.exists()) {
+            return targetFile.delete()
+        }
+        return false
+    }
+
+    /**
+     * 删除所有 assets 缓存文件
+     * @param context 上下文
+     * @return 是否删除成功
+     */
+    @JvmStatic
+    fun clearAllAssetsCache(context: Context): Boolean {
+        val cacheDir = context.getCacheDir()
+        val assetsCacheDir = File(cacheDir, "assets_cache")
+
+        if (assetsCacheDir.exists() && assetsCacheDir.isDirectory()) {
+            return deleteDirectory(assetsCacheDir)
+        }
+        return false
+    }
+
+    /**
+     * 递归删除目录及其内容
+     * @param directory 要删除的目录
+     * @return 是否删除成功
+     */
+    private fun deleteDirectory(directory: File): Boolean {
+        if (directory.isDirectory()) {
+            val files = directory.listFiles()
+            if (files != null) {
+                for (file in files) {
+                    if (!deleteDirectory(file)) {
+                        return false
+                    }
+                }
+            }
+        }
+        return directory.delete()
+    }
+
+    /**
+     * 获取 assets 缓存大小
+     * @param context 上下文
+     * @return 缓存大小（字节）
+     */
+    @JvmStatic
+    fun getAssetsCacheSize(context: Context): Long {
+        val cacheDir = context.getCacheDir()
+        val assetsCacheDir = File(cacheDir, "assets_cache")
+
+        if (assetsCacheDir.exists() && assetsCacheDir.isDirectory()) {
+            return getFolderSize(assetsCacheDir)
+        }
+        return 0
+    }
+
+    /**
+     * 计算目录大小
+     * @param folder 目录
+     * @return 大小（字节）
+     */
+    private fun getFolderSize(folder: File): Long {
+        var size: Long = 0
+        val files = folder.listFiles()
+        if (files != null) {
+            for (file in files) {
+                if (file.isFile()) {
+                    size += file.length()
+                } else {
+                    size += getFolderSize(file)
+                }
+            }
+        }
+        return size
+    }
+
+    /**
+     * 格式化缓存大小
+     * @param size 字节大小
+     * @return 格式化字符串
+     */
+    @JvmStatic
+    fun formatCacheSize(size: Long): String {
+        if (size <= 0) return "0 B"
+
+        val units: Array<String> = arrayOf<String>("B", "KB", "MB", "GB")
+        val digitGroups = (log10(size.toDouble()) / log10(1024.0)).toInt()
+
+        return DecimalFormat("#,##0.#")
+            .format(size / 1024.0.pow(digitGroups.toDouble())) + " " + units[digitGroups]
     }
 }
