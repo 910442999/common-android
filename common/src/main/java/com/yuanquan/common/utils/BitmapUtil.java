@@ -195,6 +195,12 @@ public class BitmapUtil {
     }
 
     public static Bitmap convertViewToBitmap(View view) {
+        if (view.getWidth() <= 0 || view.getHeight() <= 0) {
+            view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+        }
+        Log.d("BitmapUtils", "View width: " + view.getWidth() + ", height: " + view.getHeight());
         Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
         //利用bitmap生成画布
         Canvas canvas = new Canvas(bitmap);
