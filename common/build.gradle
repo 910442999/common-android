@@ -76,4 +76,6 @@ dependencies {
 //    api 'com.alipay.sdk:alipaysdk-android:15.8.12@aar'
     //日历
     api 'com.haibin:calendarview:3.7.1'
+    //Glide提供各种图像转换
+    api 'jp.wasabeef:glide-transformations:4.3.0'
 }
