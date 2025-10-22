@@ -2,13 +2,16 @@ package com.yuanquan.common.utils
 
 import android.content.Context
 import android.text.Html
-import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.TextView
 import com.yuanquan.common.widget.EditText_Clear
+import kotlin.math.max
+import kotlin.math.min
+
 
 object UiUtils {
     /**
@@ -91,5 +94,17 @@ object UiUtils {
                 false
             }
         }
+    }
+
+    // 在 EditText 的光标位置插入文本
+    @JvmStatic
+    fun insertAtCursor(editText: EditText?, text: String?) {
+        if (editText == null || text == null) return
+        val start = editText.selectionStart
+        val end = editText.selectionEnd
+        val editable = editText.text
+        editable.replace(min(start, end), max(start, end), text)
+        // 移动光标到新文本末尾
+        editText.setSelection(start + text.length)
     }
 }
