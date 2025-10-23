@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -167,9 +168,47 @@ public class PermissionUtils {
      * 跳转到系统设置页面
      */
     public static void startIntentSetting(Activity activity, int requestCode) {
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
-        intent.setData(uri);
-        activity.startActivityForResult(intent, requestCode);
+        try {
+            Intent intent;
+            intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
+            intent.setData(uri);
+            // 添加必要的标志
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            activity.startActivityForResult(intent, requestCode);
+        } catch (Exception e) {
+            Log.e("SettingsUtils", "Error opening settings", e);
+            // 备用方案：打开应用列表
+            openAppSettingsFallback(activity, requestCode);
+        }
+    }
+
+    /**
+     * 备用方案：打开应用列表设置
+     */
+    private static void openAppSettingsFallback(Activity activity, int requestCode) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_SETTINGS);
+            // 添加必要的标志
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            activity.startActivityForResult(intent, requestCode);
+        } catch (Exception e) {
+            Log.e("SettingsUtils", "App settings fallback failed", e);
+            openSystemSettingsFallback(activity, requestCode);
+        }
+    }
+
+    /**
+     * 终极备用方案：打开系统设置
+     */
+    private static void openSystemSettingsFallback(Activity activity, int requestCode) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            activity.startActivityForResult(intent, requestCode);
+        } catch (Exception e) {
+            Log.e("SettingsUtils", "System settings fallback failed", e);
+        }
     }
 }
