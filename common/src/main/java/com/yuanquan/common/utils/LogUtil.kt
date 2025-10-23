@@ -23,6 +23,11 @@ object LogUtil {
     }
 
     @JvmStatic
+    fun d(message: Any?) {
+        Log.d(TAG, message.toString())
+    }
+
+    @JvmStatic
     fun w(tag: String, message: Any?) {
         Log.w(tag, message.toString())
     }
