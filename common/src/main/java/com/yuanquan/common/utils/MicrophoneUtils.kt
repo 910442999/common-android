@@ -51,12 +51,8 @@ object MicrophoneUtils {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
             val devices = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
-
             for (device in devices) {
-                if (isMicrophoneDevice(device.type) || isBluetoothMicrophoneDevice(device.type) || isUSBMicrophoneDevice(
-                        device.type
-                    )
-                ) {
+                if (isMicrophoneDevice(device.type)) {
                     microphones.add(
                         MicrophoneInfo(
                             id = "audio_${device.id}",
