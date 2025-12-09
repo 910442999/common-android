@@ -51,7 +51,8 @@ import kotlin.math.ceil
  * }
  */
 object FileLogUtils {
-    private var TAG = "FileLog"
+    private var TAG = "FileLogUtil"
+    private var name = "FileLog"
     private var logFile: File? = null
     private var context: Context? = null
 
@@ -68,15 +69,15 @@ object FileLogUtils {
     }
 
     fun init(context: Context, tag: String) {
-        this.setTagName(tag)
+        this.setLogName(tag)
         this.init(context)
     }
 
     /**
      * 需要放在初始化之前
      */
-    fun setTagName(tag: String) {
-        TAG = tag
+    fun setLogName(name: String) {
+        this.name = name
     }
 
     fun d(message: String) {
@@ -140,7 +141,7 @@ object FileLogUtils {
                 return
             }
             val timestamp =
-                SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(Date())
+                SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(Date())
             val log = "[$timestamp][$TAG][$level] $message"
 
             // 替换这部分代码，明确指定UTF-8编码
@@ -166,25 +167,25 @@ object FileLogUtils {
         try {
             val timestamp =
                 SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss.SSS",
+                    "MM-dd HH:mm:ss.SSS",
                     Locale.getDefault()
                 ).format(Date())
             val log = "[$timestamp][$TAG][$level] $message"
-            var string = SPUtils.getInstance().getString(TAG)
+            var string = SPUtils.getInstance().getString(name)
             var s = string + log
-            SPUtils.getInstance().put(TAG, s)
+            SPUtils.getInstance().put(name, s)
         } catch (e: Exception) {
             LogUtil.e(message)
         }
     }
 
     fun getMemory(): String? {
-        var string = SPUtils.getInstance().getString(TAG)
+        var string = SPUtils.getInstance().getString(name)
         return string
     }
 
     fun cleanMemory() {
-        SPUtils.getInstance().remove(TAG)
+        SPUtils.getInstance().remove(name)
     }
 
     // 获取日志文件路径（兼容 Android 4.4 以下版本）
@@ -202,7 +203,7 @@ object FileLogUtils {
                 context.filesDir
             }
         }?.let { baseDir ->
-            File(baseDir, TAG).apply { mkdirs() } // 确保目录存在
+            File(baseDir, name).apply { mkdirs() } // 确保目录存在
         }
 
         if (logDir == null || !logDir.exists()) {
@@ -211,7 +212,7 @@ object FileLogUtils {
         }
 
         val timestamp = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val fileName = "$TAG-$timestamp.log"
+        val fileName = "$name-$timestamp.log"
         return File(logDir, fileName).also { logFile = it }
     }
 
@@ -227,7 +228,7 @@ object FileLogUtils {
             val externalDir = context?.getExternalFilesDir(null)
             externalDir ?: context?.filesDir
         }?.let { baseDir ->
-            File(baseDir, TAG).apply {
+            File(baseDir, name).apply {
                 if (!exists()) {
                     mkdirs()
                 }
@@ -245,7 +246,7 @@ object FileLogUtils {
         return if (logDir.exists() && logDir.isDirectory) {
             // 过滤出以TAG开头且以.log结尾的文件，并按修改时间倒序排列
             logDir.listFiles { file ->
-                file.isFile && file.name.startsWith(TAG) && file.name.endsWith(".log")
+                file.isFile && file.name.startsWith(name) && file.name.endsWith(".log")
             }?.sortedByDescending { it.lastModified() }?.toTypedArray() ?: emptyArray()
         } else {
             emptyArray()
@@ -529,7 +530,7 @@ object FileLogUtils {
                 )
             }
         } catch (e: Exception) {
-            LogUtil.e("$TAG: 分页读取失败: ${e.message}")
+            LogUtil.e(TAG,"分页读取失败: ${e.message}")
             return PagedReadResult(emptyList(), 0, page, pageSize, 0)
         }
     }
@@ -552,7 +553,7 @@ object FileLogUtils {
      */
     fun readLogByDate(date: String, page: Int = 1, pageSize: Int = 20): PagedReadResult {
         val logDir = getLogDirectory() ?: return PagedReadResult(emptyList(), 0, page, pageSize, 0)
-        val fileName = "$TAG-$date.log"
+        val fileName = "$name-$date.log"
         val targetFile = File(logDir, fileName)
 
         return if (targetFile.exists()) {

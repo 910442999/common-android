@@ -52,7 +52,7 @@ open class RetryInterceptor(
             logBuilder.apply {
 //                append("\n")
 //                append("请求Headers>>> ${request.headers}\n")
-                append("${request.method}请求URL>>> $httpUrl\n")
+                append("请求URL ${request.method} >>> $httpUrl\n")
 //                append("API>>> $path\n")
                 if (totalRetryAttempts != 0) {
                     append("最大重试次数>>> $maxRetries\n")
@@ -270,13 +270,12 @@ open class RetryInterceptor(
 
             builder.apply {
 //                append("\n")
-                append("最终响应状态码>>> ${it.code}\n")
-                append("总请求耗时>>> ${seconds}秒${millis}毫秒\n")
+                append("最终响应状态码>>> ${it.code}   耗时>>> ${seconds}秒${millis}毫秒\n")
                 if (totalRetryAttempts != 0) append("总重试次数>>> $totalRetryAttempts\n")
-                append("响应结果>>> $result\n")
+                append("响应结果>>> $result")
             }
 
-            logFinal(builder, path)
+            logFinal("INFO", builder, path)
         }
     }
 
@@ -300,10 +299,10 @@ open class RetryInterceptor(
             append("最终错误>>> ${e.javaClass.simpleName}\n")
             append("错误信息>>> ${e.message}\n")
             append("总请求耗时>>> ${seconds}秒${millis}毫秒\n")
-            append("总重试次数>>> $totalRetryAttempts\n")
+            append("总重试次数>>> $totalRetryAttempts")
         }
 
-        logFinal(builder, path)
+        logFinal("ERROR", builder, path)
     }
 
     /**
@@ -311,15 +310,22 @@ open class RetryInterceptor(
      * @param builder 日志内容构建器
      * @param path 请求路径
      */
-    protected open fun logFinal(builder: StringBuilder, path: String) {
+    protected open fun logFinal(tag: String, builder: StringBuilder, path: String) {
         // 默认实现：根据路径过滤规则输出日志
+        var logTag = LogUtil.TAG_NET
         if (URLConstant.logNetFilter.contains(path)) {
+            logTag = LogUtil.TAG_FILTER_NET
+        }
+        if (tag == "INFO") {
             LogUtil.i(
-                LogUtil.TAG_FILTER_NET,
+                logTag,
                 builder.toString()
             )
         } else {
-            LogUtil.i(LogUtil.TAG_NET, builder.toString())
+            LogUtil.e(
+                logTag,
+                builder.toString()
+            )
         }
     }
 
