@@ -48,6 +48,6 @@
             android:layout_height="match_parent"
             android:textColor="@color/gray_333333"
             android:textIsSelectable="true"
-            android:textSize="18sp" />
+            android:textSize="14sp" />
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

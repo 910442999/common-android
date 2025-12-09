@@ -51,7 +51,7 @@ import kotlin.math.ceil
  * }
  */
 object FileLogUtils {
-    private const val TAG = "FileLog"
+    private var TAG = "FileLog"
     private var logFile: File? = null
     private var context: Context? = null
 
@@ -65,6 +65,10 @@ object FileLogUtils {
         } catch (e: Exception) {
             LogUtil.e("写入日志初始化文件异常")
         }
+    }
+
+    fun setTagName(tag: String) {
+        TAG = tag
     }
 
     fun d(message: String) {
