@@ -3,11 +3,15 @@ package com.yuanquan.common.ui.base
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -48,7 +52,28 @@ abstract class BaseActivity<VM : BaseViewModel<VB>, VB : ViewBinding> : AppCompa
         vm.binding(vb)
         vm.observe(this, this)
         setContentView(vb.root)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            // 在 Activity 的 onCreate 方法中，setContentView 之后
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+                // 获取状态栏和导航栏的高度
+                val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+                val navigationBarHeight =
+                    insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
 
+                // 为你的根布局或特定视图设置内边距
+                // 示例：为根布局设置，避免内容与系统栏重叠
+                view.updatePadding(top = statusBarHeight, bottom = navigationBarHeight)
+
+                // 或者，如果你有特定的底部视图（如BottomNavigationView），可以只为它设置下边距
+                // val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+                // bottomNav.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                //     bottomMargin = navigationBarHeight
+                // }
+
+                // 返回处理后的 insets
+                insets
+            }
+        }
         mContext = this
         init()
         initView()

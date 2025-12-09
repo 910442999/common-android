@@ -53,6 +53,21 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_path" />
         </provider>
+        <activity
+            android:name=".ui.TestLogActivity"
+            android:exported="false"
+            android:screenOrientation="sensor"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ui.TestLogDetailActivity"
+            android:exported="false"
+            android:screenOrientation="sensor"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ui.TestLogListActivity"
+            android:exported="false"
+            android:screenOrientation="sensor"
+            android:windowSoftInputMode="adjustPan" />
     </application>
 
 </manifest>

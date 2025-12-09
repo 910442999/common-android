@@ -50,11 +50,10 @@ open class RetryInterceptor(
         val logBuilder = StringBuilder()
         if (logEnabled) {
             logBuilder.apply {
-                append("\n")
-                append("请求Headers>>> ${request.headers}\n")
-                append("请求URL>>> $httpUrl\n")
-                append("API>>> $path\n")
-                append("请求方法>>> ${request.method}\n")
+//                append("\n")
+//                append("请求Headers>>> ${request.headers}\n")
+                append("${request.method}请求URL>>> $httpUrl\n")
+//                append("API>>> $path\n")
                 if (totalRetryAttempts != 0) {
                     append("最大重试次数>>> $maxRetries\n")
                     append("基础重试延迟>>> ${retryDelay}ms\n")
@@ -62,8 +61,7 @@ open class RetryInterceptor(
                 if (request.method == "POST" || request.method == "PUT") {
                     append("请求参数>>> ${bodyToString(request.body)}\n")
                 }
-
-                append("初始请求时间>>> ${System.currentTimeMillis()}")
+//                append("初始请求时间>>> ${System.currentTimeMillis()}\n")
                 logRetryAttempt(0, "初始请求", logBuilder)
             }
         }
@@ -240,7 +238,7 @@ open class RetryInterceptor(
     ) {
         if (attempt != 0) {
             builder.apply {
-                append("\n")
+//                append("\n")
                 append("重试尝试 #$attempt\n")
                 append("重试原因>>> $reason\n")
                 if (delay != null) {
@@ -271,7 +269,7 @@ open class RetryInterceptor(
             val millis = duration % 1000
 
             builder.apply {
-                append("\n")
+//                append("\n")
                 append("最终响应状态码>>> ${it.code}\n")
                 append("总请求耗时>>> ${seconds}秒${millis}毫秒\n")
                 if (totalRetryAttempts != 0) append("总重试次数>>> $totalRetryAttempts\n")
@@ -298,7 +296,7 @@ open class RetryInterceptor(
         val millis = duration % 1000
 
         builder.apply {
-            append("\n")
+//            append("\n")
             append("最终错误>>> ${e.javaClass.simpleName}\n")
             append("错误信息>>> ${e.message}\n")
             append("总请求耗时>>> ${seconds}秒${millis}毫秒\n")

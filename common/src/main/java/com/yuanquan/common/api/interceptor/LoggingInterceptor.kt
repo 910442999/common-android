@@ -10,13 +10,13 @@ import okio.Buffer
 import java.io.IOException
 
 /**
-* 日志拦截器（支持自定义日志输出）
-*
-* 使用说明：
-* 1. 创建子类继承 LoggingInterceptor
-* 2. 重写 logFinal 方法实现自定义日志输出
-* 3. 在拦截器链中使用自定义子类
-*/
+ * 日志拦截器（支持自定义日志输出）
+ *
+ * 使用说明：
+ * 1. 创建子类继承 LoggingInterceptor
+ * 2. 重写 logFinal 方法实现自定义日志输出
+ * 3. 在拦截器链中使用自定义子类
+ */
 open class LoggingInterceptor : Interceptor {
 
     @Throws(IOException::class)
@@ -28,12 +28,10 @@ open class LoggingInterceptor : Interceptor {
 
         // 创建日志构建器
         val builder = StringBuilder().apply {
-            append("\n")
-            append("请求Headers>>> ${request.headers}\n")
-            append("请求URL>>> $httpUrl\n")
-            append("API>>> $path\n")
-            append("请求方法>>> ${request.method}\n")
-
+//            append("\n")
+//            append("请求Headers>>> ${request.headers}\n")
+            append("${request.method}请求URL>>> $httpUrl\n")
+//            append("API>>> $path\n")
             if (request.method == "POST" || request.method == "PUT") {
                 append("请求参数>>> ${bodyToString(request.body)}\n")
             }
@@ -53,8 +51,8 @@ open class LoggingInterceptor : Interceptor {
     }
 
     /**
-    * 记录响应日志
-    */
+     * 记录响应日志
+     */
     protected open fun logResponse(
         response: Response,
         builder: StringBuilder,
@@ -79,8 +77,8 @@ open class LoggingInterceptor : Interceptor {
     }
 
     /**
-    * 记录错误日志
-    */
+     * 记录错误日志
+     */
     protected open fun logError(
         e: Exception,
         builder: StringBuilder,
@@ -101,10 +99,10 @@ open class LoggingInterceptor : Interceptor {
     }
 
     /**
-    * 最终日志输出 - 子类可重写此方法实现自定义日志输出
-    * @param builder 日志内容构建器
-    * @param path 请求路径
-    */
+     * 最终日志输出 - 子类可重写此方法实现自定义日志输出
+     * @param builder 日志内容构建器
+     * @param path 请求路径
+     */
     protected open fun logFinal(builder: StringBuilder, path: String) {
         // 默认实现：根据路径过滤规则输出日志
         if (URLConstant.logNetFilter.contains(path)) {
@@ -115,8 +113,8 @@ open class LoggingInterceptor : Interceptor {
     }
 
     /**
-    * 请求体转字符串
-    */
+     * 请求体转字符串
+     */
     protected open fun bodyToString(request: RequestBody?): String? {
         return try {
             val buffer = Buffer()
