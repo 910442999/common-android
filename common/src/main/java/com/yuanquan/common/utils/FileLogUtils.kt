@@ -68,8 +68,8 @@ object FileLogUtils {
     }
 
     fun init(context: Context, tag: String) {
-        this.init(context)
         this.setTagName(tag)
+        this.init(context)
     }
 
     fun setTagName(tag: String) {
