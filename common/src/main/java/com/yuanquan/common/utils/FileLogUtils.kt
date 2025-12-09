@@ -72,6 +72,9 @@ object FileLogUtils {
         this.init(context)
     }
 
+    /**
+     * 需要放在初始化之前
+     */
     fun setTagName(tag: String) {
         TAG = tag
     }
