@@ -67,6 +67,11 @@ object FileLogUtils {
         }
     }
 
+    fun init(context: Context, tag: String) {
+        this.init(context)
+        this.setTagName(tag)
+    }
+
     fun setTagName(tag: String) {
         TAG = tag
     }
