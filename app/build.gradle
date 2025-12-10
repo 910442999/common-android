@@ -30,6 +30,10 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
 }
 
 dependencies {
@@ -52,5 +56,6 @@ dependencies {
     // 富文本 https://github.com/zzhoujay/RichText
     implementation 'com.zzhoujay.richtext:richtext:3.0.8'
     implementation 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
 }

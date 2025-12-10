@@ -1,66 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/tv_text1"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="Hello World!" />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_text2"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="TextView编辑器" />
 
-    <TextView
-        android:id="@+id/tv_text3"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="TextView编辑器111" />
+        <TextView
+            android:id="@+id/tv_text1"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="Hello World!" />
 
-    <TextView
-        android:id="@+id/tv_text4"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="TextView编辑器111" />
+        <TextView
+            android:id="@+id/tv_text2"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="TextView编辑器" />
 
-    <TextView
-        android:id="@+id/tv_text5"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="TextView编辑器111" />
+        <TextView
+            android:id="@+id/tv_text3"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="TextView编辑器111" />
 
-    <TextView
-        android:id="@+id/tv_text6"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="ColorPicker2Activity" />
+        <TextView
+            android:id="@+id/tv_text4"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="TextView编辑器111" />
 
-    <TextView
-        android:id="@+id/tv_text7"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="ColorPickerActivity" />
+        <TextView
+            android:id="@+id/tv_text5"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="TextView编辑器111" />
 
-    <TextView
-        android:id="@+id/tv_text8"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:text="拖拽滑动列表" />
+        <TextView
+            android:id="@+id/tv_text6"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="ColorPicker2Activity" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/tv_text7"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="ColorPickerActivity" />
+
+        <TextView
+            android:id="@+id/tv_text8"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="拖拽滑动列表" />
+
+        <TextView
+            android:id="@+id/tv_text9"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="图表" />
+    </LinearLayout>
+</ScrollView>

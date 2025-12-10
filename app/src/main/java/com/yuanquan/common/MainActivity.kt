@@ -51,5 +51,9 @@ class MainActivity : Activity() {
             var intent: Intent = Intent(this, DefaultDragAndSwipeActivity::class.java)
             startActivity(intent)
         }
+        findViewById<TextView>(R.id.tv_text9).setOnClickListener {
+            var intent: Intent = Intent(this, LineChartActivity::class.java)
+            startActivity(intent)
+        }
     }
 }
