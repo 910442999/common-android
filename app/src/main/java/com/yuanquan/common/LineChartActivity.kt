@@ -2,6 +2,7 @@ package com.yuanquan.common
 
 import android.os.Handler
 import android.os.Looper
+import androidx.core.content.ContentProviderCompat.requireContext
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -13,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.random.Random
 import com.yuanquan.common.databinding.ActivityLineChartBinding
+import com.yuanquan.common.widget.CustomMarkerView
 
 class LineChartActivity :
     BaseActivity<BaseViewModel<ActivityLineChartBinding>, ActivityLineChartBinding>() {
@@ -66,7 +68,12 @@ class LineChartActivity :
         vb.lineChart.setTouchEnabled(true)
         vb.lineChart.setPinchZoom(true)
         vb.lineChart.description.isEnabled = false
+        vb.lineChart.setHighlightPerTapEnabled(true)
 
+        // 创建并设置MarkerView
+        val markerView = CustomMarkerView(this, R.layout.custom_marker)
+        markerView.chartView = vb.lineChart // 这步很重要！
+        vb.lineChart.marker = markerView
         // 2. 配置X轴
         val xAxis = vb.lineChart.xAxis
         xAxis.position = XAxis.XAxisPosition.BOTTOM
