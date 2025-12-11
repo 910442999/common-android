@@ -15,7 +15,7 @@ class CustomMarkerView(context: Context, layoutResource: Int) : MarkerView(conte
 
     override fun refreshContent(e: Entry, highlight: Highlight) {
         // 设置显示的内容，例如Y值
-        tvContent.text = "Value: ${e.y}"
+        tvContent.text = "数值: ${e.y}\n时间: ${formatTime(e.x)}"
         // 如果需要，可以根据数据集索引设置不同的颜色或标签
         when (highlight.dataSetIndex) {
             0 -> tvContent.setTextColor(Color.parseColor("#4CAF50")) // 绿色数据集
@@ -27,5 +27,12 @@ class CustomMarkerView(context: Context, layoutResource: Int) : MarkerView(conte
     override fun getOffset(): MPPointF {
         // 此方法用于调整MarkerView的显示位置，使其居中于点击点上方
         return MPPointF((-width / 2).toFloat(), (-height).toFloat())
+    }
+
+    private fun formatTime(seconds: Float): String {
+        val totalSeconds = seconds.toInt()
+        val minutes = totalSeconds / 60
+        val remainingSeconds = totalSeconds % 60
+        return String.format("%02d:%02d", minutes, remainingSeconds)
     }
 }
