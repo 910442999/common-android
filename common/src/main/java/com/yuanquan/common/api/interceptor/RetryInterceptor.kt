@@ -1,5 +1,6 @@
 package com.yuanquan.common.api.interceptor
 
+import com.yuanquan.common.BuildConfig
 import com.yuanquan.common.api.URLConstant
 import com.yuanquan.common.utils.LogUtil
 import okhttp3.Interceptor
@@ -51,7 +52,7 @@ open class RetryInterceptor(
         if (logEnabled) {
             logBuilder.apply {
 //                append("\n")
-//                append("请求Headers>>> ${request.headers}\n")
+                if (BuildConfig.DEBUG) append("请求Headers>>> ${request.headers}\n")
                 append("请求URL ${request.method} >>> $httpUrl\n")
 //                append("API>>> $path\n")
                 if (totalRetryAttempts != 0) {

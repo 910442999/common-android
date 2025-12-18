@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.yuanquan.common"
-        minSdk 24
+        minSdk 21
         targetSdk 34
         versionCode 125
         versionName "1.2.5"
