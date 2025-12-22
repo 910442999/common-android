@@ -47,7 +47,6 @@ class SSEManager private constructor() {
         readTimeout(readTimeout, TimeUnit.SECONDS)// 读取时间：0s超时
         writeTimeout(writeTimeout, TimeUnit.SECONDS)// 写入时间：60s超时
         retryOnConnectionFailure(true) // 允许连接失败时重试
-        addInterceptor(LoggingInterceptor()) // 添加修正拦截器
     }
 
     /**
