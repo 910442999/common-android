@@ -32,7 +32,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * https://github.com/shenbengit/PagerGridLayoutManager
  * 'com.github.shenbengit:PagerGridLayoutManager:1.1.8'
- *
+ * <p>
  * 分页滑动网格布局LayoutManager
  *
  * @author ShenBen
@@ -1013,6 +1013,21 @@ public class PagerGridLayoutManager extends RecyclerView.LayoutManager implement
     @IntRange(from = 0)
     public final int getPagerCount() {
         return Math.max(mPagerCount, 0);
+    }
+
+    /**
+     * 返回总页数
+     *
+     * @return 0：{@link #getItemCount()} is 0
+     */
+    @IntRange(from = 0)
+    public final int getPagerCount(int itemCount) {
+        //计算总页数
+        int pagerCount = itemCount / mOnePageSize;
+        if (itemCount % mOnePageSize != 0) {
+            ++pagerCount;
+        }
+        return Math.max(pagerCount, 0);
     }
 
     /**
