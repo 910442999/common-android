@@ -100,6 +100,20 @@ object LanguageManager {
         return this.getSystemLanguage(context)
     }
 
+    /**
+     * 获取当前保存的应用语言
+     */
+    @JvmStatic
+    fun getCurrentLanguage(context: Context): Locale? {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val language: String = prefs.getString(KEY_LANGUAGE, "") ?: ""
+        val country: String = prefs.getString(KEY_COUNTRY, "") ?: ""
+        if (!TextUtils.isEmpty(language)) {
+            return Locale(language, country)
+        }
+        return null
+    }
+
     @JvmStatic
     fun saveAppLanguage(context: Context, locale: Locale) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
