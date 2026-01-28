@@ -49,6 +49,14 @@ class ConstraintUtil(private val constraintLayout: ConstraintLayout) {
         resetConstraintSet.applyTo(constraintLayout)
     }
 
+    /**
+     * 提交应用生效
+     */
+    fun commit() {
+        begin?.commit()
+    }
+
+
     inner class ConstraintBegin {
 
         /**
