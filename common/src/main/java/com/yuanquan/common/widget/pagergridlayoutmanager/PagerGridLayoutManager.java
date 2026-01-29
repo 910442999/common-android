@@ -295,8 +295,11 @@ public class PagerGridLayoutManager extends RecyclerView.LayoutManager implement
             mItemWidthUsed = realWidth - diffWidth - mItemWidth;
             mItemHeightUsed = realHeight - diffHeight - mItemHeight;
         } else {
-            mItemWidth = UN_SET;
-            mItemHeight = UN_SET;
+            // 新增：处理非精确模式，使用尺寸值作为回退
+            int realWidth = widthSize - getPaddingStart() - getPaddingEnd();
+            int realHeight = heightSize - getPaddingTop() - getPaddingBottom();
+            mItemWidth = mColumns > 0 ? Math.max(realWidth / mColumns, 0) : 0;
+            mItemHeight = mRows > 0 ? Math.max(realHeight / mRows, 0) : 0;
             diffWidth = 0;
             diffHeight = 0;
             mItemWidthUsed = 0;
@@ -319,7 +322,10 @@ public class PagerGridLayoutManager extends RecyclerView.LayoutManager implement
         }
 
         if (mItemWidth == UN_SET || mItemHeight == UN_SET) {
-            throw new IllegalStateException("RecyclerView's width and height must be exactly.");
+//            throw new IllegalStateException("RecyclerView's width and height must be exactly.");
+            if (DEBUG) {
+                Log.e(TAG, "RecyclerView 的尺寸 " + mItemWidth + "*" + mItemHeight + " 非精确，布局可能不正确。请确保宽度和高度为 match_parent 或固定值。");
+            }
         }
 
         int itemCount = getItemCount();
