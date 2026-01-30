@@ -8,6 +8,8 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Process
 import android.os.SystemClock
+import android.text.SpannableStringBuilder
+import android.util.Log
 import android.view.View
 import java.util.regex.Pattern
 
@@ -144,5 +146,25 @@ object CommonUtils {
     fun validateEmail(email: String): Boolean {
         val matcherObj = Pattern.compile(regEx).matcher(email)
         return matcherObj.matches()
+    }
+
+    //替换html中的图片为文本
+    @JvmStatic
+    fun safeReplaceHtmlImg(html: String, replacement: String): String {
+        try {
+            return html.replace("<img[^>]*>".toRegex(), replacement)
+        } catch (e: Exception) {
+            Log.e("safeReplaceHtmlImg", "替换图片标签失败", e)
+            return html // 返回原始文本
+        }
+    }
+
+    // 使用正则表达式找到尾部的换行符并移除它们
+    @JvmStatic
+    fun deleteEndLineBreak(builder: SpannableStringBuilder) {
+        val matcher = Pattern.compile("\\n+$").matcher(builder)
+        while (matcher.find()) {
+            builder.delete(matcher.start(), matcher.end())
+        }
     }
 }
