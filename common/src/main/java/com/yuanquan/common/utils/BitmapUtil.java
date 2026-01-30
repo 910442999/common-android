@@ -1,5 +1,6 @@
 package com.yuanquan.common.utils;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -12,6 +13,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextPaint;
@@ -67,33 +69,44 @@ public class BitmapUtil {
      */
     public static Boolean saveBitmapToGallery(Context context, Bitmap bitmap) {
         try {
-            //获取要保存的图片的位图
-            //创建一个保存的Uri
-            ContentValues values = new ContentValues();
-            //设置图片名称
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, System.currentTimeMillis() + ".png");
-            //设置图片格式
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
-            //设置图片路径
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
-            Uri saveUri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            if (TextUtils.isEmpty(saveUri.toString())) {
+            Uri uri = saveBitmapWithMediaStore(context, bitmap, System.currentTimeMillis() + ".png", "image/png");
+            if (uri == null) {
                 return false;
             }
-            OutputStream outputStream = context.getContentResolver().openOutputStream(saveUri);
-            //将位图写出到指定的位置
-            //第一个参数：格式JPEG 是可以压缩的一个格式 PNG 是一个无损的格式
-            //第二个参数：保留原图像90%的品质，压缩10% 这里压缩的是存储大小
-            //第三个参数：具体的输出流
-            if (bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)) {
-                return true;
-            } else {
-                return false;
-            }
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static Uri saveBitmapWithMediaStore(Context context, Bitmap bitmap, String displayName, String mimeType) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, displayName);
+        contentValues.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
+
+        // 指定保存到 Pictures 目录
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+        }
+
+        ContentResolver resolver = context.getContentResolver();
+        Uri collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        Uri imageUri = resolver.insert(collection, contentValues);
+
+        if (imageUri != null) {
+            try (OutputStream outputStream = resolver.openOutputStream(imageUri)) {
+                Bitmap.CompressFormat format = mimeType.equals("image/png") ?
+                        Bitmap.CompressFormat.PNG : Bitmap.CompressFormat.JPEG;
+                bitmap.compress(format, 100, outputStream);
+                return imageUri;
+            } catch (IOException e) {
+                e.printStackTrace();
+                // 如果失败，删除已创建的条目
+                resolver.delete(imageUri, null, null);
+            }
+        }
+        return null;
     }
 
     public static Bitmap getBitmapForUri(Context context, Uri uri) throws IOException {
