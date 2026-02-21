@@ -18,6 +18,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <FrameLayout
+            android:id="@+id/fullscreen_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
         <ImageView
             android:id="@+id/iv_web_loading"
             android:layout_width="100dp"

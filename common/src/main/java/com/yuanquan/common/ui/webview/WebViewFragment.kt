@@ -1,21 +1,30 @@
 package com.yuanquan.common.ui.webview
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.webkit.DownloadListener
 import android.webkit.JavascriptInterface
+import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.yuanquan.common.databinding.FragmentWebViewBinding
+import com.yuanquan.common.event.EventCode
+import com.yuanquan.common.event.EventMessage
 import com.yuanquan.common.ui.base.BaseFragment
 import com.yuanquan.common.ui.base.BaseViewModel
-import com.yuanquan.common.utils.SysUtils
+import com.yuanquan.common.utils.LogUtil
+import org.greenrobot.eventbus.EventBus
 
 
 class WebViewFragment :
@@ -32,10 +41,14 @@ class WebViewFragment :
     private var mWebView: WebView? = null
 
     private val FILE_PICKER_REQUEST_CODE = 10000
+    public var fullscreenView: View? = null
+    private var customViewCallback: WebChromeClient.CustomViewCallback? = null
+    var orientation: Int = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
     override fun initData() {
         if (arguments != null) {
             statusBarHeight = arguments?.getInt("statusBarHeight") ?: 0
+            orientation = arguments?.getInt("orientation") ?: 0
             var cookies = arguments?.getStringArrayList("cookies")
             url = arguments?.getString("url") ?: ""
             WebViewUtils.syncCookie(mContext, url, cookies)
@@ -71,6 +84,14 @@ class WebViewFragment :
             )
         )
         mWebView?.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): WebResourceResponse? {
+//                LogUtil.e("WebResourceRequest：" + request?.url)
+                return super.shouldInterceptRequest(view, request)
+            }
+
             override fun shouldOverrideUrlLoading(view: WebView, overrideUrl: String): Boolean {
                 try {
                     if (overrideUrl.contains("tel://") || overrideUrl.contains("tel:")) {
@@ -109,32 +130,54 @@ class WebViewFragment :
                 }
             }
 
-            override fun onHideCustomView() {
-                super.onHideCustomView()
-                //                if (callback != null) {
-                //                    callback.onCustomViewHidden()
-                //                    callback = null
-                //                }
-                //                if (myVideoView != null) {
-                //                    val viewGroup = myVideoView.getParent()
-                //                    viewGroup.removeView(myVideoView)
-                //                    viewGroup.addView(myNormalView)
-                //                }
+            // 全屏相关回调
+            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                super.onShowCustomView(view, callback)
+
+                if (fullscreenView != null) {
+                    callback?.onCustomViewHidden()
+                    return
+                }
+                // 保存回调
+                customViewCallback = callback
+
+                // 保存全屏视图
+                fullscreenView = view
+
+                // 设置全屏视图
+                if (view != null) {
+                    // 隐藏 WebView
+                    mWebView?.visibility = View.GONE
+
+                    // 添加全屏视图到容器
+                    vb.fullscreenContainer.addView(view)
+                    vb.fullscreenContainer.visibility = View.VISIBLE
+
+                    // 设置为横屏
+                    if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                        EventBus.getDefault()
+                            .post(
+                                EventMessage(
+                                    code = EventCode.REQUESTED_ORIENTATION,
+                                    obj = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                                )
+                            )
+                    }
+                    // 隐藏系统UI
+//                    hideSystemUI()
+                }
             }
 
-            /**
-             * 全屏播放配置
-             */
-            //            override fun onShowCustomView(p0: View?, p1: IX5WebChromeClient.CustomViewCallback?) {
-            //                super.onShowCustomView(p0, p1)
-            //                View normalView = (View) findViewById(R.id.web_filechooser);
-            //                ViewGroup viewGroup = (ViewGroup) normalView.getParent();
-            //                viewGroup.removeView(normalView);
-            //                viewGroup.addView(view);
-            //                myVideoView = view;
-            //                myNormalView = normalView;
-            //                callback = customViewCallback;
-            //            }
+            override fun onHideCustomView() {
+                super.onHideCustomView()
+                onWebViewHideCustomView()
+
+            }
+
+            override fun onPermissionRequest(request: PermissionRequest) {
+//                super.onPermissionRequest(request)
+                request.grant(request.resources)
+            }
 
             //            override fun onJsAlert(
             //                p0: WebView?,
@@ -355,6 +398,39 @@ class WebViewFragment :
 
     fun goBack() {
         mWebView?.goBack()
+    }
+
+    fun onWebViewHideCustomView() {
+
+        if (fullscreenView == null) {
+            return
+        }
+        if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+            // 恢复竖屏
+            EventBus.getDefault()
+                .post(
+                    EventMessage(
+                        code = EventCode.REQUESTED_ORIENTATION,
+                        obj = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    )
+                )
+        }
+        // 显示系统UI
+//                showSystemUI()
+
+        // 从容器中移除全屏视图
+        vb.fullscreenContainer.removeView(fullscreenView)
+        vb.fullscreenContainer.visibility = View.GONE
+
+        // 显示 WebView
+        mWebView?.visibility = View.VISIBLE
+
+        // 调用回调
+        customViewCallback?.onCustomViewHidden()
+
+        // 清理
+        fullscreenView = null
+        customViewCallback = null
     }
 
     override fun initView() {

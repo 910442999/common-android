@@ -10,8 +10,11 @@ import android.view.Window
 import android.view.WindowManager
 import com.yuanquan.common.R
 import com.yuanquan.common.databinding.ActivityWebViewBinding
+import com.yuanquan.common.event.EventCode
+import com.yuanquan.common.event.EventMessage
 import com.yuanquan.common.ui.base.BaseActivity
 import com.yuanquan.common.ui.base.BaseViewModel
+import com.yuanquan.common.utils.ClickUtils.onClick
 
 class WebViewActivity :
     BaseActivity<BaseViewModel<ActivityWebViewBinding>, ActivityWebViewBinding>() {
@@ -21,7 +24,9 @@ class WebViewActivity :
 
     var title: String? = null
     var webViewFragment: WebViewFragment? = null
-    var orientation: Int? = null
+    var orientation: Int = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    var showTitle: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         var fullScreen = intent.getBooleanExtra("fullScreen", false)
         if (fullScreen) {
@@ -36,29 +41,43 @@ class WebViewActivity :
         super.onCreate(savedInstanceState)
     }
 
+    override fun initView() {
+        vb.rlBack.onClick {
+            if (webViewFragment?.fullscreenView != null) {
+                // 退出全屏
+                webViewFragment?.onWebViewHideCustomView()
+                return@onClick
+            } else if (webViewFragment != null && webViewFragment?.canGoBack()!!) {
+                webViewFragment?.goBack()
+                return@onClick
+            }
+            finish()
+        }
+    }
+
     override fun initData() {
         var pageName = intent.getStringExtra("pageName")
         title = intent.getStringExtra("title") ?: ""
         var url = intent.getStringExtra("url") ?: ""
-        var showTitle = intent.getBooleanExtra("showTitle", true)
+        showTitle = intent.getBooleanExtra("showTitle", true)
         var shareImage = intent.getStringExtra("shareImage") ?: ""
         var shareContent = intent.getStringExtra("shareContent") ?: ""
         var cookies = intent.getStringArrayListExtra("cookies")
-        var orientation =
+        orientation =
             intent.getIntExtra("orientation", ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
         if (orientation != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
             requestedOrientation = orientation
         }
 
         if (showTitle) {
-            vb.layoutToolbar.llTitleToolbar.visibility = View.VISIBLE
+            vb.llTitleToolbar.visibility = View.VISIBLE
             if (!title.isNullOrBlank()) {
-                vb.layoutToolbar.titleToolbar.text = title
+                vb.titleToolbar.text = title
             }
-            if (!shareImage.isNullOrBlank() || !shareContent.isNullOrBlank()) vb.layoutToolbar.ivTitleRight.visibility =
+            if (!shareImage.isNullOrBlank() || !shareContent.isNullOrBlank()) vb.ivTitleRight.visibility =
                 View.VISIBLE
         } else {
-            vb.layoutToolbar.llTitleToolbar.visibility = View.GONE
+            vb.llTitleToolbar.visibility = View.GONE
         }
         var bundle = Bundle()
         bundle.putString("type", intent.getStringExtra("type"))
@@ -115,13 +134,38 @@ class WebViewActivity :
         return super.onKeyDown(keyCode, event)
     }
 
+    override fun onBackPressed() {
+        if (webViewFragment?.fullscreenView != null) {
+            // 退出全屏
+            webViewFragment?.onWebViewHideCustomView()
+            return
+        } else if (webViewFragment != null && webViewFragment?.canGoBack()!!) {
+            webViewFragment?.goBack()
+            return
+        }
+        super.onBackPressed()
+    }
+
     override fun onDestroy() {
         webViewFragment?.onClearDestroy()
         webViewFragment = null
         super.onDestroy()
     }
 
-    override fun initView() {
-
+    override fun handleEvent(event: EventMessage) {
+        super.handleEvent(event)
+        if (event.code == EventCode.REQUESTED_ORIENTATION) {
+            var orientation = event.obj as Int
+            requestedOrientation = orientation
+            if (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                vb.llTitleToolbar.visibility = View.GONE
+            } else {
+                if (showTitle) {
+                    vb.llTitleToolbar.visibility = View.VISIBLE
+                } else {
+                    vb.llTitleToolbar.visibility = View.GONE
+                }
+            }
+        }
     }
 }

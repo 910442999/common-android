@@ -37,6 +37,7 @@
             android:exported="false" />
         <activity
             android:name=".ui.webview.WebViewActivity"
+            android:configChanges="locale|keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:screenOrientation="behind" />
 
         <activity
