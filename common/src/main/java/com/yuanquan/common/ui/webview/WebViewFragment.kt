@@ -439,11 +439,16 @@ class WebViewFragment :
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == FILE_PICKER_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
-            val tempUri = data!!.data
-            uploadMessageAboveL?.onReceiveValue(arrayOf(tempUri!!))
+        if (requestCode == FILE_PICKER_REQUEST_CODE) {
+            if (resultCode == AppCompatActivity.RESULT_OK) {
+                val tempUri = data!!.data
+                uploadMessageAboveL?.onReceiveValue(arrayOf(tempUri!!))
+                uploadMessage?.onReceiveValue(tempUri!!)
+            } else {
+                uploadMessageAboveL?.onReceiveValue(null)
+                uploadMessage?.onReceiveValue(null)
+            }
             uploadMessageAboveL = null
-            uploadMessage?.onReceiveValue(tempUri!!)
             uploadMessage = null
         }
     }
