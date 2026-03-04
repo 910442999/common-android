@@ -27,7 +27,6 @@ object UserAgentHelper {
             null
         }
 
-        val appName = getApplicationName(context)
         val packageName = context.packageName
         val versionName = packageInfo?.versionName ?: "Unknown"
         val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -46,19 +45,6 @@ object UserAgentHelper {
         val model = Build.MODEL
         var httpVersion = "OkHttp/${OkHttp.VERSION}"
         // 构建User-Agent字符串
-        return "$appName/$versionName ($packageName; build:$versionCode; $androidVersion SDK $sdkVersion; $manufacturer $model) $httpVersion"
-    }
-
-    /**
-     * 获取应用名称
-     */
-    private fun getApplicationName(context: Context): String {
-        val applicationInfo = context.applicationInfo
-        val stringId = applicationInfo.labelRes
-        return if (stringId == 0) {
-            applicationInfo.nonLocalizedLabel?.toString() ?: "Unknown"
-        } else {
-            context.getString(stringId)
-        }
+        return "$$versionName ($packageName; build:$versionCode; $androidVersion SDK $sdkVersion; $manufacturer $model) $httpVersion"
     }
 }
