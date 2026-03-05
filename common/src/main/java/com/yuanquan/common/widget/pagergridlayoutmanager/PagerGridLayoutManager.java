@@ -25,6 +25,7 @@ import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuanquan.common.BuildConfig;
+import com.yuanquan.common.utils.LogUtil;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -173,9 +174,18 @@ public class PagerGridLayoutManager extends RecyclerView.LayoutManager implement
         public void onChildViewAttachedToWindow(@NonNull View view) {
             LayoutParams layoutParams = (LayoutParams) view.getLayoutParams();
             //判断ItemLayout的宽高是否是match_parent
-            if (layoutParams.width != ViewGroup.LayoutParams.MATCH_PARENT
-                    || layoutParams.height != ViewGroup.LayoutParams.MATCH_PARENT) {
-                throw new IllegalStateException("Item layout  must fill the whole PagerGridLayoutManager (use match_parent)");
+            if (layoutParams.width != ViewGroup.LayoutParams.MATCH_PARENT ||
+                    layoutParams.height != ViewGroup.LayoutParams.MATCH_PARENT) {
+                if (layoutParams.width != ViewGroup.LayoutParams.MATCH_PARENT && layoutParams.height != ViewGroup.LayoutParams.MATCH_PARENT) {
+                    LogUtil.e("当前布局宽高必须填满整个 PagerGridLayoutManager（使用 match_parent）因此强制更改布局宽高为MATCH_PARENT");
+                } else if (layoutParams.width != ViewGroup.LayoutParams.MATCH_PARENT) {
+                    LogUtil.e("当前布局宽必须填满整个 PagerGridLayoutManager（使用 match_parent）因此强制更改布局宽高为MATCH_PARENT");
+                } else {
+                    LogUtil.e("当前布局高必须填满整个 PagerGridLayoutManager（使用 match_parent）因此强制更改布局宽高为MATCH_PARENT");
+                }
+                layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                view.setLayoutParams(layoutParams); // 触发重新布局
             }
         }
 
