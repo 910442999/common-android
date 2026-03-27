@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.MotionEvent;
 
 import androidx.appcompat.widget.AppCompatEditText;
@@ -48,6 +49,20 @@ public class EditText_Clear extends AppCompatEditText {
     private void init() {
         clearDrawable = getResources().getDrawable(R.mipmap.icon_close);
         clearDrawable.setBounds(0, 0, 40, 40);
+        fixTextVerticalAlignment();
+    }
+
+    private void fixTextVerticalAlignment() {
+        // Some OEM devices add extra font padding or lose vertical gravity,
+        // which makes text/hint look slightly off-center inside a fixed-height EditText.
+        setIncludeFontPadding(false);
+        int gravity = getGravity();
+        if ((gravity & Gravity.VERTICAL_GRAVITY_MASK) == 0) {
+            gravity |= Gravity.CENTER_VERTICAL;
+        } else {
+            gravity = (gravity & ~Gravity.VERTICAL_GRAVITY_MASK) | Gravity.CENTER_VERTICAL;
+        }
+        setGravity(gravity);
     }
 
 
@@ -128,4 +143,3 @@ public class EditText_Clear extends AppCompatEditText {
         this.onCleanClickListener = listener;
     }
 }
-
