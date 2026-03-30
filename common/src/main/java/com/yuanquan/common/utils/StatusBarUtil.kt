@@ -8,8 +8,8 @@ import android.graphics.Color
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsetsController
 import android.view.WindowManager
+import androidx.core.view.WindowInsetsControllerCompat
 
 /**
  * Date 2019/5/30 7:32 PM
@@ -43,17 +43,46 @@ object StatusBarUtil {
     @TargetApi(19)
     @JvmStatic
     fun setTranslucentStatus(activity: Activity) {
+        setTranslucentStatus(activity, false, false, Color.TRANSPARENT, null)
+    }
+
+    @TargetApi(19)
+    @JvmStatic
+    fun setTranslucentStatus(
+        activity: Activity,
+        darkStatusBarText: Boolean,
+        darkNavigationIcons: Boolean
+    ) {
+        setTranslucentStatus(
+            activity,
+            darkStatusBarText,
+            darkNavigationIcons,
+            Color.TRANSPARENT,
+            null
+        )
+    }
+
+    @TargetApi(19)
+    @JvmStatic
+    fun setTranslucentStatus(
+        activity: Activity,
+        darkStatusBarText: Boolean,
+        darkNavigationIcons: Boolean,
+        statusBarColor: Int,
+        navigationBarColor: Int?
+    ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             //5.x开始需要把颜色设置透明，否则导航栏会呈现系统默认的浅灰色
             val window = activity.window
             val decorView = window.decorView
             //两个 flag 要结合使用，表示让应用的主体内容占用系统状态栏的空间
             val option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            decorView.systemUiVisibility = option
+            decorView.systemUiVisibility = decorView.systemUiVisibility or option
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            window.statusBarColor = Color.TRANSPARENT
-            //导航栏颜色也可以正常设置
-            //window.setNavigationBarColor(Color.TRANSPARENT);
+            window.statusBarColor = statusBarColor
+            if (navigationBarColor != null) {
+                window.navigationBarColor = navigationBarColor
+            }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             val window = activity.window
             val attributes = window.attributes
@@ -62,6 +91,23 @@ object StatusBarUtil {
             //int flagTranslucentNavigation = WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
             //attributes.flags |= flagTranslucentNavigation;
             window.attributes = attributes
+        }
+        setSystemBarIconTheme(activity, darkStatusBarText, darkNavigationIcons)
+    }
+
+    @JvmStatic
+    fun clearTranslucentStatus(activity: Activity) {
+        val window = activity.window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val decorView = window.decorView
+            var flags = decorView.systemUiVisibility
+            flags = flags and View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN.inv()
+            decorView.systemUiVisibility = flags
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = Color.WHITE
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
         }
     }
 
@@ -76,10 +122,8 @@ object StatusBarUtil {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             val winContent = activity.findViewById<View>(android.R.id.content) as ViewGroup
             if (winContent.childCount > 0) {
-                val rootView = winContent.getChildAt(0) as ViewGroup
-                if (rootView != null) {
-                    rootView.fitsSystemWindows = fitSystemWindows
-                }
+                val rootView = winContent.getChildAt(0)
+                rootView.fitsSystemWindows = fitSystemWindows
             }
         }
     }
@@ -102,62 +146,37 @@ object StatusBarUtil {
      */
     @JvmStatic
     fun setStatusBarDarkTheme(activity: Activity, isDarkText: Boolean) {
+        setSystemBarIconTheme(activity, isDarkText, isDarkText)
+    }
+
+    @JvmStatic
+    fun setSystemBarIconTheme(
+        activity: Activity,
+        darkStatusBarText: Boolean,
+        darkNavigationIcons: Boolean
+    ) {
         val window = activity.window
         val decorView = window.decorView
-
-        // 状态栏处理（原有逻辑）
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                window.insetsController?.apply {
-                    val statusBarAppearance = if (isDarkText) {
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                    } else {
-                        0
-                    }
-                    setSystemBarsAppearance(
-                        statusBarAppearance,
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                    )
-                }
+        val controller = WindowInsetsControllerCompat(window, decorView)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            controller.isAppearanceLightStatusBars = darkStatusBarText
+            var flags = decorView.systemUiVisibility
+            flags = if (darkStatusBarText) {
+                flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            } else {
+                flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
             }
-
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                var flags = decorView.systemUiVisibility
-                flags = if (isDarkText) {
-                    flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                } else {
-                    flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
-                }
-                decorView.systemUiVisibility = flags
-            }
+            decorView.systemUiVisibility = flags
         }
-
-        // 新增导航栏处理逻辑
-        when {
-            // Android 12L (API 32+) 新方式
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                window.insetsController?.apply {
-                    val navBarAppearance = if (isDarkText) {
-                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-                    } else {
-                        0
-                    }
-                    setSystemBarsAppearance(
-                        navBarAppearance,
-                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-                    )
-                }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            controller.isAppearanceLightNavigationBars = darkNavigationIcons
+            var flags = decorView.systemUiVisibility
+            flags = if (darkNavigationIcons) {
+                flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            } else {
+                flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
             }
-            // Android 8.0+ 传统方式（注意最低版本限制）
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
-                var flags = decorView.systemUiVisibility
-                flags = if (isDarkText) {
-                    flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-                } else {
-                    flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
-                }
-                decorView.systemUiVisibility = flags
-            }
+            decorView.systemUiVisibility = flags
         }
         //异形屏适配
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
