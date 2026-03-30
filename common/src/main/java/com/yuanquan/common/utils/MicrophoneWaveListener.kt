@@ -4,8 +4,10 @@ import android.Manifest
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Process
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -15,12 +17,11 @@ class MicrophoneWaveListener(
     private val audioFormat: Int = AudioFormat.ENCODING_PCM_16BIT
 ) {
     private var audioRecord: AudioRecord? = null
-    private var isListening = false
+    private val isListening = AtomicBoolean(false)
     private var listeningThread: Thread? = null
 
-    // 监听回调接口
     interface WaveDetectionListener {
-        fun onReadBuffer(buffer: ShortArray)
+        fun onReadBuffer(buffer: ShortArray, readSize: Int)
         fun onWaveDetected(amplitude: Double, isActive: Boolean)
         fun onError(message: String)
     }
@@ -31,124 +32,121 @@ class MicrophoneWaveListener(
         this.listener = listener
     }
 
-    /**
-     * 开始监听麦克风波动
-     */
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun startListening() {
-        if (isListening) return
+        if (!isListening.compareAndSet(false, true)) {
+            return
+        }
 
-        val minBufferSize = AudioRecord.getMinBufferSize(
-            sampleRate,
-            channelConfig,
-            audioFormat
-        )
-
-        if (minBufferSize == AudioRecord.ERROR_BAD_VALUE) {
-            listener?.onError("无效的缓冲区大小")
+        val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+        if (minBufferSize <= 0) {
+            isListening.set(false)
+            listener?.onError("无效的缓冲区大小: $minBufferSize")
             return
         }
 
         try {
-            audioRecord = AudioRecord(
+            val record = AudioRecord(
                 MediaRecorder.AudioSource.MIC,
                 sampleRate,
                 channelConfig,
                 audioFormat,
-                minBufferSize * 2
+                minBufferSize * AUDIO_RECORD_BUFFER_MULTIPLIER
             )
 
-            if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
+            if (record.state != AudioRecord.STATE_INITIALIZED) {
+                isListening.set(false)
+                record.release()
                 listener?.onError("无法初始化AudioRecord")
                 return
             }
 
-            audioRecord?.startRecording()
-            isListening = true
+            audioRecord = record
+            record.startRecording()
 
-            listeningThread = Thread {
-                listenForWaves(minBufferSize)
-            }.apply { start() }
-
+            listeningThread = Thread({
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
+                listenForWaves(record, minBufferSize)
+            }, "MicrophoneWaveListener").apply {
+                start()
+            }
         } catch (e: SecurityException) {
+            isListening.set(false)
             listener?.onError("缺少录音权限: ${e.message}")
         } catch (e: Exception) {
+            isListening.set(false)
             listener?.onError("启动监听失败: ${e.message}")
+            releaseAudioRecord()
         }
     }
 
-    /**
-     * 停止监听麦克风波动
-     */
     fun stopListening() {
-        if (!isListening) return
+        if (!isListening.compareAndSet(true, false)) {
+            return
+        }
 
-        isListening = false
         listeningThread?.interrupt()
         listeningThread = null
-
-        try {
-            audioRecord?.stop()
-            audioRecord?.release()
-        } catch (e: Exception) {
-            Log.e("MicrophoneListener", "停止监听失败", e)
-        } finally {
-            audioRecord = null
-        }
+        releaseAudioRecord()
     }
 
-    /**
-     * 监听波动核心逻辑
-     */
-    private fun listenForWaves(bufferSize: Int) {
+    private fun listenForWaves(record: AudioRecord, bufferSize: Int) {
         val buffer = ShortArray(bufferSize)
 
-        while (isListening && !Thread.currentThread().isInterrupted) {
-            try {
-                val read = audioRecord?.read(buffer, 0, bufferSize) ?: 0
-                listener?.onReadBuffer(buffer)
-                if (read > 0) {
-                    // 计算振幅
-                    val amplitude = calculateAmplitude(buffer, read)
-                    // 判断是否有波动
-                    val isActive = amplitude > AMPLITUDE_THRESHOLD
+        while (isListening.get() && !Thread.currentThread().isInterrupted) {
+            val read = try {
+                record.read(buffer, 0, buffer.size)
+            } catch (e: Exception) {
+                listener?.onError("读取麦克风数据失败: ${e.message}")
+                break
+            }
 
-                    // 回调结果
-                    listener?.onWaveDetected(amplitude, isActive)
+            when {
+                read > 0 -> {
+                    listener?.onReadBuffer(buffer, read)
+                    val amplitude = calculateAmplitude(buffer, read)
+                    listener?.onWaveDetected(amplitude, amplitude > AMPLITUDE_THRESHOLD)
                 }
 
-                // 短暂休眠以减少CPU使用
-                Thread.sleep(LISTENING_INTERVAL)
+                read == 0 -> {
+                    continue
+                }
 
-            } catch (e: Exception) {
-                listener?.onError("监听过程中出错: ${e.message}")
-                stopListening()
+                else -> {
+                    listener?.onError("读取麦克风数据异常: $read")
+                    break
+                }
             }
+        }
+
+        isListening.set(false)
+        releaseAudioRecord()
+    }
+
+    private fun releaseAudioRecord() {
+        val record = audioRecord ?: return
+        audioRecord = null
+        try {
+            if (record.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
+                record.stop()
+            }
+        } catch (_: Exception) {
+        } finally {
+            record.release()
         }
     }
 
-    /**
-     * 计算音频振幅（RMS）
-     */
     private fun calculateAmplitude(buffer: ShortArray, length: Int): Double {
         var sum = 0.0
-
         for (i in 0 until length) {
-            sum += buffer[i] * buffer[i]
+            val sample = buffer[i].toDouble()
+            sum += sample * sample
         }
-
-        return if (length > 0) {
-            sqrt(sum / length)
-        } else {
-            0.0
-        }
+        return if (length > 0) sqrt(sum / length) else 0.0
     }
 
     companion object {
-        // 振幅阈值（根据实际环境调整）
         private const val AMPLITUDE_THRESHOLD = 100.0
-
-        // 监听间隔（毫秒）
-        private const val LISTENING_INTERVAL = 100L
+        private const val AUDIO_RECORD_BUFFER_MULTIPLIER = 2
     }
 }
