@@ -30,7 +30,7 @@ class MicrophoneMonitor(context: Context) {
 
     fun startMonitoring() {
         try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 // API 23+ 使用 AudioDeviceCallback
                 registerDeviceCallback()
             } else {
@@ -44,7 +44,7 @@ class MicrophoneMonitor(context: Context) {
 
     fun stopMonitoring() {
         try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 unregisterDeviceCallback()
             } else {
                 unregisterLegacyReceiver()
@@ -56,6 +56,8 @@ class MicrophoneMonitor(context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.M)
     private fun registerDeviceCallback() {
+        if (deviceCallback != null) return
+
         deviceCallback = object : AudioDeviceCallback() {
             override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
                 for (device in addedDevices) {
@@ -78,7 +80,10 @@ class MicrophoneMonitor(context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.M)
     private fun unregisterDeviceCallback() {
-        if (deviceCallback != null) audioManager.unregisterAudioDeviceCallback(deviceCallback)
+        deviceCallback?.let {
+            audioManager.unregisterAudioDeviceCallback(it)
+            deviceCallback = null
+        }
     }
 
     /**
