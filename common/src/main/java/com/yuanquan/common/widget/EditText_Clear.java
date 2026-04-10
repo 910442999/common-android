@@ -53,9 +53,9 @@ public class EditText_Clear extends AppCompatEditText {
     }
 
     private void fixTextVerticalAlignment() {
-        // Some OEM devices add extra font padding or lose vertical gravity,
-        // which makes text/hint look slightly off-center inside a fixed-height EditText.
-        setIncludeFontPadding(false);
+        // Keep vertical gravity explicit, but do not strip the font padding.
+        // Some OEM fonts report different ascent/descent metrics; forcing
+        // includeFontPadding=false can make text appear higher than the cursor.
         int gravity = getGravity();
         if ((gravity & Gravity.VERTICAL_GRAVITY_MASK) == 0) {
             gravity |= Gravity.CENTER_VERTICAL;
