@@ -64,10 +64,63 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/white_fff4f5f7" />
+
+        <LinearLayout
+            android:id="@+id/ll_filter_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="15dp"
+            android:paddingTop="10dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="10dp">
+
+            <EditText
+                android:id="@+id/et_filter_keyword"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/shape_bg_gray_r25_line_ffdddddd"
+                android:gravity="start|center_vertical"
+                android:hint="筛选关键字"
+                android:imeOptions="actionSearch"
+                android:maxLines="1"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:singleLine="true"
+                android:textColor="@color/txt_33"
+                android:textColorHint="#A0A0A0"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_apply_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:text="筛选"
+                android:textColor="@color/txt_33"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_clear_keyword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:text="清空关键字"
+                android:textColor="@color/gray_666666"
+                android:textSize="14sp"
+                android:visibility="gone" />
+        </LinearLayout>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 </LinearLayout>
