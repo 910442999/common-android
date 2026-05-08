@@ -347,12 +347,13 @@ public class GlideImageGetter implements Html.ImageGetter {
     }
 
     public void preloadImage(String imageUrl) {
+        boolean isGif = isGifSource(imageUrl);
         RequestBuilder<Drawable> requestBuilder = Glide.with(this.mContext)
                 .asDrawable()
                 .load(imageUrl)
                 .override(MAX_IMAGE_SIZE_PX, MAX_IMAGE_SIZE_PX)
                 .centerInside();
-        this.applyGlideConfig(requestBuilder);
+        this.applyGlideConfig(requestBuilder, isGif);
         requestBuilder.preload();
     }
 
