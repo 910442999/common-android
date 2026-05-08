@@ -2,6 +2,7 @@ package com.yuanquan.common.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -11,6 +12,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.text.style.ImageSpan;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -22,34 +24,27 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.yuanquan.common.utils.LogUtil;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
-/**
- * 修复版文本中显示网络图片加载器 - 解决点击位置不准确问题
- * 修复点：
- * 1. 优化点击事件绑定机制，直接使用URL字符串
- * 2. 改进Span管理，确保点击位置准确
- * 3. 增强错误处理和日志输出
- */
 public class GlideImageGetter implements Html.ImageGetter {
     private final Context mContext;
     private final TextView mTextView;
     private int mMaxWidth;
     private int mMaxHeight;
-    private final Map<String, UrlDrawable> mDrawableMap = new HashMap<>();
+    private final Map<String, UrlDrawable> mDrawableMap;
     private OnImageClickListener mImageClickListener;
+    private int mPlaceholderResId;
+    private int mErrorResId;
 
-    private int mPlaceholderResId = 0;
-    private int mErrorResId = 0;
-
-    public interface OnImageClickListener {
-        void onImageClick(String imageUrl);
-    }
+    // 核心修复：限制图片最大像素，彻底解决绘制过大
+    private static final int MAX_IMAGE_SIZE_PX = 2000;
 
     public GlideImageGetter(Context context, TextView textView) {
         this(context, textView, 0, 0, null);
@@ -64,15 +59,301 @@ public class GlideImageGetter implements Html.ImageGetter {
     }
 
     public GlideImageGetter(Context context, TextView textView, int maxWidth, int maxHeight, OnImageClickListener listener) {
-        mContext = context.getApplicationContext();
-        mTextView = textView;
-        mMaxWidth = maxWidth;
-        mMaxHeight = maxHeight;
-        mImageClickListener = listener;
-
+        this.mDrawableMap = new HashMap();
+        this.mPlaceholderResId = 0;
+        this.mErrorResId = 0;
+        this.mContext = context.getApplicationContext();
+        this.mTextView = textView;
+        this.mMaxWidth = maxWidth;
+        this.mMaxHeight = maxHeight;
+        this.mImageClickListener = listener;
         if (listener != null) {
-            mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+            this.mTextView.setMovementMethod(LinkMovementMethod.getInstance());
         }
+    }
+
+    public void setPlaceholderResource(@DrawableRes int resId) {
+        this.mPlaceholderResId = resId;
+    }
+
+    public void setErrorResource(@DrawableRes int resId) {
+        this.mErrorResId = resId;
+    }
+
+    @Override
+    public Drawable getDrawable(String source) {
+        if (TextUtils.isEmpty(source)) {
+            LogUtil.e("GlideImageGetter - 图片URL为空");
+            return this.createMinimalPlaceholder();
+        } else {
+            if (this.mDrawableMap.containsKey(source)) {
+                UrlDrawable cachedDrawable = this.mDrawableMap.get(source);
+                if (cachedDrawable.getDrawable() != null) {
+                    LogUtil.d("GlideImageGetter - 使用缓存的Drawable: " + source);
+                    return cachedDrawable;
+                }
+            }
+
+            UrlDrawable urlDrawable = new UrlDrawable(source);
+            this.mDrawableMap.put(source, urlDrawable);
+            this.configureGlideRequest(source, urlDrawable);
+            return urlDrawable;
+        }
+    }
+
+    private Drawable createMinimalPlaceholder() {
+        Drawable placeholder = new Drawable() {
+            @Override
+            public void draw(@NonNull Canvas canvas) {}
+            @Override
+            public void setAlpha(int alpha) {}
+            @Override
+            public void setColorFilter(@Nullable ColorFilter colorFilter) {}
+            @Override
+            public int getOpacity() {
+                return -2;
+            }
+        };
+        placeholder.setBounds(0, 0, 1, 1);
+        return placeholder;
+    }
+
+    private void configureGlideRequest(String source, UrlDrawable urlDrawable) {
+        LogUtil.d("GlideImageGetter - 开始加载图片: " + source);
+        boolean isGif = isGifSource(source);
+
+        // 修复核心：强制限制图片大小，防止超大Bitmap
+        RequestBuilder<Drawable> requestBuilder = Glide.with(this.mContext)
+                .asDrawable()
+                .load(source)
+                .override(MAX_IMAGE_SIZE_PX, MAX_IMAGE_SIZE_PX)
+                .centerInside()
+                .skipMemoryCache(false)
+                .diskCacheStrategy(DiskCacheStrategy.ALL);
+
+        this.applyGlideConfig(requestBuilder, isGif);
+        requestBuilder.into(this.createOptimizedTarget(urlDrawable, source));
+    }
+
+    private void applyGlideConfig(RequestBuilder<Drawable> builder, boolean isGif) {
+        if (this.mPlaceholderResId != 0) {
+            builder.placeholder(this.mPlaceholderResId);
+        }
+        if (this.mErrorResId != 0) {
+            builder.error(this.mErrorResId);
+        }
+        if (!isGif) {
+            builder.dontAnimate();
+        }
+    }
+
+    private boolean isGifSource(String source) {
+        if (TextUtils.isEmpty(source)) {
+            return false;
+        }
+        String normalized = source.toLowerCase(Locale.ROOT);
+        int queryIndex = normalized.indexOf('?');
+        if (queryIndex >= 0) {
+            normalized = normalized.substring(0, queryIndex);
+        }
+        int hashIndex = normalized.indexOf('#');
+        if (hashIndex >= 0) {
+            normalized = normalized.substring(0, hashIndex);
+        }
+        return normalized.endsWith(".gif");
+    }
+
+    private CustomTarget<Drawable> createOptimizedTarget(final UrlDrawable urlDrawable, final String imageUrl) {
+        return new CustomTarget<Drawable>() {
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                LogUtil.d("GlideImageGetter - 图片加载成功: " + imageUrl);
+                GlideImageGetter.this.handleImageLoaded(resource, urlDrawable, imageUrl);
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                LogUtil.e("GlideImageGetter - 图片加载失败: " + imageUrl);
+                if (errorDrawable != null) {
+                    GlideImageGetter.this.handleImageLoaded(errorDrawable, urlDrawable, imageUrl);
+                } else {
+                    GlideImageGetter.this.handleImageLoaded(GlideImageGetter.this.createMinimalPlaceholder(), urlDrawable, imageUrl);
+                }
+            }
+
+            @Override
+            public void onLoadCleared(@Nullable Drawable placeholder) {
+                urlDrawable.setDrawable(null);
+            }
+        };
+    }
+
+    private void handleImageLoaded(Drawable resource, UrlDrawable urlDrawable, String imageUrl) {
+        this.mTextView.post(() -> {
+            try {
+                int[] dimensions = this.calculateImageDimensions(resource);
+                int width = dimensions[0];
+                int height = dimensions[1];
+                LogUtil.d("GlideImageGetter - 设置图片尺寸: " + width + "x" + height);
+                resource.setBounds(0, 0, width, height);
+                urlDrawable.setDrawable(resource);
+                urlDrawable.setBounds(0, 0, width, height);
+                this.applyClickableSpans();
+                LogUtil.i("GlideImageGetter - 图片处理完成: " + imageUrl + ", 尺寸: " + width + "x" + height);
+            } catch (Exception e) {
+                LogUtil.e("GlideImageGetter - handleImageLoaded error: " + e.getMessage());
+                urlDrawable.setDrawable(this.createMinimalPlaceholder());
+                this.applyClickableSpans();
+            }
+        });
+    }
+
+    private int[] calculateImageDimensions(Drawable drawable) {
+        int intrinsicWidth = drawable.getIntrinsicWidth();
+        int intrinsicHeight = drawable.getIntrinsicHeight();
+        if (intrinsicWidth > 0 && intrinsicHeight > 0) {
+            int maxWidth = this.getEffectiveMaxWidth();
+            int maxHeight = this.getEffectiveMaxHeight();
+            int finalWidth;
+            int finalHeight;
+
+            if (maxHeight > 0 && intrinsicHeight > maxHeight) {
+                finalHeight = maxHeight;
+                finalWidth = (int)((float)intrinsicWidth * ((float)maxHeight / intrinsicHeight));
+                if (maxWidth > 0 && finalWidth > maxWidth) {
+                    finalWidth = maxWidth;
+                    finalHeight = (int)((float)intrinsicHeight * ((float)maxWidth / intrinsicWidth));
+                }
+            } else {
+                finalWidth = Math.min(intrinsicWidth, maxWidth > 0 ? maxWidth : intrinsicWidth);
+                finalHeight = (int)((float)intrinsicHeight * ((float)finalWidth / intrinsicWidth));
+                if (maxHeight > 0 && finalHeight > maxHeight) {
+                    finalHeight = maxHeight;
+                    finalWidth = (int)((float)intrinsicWidth * ((float)maxHeight / intrinsicHeight));
+                }
+            }
+
+            finalWidth = Math.max(finalWidth, this.dpToPx(20));
+            finalHeight = Math.max(finalHeight, this.dpToPx(20));
+            return new int[]{finalWidth, finalHeight};
+        } else {
+            int defaultWidth = this.getDefaultMaxWidth();
+            return new int[]{defaultWidth, (int)((float)defaultWidth * 0.75F)};
+        }
+    }
+
+    private int getEffectiveMaxWidth() {
+        if (this.mMaxWidth > 0) {
+            return this.mMaxWidth;
+        } else {
+            int textViewWidth = this.mTextView.getWidth();
+            if (textViewWidth > 0) {
+                return textViewWidth;
+            } else {
+                DisplayMetrics metrics = this.mContext.getResources().getDisplayMetrics();
+                return metrics.widthPixels - this.dpToPx(32);
+            }
+        }
+    }
+
+    private int getEffectiveMaxHeight() {
+        if (this.mMaxHeight > 0) {
+            return this.mMaxHeight;
+        } else {
+            int textViewHeight = this.mTextView.getHeight();
+            if (textViewHeight > 0) {
+                return (int)((float)textViewHeight * 0.7F);
+            } else {
+                DisplayMetrics metrics = this.mContext.getResources().getDisplayMetrics();
+                return (int)((float)metrics.heightPixels * 0.4F);
+            }
+        }
+    }
+
+    private int getDefaultMaxWidth() {
+        DisplayMetrics metrics = this.mContext.getResources().getDisplayMetrics();
+        return metrics.widthPixels - this.dpToPx(32);
+    }
+
+    private int dpToPx(int dp) {
+        float density = this.mContext.getResources().getDisplayMetrics().density;
+        return Math.round((float)dp * density);
+    }
+
+    private void applyClickableSpans() {
+        CharSequence text = this.mTextView.getText();
+        if (text instanceof Spannable) {
+            Spannable spannable = (Spannable) text;
+            ClickableImageSpan[] oldSpans = spannable.getSpans(0, text.length(), ClickableImageSpan.class);
+            for (ClickableImageSpan oldSpan : oldSpans) {
+                spannable.removeSpan(oldSpan);
+            }
+
+            ImageSpan[] imageSpans = spannable.getSpans(0, text.length(), ImageSpan.class);
+            for (ImageSpan imageSpan : imageSpans) {
+                Drawable drawable = imageSpan.getDrawable();
+                if (drawable instanceof UrlDrawable) {
+                    UrlDrawable urlDrawable = (UrlDrawable) drawable;
+                    String imageUrl = urlDrawable.getImageUrl();
+                    int start = spannable.getSpanStart(imageSpan);
+                    int end = spannable.getSpanEnd(imageSpan);
+                    int flags = spannable.getSpanFlags(imageSpan);
+                    ClickableImageSpan clickableSpan = new ClickableImageSpan(imageUrl);
+                    spannable.setSpan(clickableSpan, start, end, flags);
+                    LogUtil.d("GlideImageGetter - 添加点击Span: " + imageUrl + ", 位置: " + start + "-" + end);
+                }
+            }
+            this.mTextView.setText(spannable);
+        }
+    }
+
+    public void setHtmlText(String htmlText) {
+        if (TextUtils.isEmpty(htmlText)) {
+            this.mTextView.setText("");
+        } else {
+            Spanned spanned = Html.fromHtml(htmlText, this, null);
+            this.mTextView.setText(spanned);
+            this.applyClickableSpans();
+        }
+    }
+
+    public void addImage(String imageUrl, String altText) {
+        CharSequence currentText = this.mTextView.getText();
+        SpannableStringBuilder builder = currentText instanceof SpannableStringBuilder ?
+                (SpannableStringBuilder) currentText : new SpannableStringBuilder(currentText);
+        if (builder.length() > 0) {
+            builder.append("\n");
+        }
+        String imagePlaceholder = "[图片]";
+        int start = builder.length();
+        builder.append(imagePlaceholder);
+        int end = builder.length();
+        UrlDrawable urlDrawable = new UrlDrawable(imageUrl);
+        this.mDrawableMap.put(imageUrl, urlDrawable);
+        CenteredImageSpan imageSpan = new CenteredImageSpan(urlDrawable);
+        builder.setSpan(imageSpan, start, end, 33);
+        ClickableImageSpan clickableSpan = new ClickableImageSpan(imageUrl);
+        builder.setSpan(clickableSpan, start, end, 33);
+        this.mTextView.setText(builder);
+        this.mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        this.configureGlideRequest(imageUrl, urlDrawable);
+    }
+
+    public void clear() {
+        for (UrlDrawable drawable : this.mDrawableMap.values()) {
+            drawable.setDrawable(null);
+        }
+        this.mDrawableMap.clear();
+    }
+
+    public void preloadImage(String imageUrl) {
+        RequestBuilder<Drawable> requestBuilder = Glide.with(this.mContext)
+                .asDrawable()
+                .load(imageUrl)
+                .override(MAX_IMAGE_SIZE_PX, MAX_IMAGE_SIZE_PX)
+                .centerInside();
+        this.applyGlideConfig(requestBuilder);
+        requestBuilder.preload();
     }
 
     public static class Builder {
@@ -115,300 +396,15 @@ public class GlideImageGetter implements Html.ImageGetter {
         }
 
         public GlideImageGetter build() {
-            GlideImageGetter getter = new GlideImageGetter(context, textView, maxWidth, maxHeight, listener);
-            if (placeholderResId != 0) {
-                getter.setPlaceholderResource(placeholderResId);
+            GlideImageGetter getter = new GlideImageGetter(this.context, this.textView, this.maxWidth, this.maxHeight, this.listener);
+            if (this.placeholderResId != 0) {
+                getter.setPlaceholderResource(this.placeholderResId);
             }
-            if (errorResId != 0) {
-                getter.setErrorResource(errorResId);
+            if (this.errorResId != 0) {
+                getter.setErrorResource(this.errorResId);
             }
             return getter;
         }
-    }
-
-    public void setPlaceholderResource(@DrawableRes int resId) {
-        this.mPlaceholderResId = resId;
-    }
-
-    public void setErrorResource(@DrawableRes int resId) {
-        this.mErrorResId = resId;
-    }
-
-    @Override
-    public Drawable getDrawable(String source) {
-        if (TextUtils.isEmpty(source)) {
-            LogUtil.e("GlideImageGetter - 图片URL为空");
-            return createMinimalPlaceholder();
-        }
-
-        if (mDrawableMap.containsKey(source)) {
-            UrlDrawable cachedDrawable = mDrawableMap.get(source);
-            if (cachedDrawable.getDrawable() != null) {
-                LogUtil.d("GlideImageGetter - 使用缓存的Drawable: " + source);
-                return cachedDrawable;
-            }
-        }
-
-        final UrlDrawable urlDrawable = new UrlDrawable(source);
-        mDrawableMap.put(source, urlDrawable);
-
-        configureGlideRequest(source, urlDrawable);
-
-        return urlDrawable;
-    }
-
-    private Drawable createMinimalPlaceholder() {
-        Drawable placeholder = new Drawable() {
-            @Override
-            public void draw(@NonNull Canvas canvas) {
-            }
-
-            @Override
-            public void setAlpha(int alpha) {
-            }
-
-            @Override
-            public void setColorFilter(@Nullable android.graphics.ColorFilter colorFilter) {
-            }
-
-            @Override
-            public int getOpacity() {
-                return android.graphics.PixelFormat.TRANSPARENT;
-            }
-        };
-        placeholder.setBounds(0, 0, 1, 1);
-        return placeholder;
-    }
-
-    private void configureGlideRequest(String source, UrlDrawable urlDrawable) {
-        LogUtil.d("GlideImageGetter - 开始加载图片: " + source);
-
-        RequestBuilder<Drawable> requestBuilder = Glide.with(mContext)
-                .asDrawable()
-                .load(source);
-
-        applyGlideConfig(requestBuilder);
-
-        requestBuilder.into(createOptimizedTarget(urlDrawable, source));
-    }
-
-    private void applyGlideConfig(RequestBuilder<Drawable> builder) {
-        if (mPlaceholderResId != 0) {
-            builder.placeholder(mPlaceholderResId);
-        }
-        if (mErrorResId != 0) {
-            builder.error(mErrorResId);
-        }
-        builder.dontAnimate();
-//                .override(800, 600);
-    }
-
-    private CustomTarget<Drawable> createOptimizedTarget(UrlDrawable urlDrawable, String imageUrl) {
-        return new CustomTarget<Drawable>() {
-            @Override
-            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                LogUtil.d("GlideImageGetter - 图片加载成功: " + imageUrl);
-                handleImageLoaded(resource, urlDrawable, imageUrl);
-            }
-
-            @Override
-            public void onLoadFailed(@Nullable Drawable errorDrawable) {
-                LogUtil.e("GlideImageGetter - 图片加载失败: " + imageUrl);
-                if (errorDrawable != null) {
-                    handleImageLoaded(errorDrawable, urlDrawable, imageUrl);
-                } else {
-                    handleImageLoaded(createMinimalPlaceholder(), urlDrawable, imageUrl);
-                }
-            }
-
-            @Override
-            public void onLoadCleared(@Nullable Drawable placeholder) {
-                urlDrawable.setDrawable(null);
-            }
-        };
-    }
-
-    private void handleImageLoaded(Drawable resource, UrlDrawable urlDrawable, String imageUrl) {
-        mTextView.post(() -> {
-            try {
-                int[] dimensions = calculateImageDimensions(resource);
-                int width = dimensions[0];
-                int height = dimensions[1];
-
-                LogUtil.d("GlideImageGetter - 设置图片尺寸: " + width + "x" + height);
-
-                resource.setBounds(0, 0, width, height);
-                urlDrawable.setDrawable(resource);
-                urlDrawable.setBounds(0, 0, width, height);
-
-                applyClickableSpans();
-
-                LogUtil.i("GlideImageGetter - 图片处理完成: " + imageUrl + ", 尺寸: " + width + "x" + height);
-            } catch (Exception e) {
-                LogUtil.e("GlideImageGetter - handleImageLoaded error: " + e.getMessage());
-                urlDrawable.setDrawable(createMinimalPlaceholder());
-                applyClickableSpans();
-            }
-        });
-    }
-
-    private int[] calculateImageDimensions(Drawable drawable) {
-        int intrinsicWidth = drawable.getIntrinsicWidth();
-        int intrinsicHeight = drawable.getIntrinsicHeight();
-
-        if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
-            int defaultWidth = getDefaultMaxWidth();
-            return new int[]{defaultWidth, (int) (defaultWidth * 0.75f)};
-        }
-
-        int maxWidth = getEffectiveMaxWidth();
-        int maxHeight = getEffectiveMaxHeight();
-
-        int finalWidth, finalHeight;
-
-        if (maxHeight > 0 && intrinsicHeight > maxHeight) {
-            finalHeight = maxHeight;
-            finalWidth = (int) (intrinsicWidth * ((float) maxHeight / intrinsicHeight));
-
-            if (maxWidth > 0 && finalWidth > maxWidth) {
-                finalWidth = maxWidth;
-                finalHeight = (int) (intrinsicHeight * ((float) maxWidth / intrinsicWidth));
-            }
-        } else {
-            finalWidth = Math.min(intrinsicWidth, maxWidth > 0 ? maxWidth : intrinsicWidth);
-            finalHeight = (int) (intrinsicHeight * ((float) finalWidth / intrinsicWidth));
-
-            if (maxHeight > 0 && finalHeight > maxHeight) {
-                finalHeight = maxHeight;
-                finalWidth = (int) (intrinsicWidth * ((float) maxHeight / intrinsicHeight));
-            }
-        }
-
-        finalWidth = Math.max(finalWidth, dpToPx(20));
-        finalHeight = Math.max(finalHeight, dpToPx(20));
-
-        return new int[]{finalWidth, finalHeight};
-    }
-
-    private int getEffectiveMaxWidth() {
-        if (mMaxWidth > 0) return mMaxWidth;
-        int textViewWidth = mTextView.getWidth();
-        if (textViewWidth > 0) return textViewWidth;
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        return metrics.widthPixels - dpToPx(32);
-    }
-
-    private int getEffectiveMaxHeight() {
-        if (mMaxHeight > 0) return mMaxHeight;
-        int textViewHeight = mTextView.getHeight();
-        if (textViewHeight > 0) return (int) (textViewHeight * 0.7f);
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        return (int) (metrics.heightPixels * 0.4f);
-    }
-
-    private int getDefaultMaxWidth() {
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        return metrics.widthPixels - dpToPx(32);
-    }
-
-    private int dpToPx(int dp) {
-        float density = mContext.getResources().getDisplayMetrics().density;
-        return Math.round(dp * density);
-    }
-
-    /**
-     * 修复点：优化点击Span应用逻辑，直接使用URL字符串
-     */
-    private void applyClickableSpans() {
-        CharSequence text = mTextView.getText();
-        if (!(text instanceof Spannable)) {
-            return;
-        }
-
-        Spannable spannable = (Spannable) text;
-
-        // 移除所有旧的ClickableImageSpan
-        ClickableImageSpan[] oldSpans = spannable.getSpans(0, text.length(), ClickableImageSpan.class);
-        for (ClickableImageSpan oldSpan : oldSpans) {
-            spannable.removeSpan(oldSpan);
-        }
-
-        // 获取所有ImageSpan并重新添加点击Span
-        ImageSpan[] imageSpans = spannable.getSpans(0, text.length(), ImageSpan.class);
-        for (ImageSpan imageSpan : imageSpans) {
-            Drawable drawable = imageSpan.getDrawable();
-            if (drawable instanceof UrlDrawable) {
-                UrlDrawable urlDrawable = (UrlDrawable) drawable;
-                String imageUrl = urlDrawable.getImageUrl();
-
-                int start = spannable.getSpanStart(imageSpan);
-                int end = spannable.getSpanEnd(imageSpan);
-                int flags = spannable.getSpanFlags(imageSpan);
-
-                // 修复点：直接使用URL字符串创建ClickableImageSpan
-                ClickableImageSpan clickableSpan = new ClickableImageSpan(imageUrl);
-                spannable.setSpan(clickableSpan, start, end, flags);
-
-                LogUtil.d("GlideImageGetter - 添加点击Span: " + imageUrl + ", 位置: " + start + "-" + end);
-            }
-        }
-
-        mTextView.setText(spannable);
-    }
-
-    public void setHtmlText(String htmlText) {
-        if (TextUtils.isEmpty(htmlText)) {
-            mTextView.setText("");
-            return;
-        }
-
-        Spanned spanned = Html.fromHtml(htmlText, this, null);
-        mTextView.setText(spanned);
-        applyClickableSpans();
-    }
-
-    public void addImage(String imageUrl, String altText) {
-        CharSequence currentText = mTextView.getText();
-        SpannableStringBuilder builder = currentText instanceof SpannableStringBuilder
-                ? (SpannableStringBuilder) currentText
-                : new SpannableStringBuilder(currentText);
-
-        if (builder.length() > 0) builder.append("\n");
-
-        String imagePlaceholder = "[图片]";
-        int start = builder.length();
-        builder.append(imagePlaceholder);
-        int end = builder.length();
-
-        final UrlDrawable urlDrawable = new UrlDrawable(imageUrl);
-        mDrawableMap.put(imageUrl, urlDrawable);
-
-        CenteredImageSpan imageSpan = new CenteredImageSpan(urlDrawable);
-        builder.setSpan(imageSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        // 修复点：直接使用URL字符串创建ClickableImageSpan
-        ClickableImageSpan clickableSpan = new ClickableImageSpan(imageUrl);
-        builder.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        mTextView.setText(builder);
-        mTextView.setMovementMethod(LinkMovementMethod.getInstance());
-
-        configureGlideRequest(imageUrl, urlDrawable);
-    }
-
-    public void clear() {
-        for (UrlDrawable drawable : mDrawableMap.values()) {
-            drawable.setDrawable(null);
-        }
-        mDrawableMap.clear();
-    }
-
-    public void preloadImage(String imageUrl) {
-        RequestBuilder<Drawable> requestBuilder = Glide.with(mContext)
-                .asDrawable()
-                .load(imageUrl);
-        applyGlideConfig(requestBuilder);
-        requestBuilder.preload();
     }
 
     private static class UrlDrawable extends Drawable {
@@ -424,40 +420,41 @@ public class GlideImageGetter implements Html.ImageGetter {
         }
 
         public Drawable getDrawable() {
-            return drawable;
+            return this.drawable;
         }
 
         public String getImageUrl() {
-            return imageUrl;
+            return this.imageUrl;
         }
 
         @Override
         public void draw(@NonNull Canvas canvas) {
-            if (drawable != null) {
-                drawable.draw(canvas);
+            if (this.drawable != null) {
+                this.drawable.draw(canvas);
             }
         }
 
         @Override
         public void setAlpha(int alpha) {
-            if (drawable != null) drawable.setAlpha(alpha);
+            if (this.drawable != null) {
+                this.drawable.setAlpha(alpha);
+            }
         }
 
         @Override
-        public void setColorFilter(@Nullable android.graphics.ColorFilter colorFilter) {
-            if (drawable != null) drawable.setColorFilter(colorFilter);
+        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+            if (this.drawable != null) {
+                this.drawable.setColorFilter(colorFilter);
+            }
         }
 
         @Override
         public int getOpacity() {
-            return drawable != null ? drawable.getOpacity() : android.graphics.PixelFormat.TRANSPARENT;
+            return this.drawable != null ? this.drawable.getOpacity() : -2;
         }
     }
 
-    /**
-     * 修复点：ClickableImageSpan直接存储URL字符串，避免引用问题
-     */
-    private class ClickableImageSpan extends android.text.style.ClickableSpan {
+    private class ClickableImageSpan extends ClickableSpan {
         private final String imageUrl;
 
         public ClickableImageSpan(String imageUrl) {
@@ -466,9 +463,9 @@ public class GlideImageGetter implements Html.ImageGetter {
 
         @Override
         public void onClick(View widget) {
-            if (mImageClickListener != null) {
-                LogUtil.d("GlideImageGetter - 图片点击: " + imageUrl);
-                mImageClickListener.onImageClick(imageUrl);
+            if (GlideImageGetter.this.mImageClickListener != null) {
+                LogUtil.d("GlideImageGetter - 图片点击: " + this.imageUrl);
+                GlideImageGetter.this.mImageClickListener.onImageClick(this.imageUrl);
             }
         }
     }
@@ -480,22 +477,21 @@ public class GlideImageGetter implements Html.ImageGetter {
 
         @Override
         public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
-            Drawable drawable = getDrawable();
+            Drawable drawable = this.getDrawable();
             Rect bounds = drawable.getBounds();
             if (fm != null) {
                 Paint.FontMetricsInt pfm = paint.getFontMetricsInt();
-                if (fm.ascent == 0) fm.ascent = pfm.ascent;
-                if (fm.descent == 0) fm.descent = pfm.descent;
-                if (fm.top == 0) fm.top = pfm.top;
-                if (fm.bottom == 0) fm.bottom = pfm.bottom;
+                fm.ascent = pfm.ascent;
+                fm.descent = pfm.descent;
+                fm.top = pfm.top;
+                fm.bottom = pfm.bottom;
             }
             return bounds.right;
         }
 
         @Override
-        public void draw(Canvas canvas, CharSequence text, int start, int end,
-                         float x, int top, int y, int bottom, Paint paint) {
-            Drawable drawable = getDrawable();
+        public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
+            Drawable drawable = this.getDrawable();
             canvas.save();
             int transY = bottom - drawable.getBounds().bottom;
             transY -= paint.getFontMetricsInt().descent / 2;
@@ -503,5 +499,9 @@ public class GlideImageGetter implements Html.ImageGetter {
             drawable.draw(canvas);
             canvas.restore();
         }
+    }
+
+    public interface OnImageClickListener {
+        void onImageClick(String var1);
     }
 }

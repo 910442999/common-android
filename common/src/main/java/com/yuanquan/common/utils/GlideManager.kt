@@ -17,161 +17,231 @@ import com.yuanquan.common.utils.SysUtils.dp2Px
 import com.yuanquan.common.widget.TextAvatarDrawable
 import androidx.core.graphics.toColorInt
 import com.yuanquan.common.widget.CircleImageView
+import com.yuanquan.common.utils.UiUtils
+import java.util.Locale
 
 /**
  * glide加载图片
+ * 特性：
+ * 1. resourceId 可选默认不传
+ * 2. dontAnimate 全局可配置，默认 true
+ * 3. 自动识别GIF：强制忽略dontAnimate，保证动图播放
+ * 4. 普通图片按传入dontAnimate配置，防闪烁
  */
 object GlideManager {
-    /**
-     * 用glide加载图片
-     *
-     * @param context
-     * @param url
-     * @param imageView
-     */
-    @JvmStatic
-    fun image(context: Context, url: String?, imageView: ImageView) {
-        image(context, url, imageView, R.mipmap.empty1)
-    }
 
     /**
-     * 网络图片
-     *
-     * @param context
-     * @param url
-     * @param iv
-     * @param resourceId 展位图片
+     * 判断是否是 GIF 图片
      */
-    @JvmStatic
-    fun image(context: Context, url: String?, iv: ImageView, resourceId: Int) {
-        load(context, url, iv, resourceId, null)
-    }
-
-    /**
-     * 网络图片
-     *
-     * @param context
-     * @param url
-     * @param iv
-     * @param resourceId 展位图片
-     */
-    @JvmStatic
-    fun load(
-        context: Context,
-        url: String?,
-        iv: ImageView,
-        resourceId: Int,
-        transformation: Transformation<Bitmap?>?
-    ) {
-        load(context, url, iv, resourceId, true, DiskCacheStrategy.ALL, transformation)
-    }
-
-    /**
-     * 网络图片
-     *
-     * @param context
-     * @param url
-     * @param iv
-     * @param resourceId 展位图片
-     */
-    @JvmStatic
-    fun load(
-        context: Context,
-        url: String?,
-        iv: ImageView,
-        resourceId: Int,
-        skip: Boolean,
-        strategy: DiskCacheStrategy,
-        transformation: Transformation<Bitmap?>?
-    ) {
-        var builder = Glide.with(context) //这里写入url
-            .load(url).placeholder(resourceId).error(resourceId).skipMemoryCache(skip)
-            .diskCacheStrategy(strategy)
-        if (transformation != null) {
-            builder = builder.transform(transformation)
+    private fun isGif(url: String?): Boolean {
+        if (url.isNullOrBlank()) return false
+        var normalized = url.trim().lowercase(Locale.ROOT)
+        val queryIndex = normalized.indexOf('?')
+        if (queryIndex >= 0) {
+            normalized = normalized.substring(0, queryIndex)
         }
+        val hashIndex = normalized.indexOf('#')
+        if (hashIndex >= 0) {
+            normalized = normalized.substring(0, hashIndex)
+        }
+        return normalized.endsWith(".gif")
+    }
+
+    // ==================== 基础图片加载 ====================
+    @JvmStatic
+    fun image(
+        context: Context,
+        url: String?,
+        iv: ImageView,
+        resourceId: Int? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true // 补充默认值
+    ) {
+        load(
+            context = context,
+            url = url,
+            iv = iv,
+            resourceId = resourceId,
+            dontAnimate = dontAnimate,
+            transformation = null,
+            strategy = strategy // 透传参数
+        )
+    }
+
+    @JvmStatic
+    fun load(
+        context: Context,
+        url: String?,
+        iv: ImageView,
+        resourceId: Int? = null,
+        dontAnimate: Boolean = true,
+        transformation: Transformation<Bitmap?>? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL // 补充默认值
+    ) {
+        load(
+            context = context,
+            url = url,
+            iv = iv,
+            resourceId = resourceId,
+            skip = false,
+            strategy = strategy, // 透传参数
+            dontAnimate = dontAnimate,
+            transformation = transformation
+        )
+    }
+
+    @JvmStatic
+    fun load(
+        context: Context,
+        url: String?,
+        iv: ImageView,
+        resourceId: Int? = null,
+        skip: Boolean = false,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL,
+        dontAnimate: Boolean = true,
+        transformation: Transformation<Bitmap?>? = null
+    ) {
+        var builder = Glide.with(context)
+            .load(url)
+            .skipMemoryCache(skip)
+            .diskCacheStrategy(strategy)
+
+        // 核心规则：GIF 强制不设置 dontAnimate；普通图片按参数配置
+        if (!isGif(url) && dontAnimate) {
+            builder = builder.dontAnimate()
+        }
+
+        resourceId?.let {
+            builder = builder.placeholder(it).error(it)
+        }
+        transformation?.let {
+            builder = builder.transform(it)
+        }
+
         builder.into(iv)
     }
 
-    /**
-     * glide加载本地图片
-     *
-     * @param context
-     * @param url
-     * @param iv
-     */
+    // ==================== 本地图片 ====================
     @JvmStatic
-    fun localImage(context: Context, url: Int, iv: ImageView) {
-        Glide.with(context) //这里写入url
-            .load(url).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL).into(iv)
+    fun localImage(
+        context: Context,
+        resId: Int,
+        iv: ImageView,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true // 补充默认值
+    ) {
+        val builder = Glide.with(context)
+            .load(resId)
+            .skipMemoryCache(true)
+            .diskCacheStrategy(strategy) // 使用传入的缓存策略
+        if (dontAnimate) builder.dontAnimate()
+        builder.into(iv)
     }
 
-    /**
-     * 圆角图片
-     *
-     * @param context
-     * @param url
-     * @param iv
-     * @param resourceId 图片占位图
-     */
-    /**
-     * 圆角图片
-     *
-     * @param context
-     * @param url
-     * @param iv
-     * @param resourceId 图片占位图
-     */
+    // ==================== 圆角图片 ====================
     @JvmStatic
     fun circular(
         context: Context,
         url: String?,
         iv: ImageView,
-        resourceId: Int = R.mipmap.empty1,
-        roundingRadius: Int = 6
+        resourceId: Int? = null,
+        roundingRadius: Int = 6,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true // 补充默认值
     ) {
-        Glide.with(context).load(url).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.ALL)
-            .placeholder(resourceId).error(resourceId).apply(
+        var builder = Glide.with(context)
+            .load(url)
+            .skipMemoryCache(true)
+            .diskCacheStrategy(strategy) // 使用传入的缓存策略
+            .apply(
                 RequestOptions.bitmapTransform(
-                    RoundedCorners(
-                        dp2Px(context, roundingRadius.toFloat())
-                    )
+                    RoundedCorners(dp2Px(context, roundingRadius.toFloat()))
                 )
-            ) //                .transform(transformation)
-            .into(iv)
+            )
+
+        if (!isGif(url) && dontAnimate) {
+            builder = builder.dontAnimate()
+        }
+
+        resourceId?.let {
+            builder = builder.placeholder(it).error(it)
+        }
+        builder.into(iv)
     }
 
-    //    public static void circularRound(Context context, String url, ImageView iv, int resourceId, int roundingRadius, boolean leftTop, boolean rightTop, boolean leftBottom, boolean rightBottom) {
-    //        GlideRoundTransform glideRoundTransform = new GlideRoundTransform(context, DensityUtil.dp2px(context, roundingRadius));
-    //        glideRoundTransform.setExceptCorner(leftTop, rightTop, leftBottom, rightBottom);
-    //
-    //        //        RoundedCornersTransform roundedCornersTransform = new RoundedCornersTransform(context, DensityUtil.dp2px(context, roundingRadius), leftTop, rightTop, leftBottom, rightBottom);
-    //        //        RequestOptions transform = new RequestOptions().transform(
-    //        //                new CenterCrop(), roundedCornersTransform
-    //        //        );
-    //        Glide.with(context).asBitmap().load(splicingImageUrl(url))
-    //                .skipMemoryCache(true)
-    //                .diskCacheStrategy(DiskCacheStrategy.ALL)
-    //                .placeholder(resourceId)
-    //                .error(resourceId)
-    //                //                .apply(transform)
-    //                .transform(glideRoundTransform)
-    //                .into(iv);
-    //
-    //    }
+    // ==================== GIF 专用 ====================
     @JvmStatic
-    fun asGif(context: Context, url: Int, imageView: ImageView) {
-        Glide.with(context).asGif().load(url).into(imageView) //除非图像是动画gif ，否则将失败。
-    }
-
-    @JvmStatic
-    fun asGif(context: Context, url: String?, imageView: ImageView) {
-        Glide.with(context).asGif().load(url).into(imageView) //除非图像是动画gif ，否则将失败。
+    fun asGif(
+        context: Context,
+        resId: Int,
+        imageView: ImageView
+    ) {
+        Glide.with(context)
+            .asGif()
+            .load(resId)
+            .into(imageView)
     }
 
     @JvmStatic
-    fun asBitmap(context: Context, url: String?, listener: OnBitmapListener?) {
-        Glide.with(context).asBitmap().load(url).into(object : SimpleTarget<Bitmap?>() {
+    fun asGif(
+        context: Context,
+        resId: Int,
+        imageView: ImageView,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true // 新增参数（GIF会自动忽略该参数）
+    ) {
+        Glide.with(context)
+            .asGif()
+            .load(resId)
+            .diskCacheStrategy(strategy) // 使用传入的缓存策略
+            .into(imageView)
+    }
+
+    @JvmStatic
+    fun asGif(
+        context: Context,
+        url: String?,
+        imageView: ImageView,
+        resourceId: Int? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true // 新增参数（GIF会自动忽略该参数）
+    ) {
+        var builder = Glide.with(context)
+            .asGif()
+            .load(url)
+            .diskCacheStrategy(strategy) // 使用传入的缓存策略
+        resourceId?.let {
+            builder = builder.placeholder(it).error(it)
+        }
+        builder.into(imageView)
+    }
+
+    // ==================== 获取 Bitmap ====================
+    @JvmStatic
+    fun asBitmap(
+        context: Context,
+        url: String?,
+        listener: OnBitmapListener?,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true // 补充默认值
+    ) {
+        asBitmap(context, url, null, strategy, dontAnimate, listener) // 透传参数
+    }
+
+    @JvmStatic
+    fun asBitmap(
+        context: Context,
+        url: String?,
+        resourceId: Int? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true,
+        listener: OnBitmapListener?
+    ) {
+        var builder = Glide.with(context).asBitmap().load(url)
+            .diskCacheStrategy(strategy) // 使用传入的缓存策略
+        if (!isGif(url) && dontAnimate) builder = builder.dontAnimate()
+        resourceId?.let { builder = builder.placeholder(it).error(it) }
+        builder.into(object : SimpleTarget<Bitmap?>() {
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap?>?) {
                 listener?.onResourceReady(resource)
             }
@@ -179,42 +249,55 @@ object GlideManager {
     }
 
     @JvmStatic
-    fun asBitmap(context: Context, url: String?, resourceId: Int, listener: OnBitmapListener?) {
-        Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId)
-            .into(object : SimpleTarget<Bitmap?>() {
-                override fun onResourceReady(
-                    resource: Bitmap,
-                    transition: Transition<in Bitmap?>?
-                ) {
-                    listener?.onResourceReady(resource)
-                }
-            })
-    }
-
-    @JvmStatic
     fun asBitmap(
         context: Context,
         url: String?,
-        resourceId: Int,
-        skip: Boolean,
-        strategy: DiskCacheStrategy,
+        resourceId: Int? = null,
+        skip: Boolean = false,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL,
+        dontAnimate: Boolean = true,
         listener: OnBitmapListener?
     ) {
-        Glide.with(context).asBitmap().load(url).placeholder(resourceId).error(resourceId)
-            .skipMemoryCache(skip).diskCacheStrategy(strategy)
-            .into(object : SimpleTarget<Bitmap?>() {
-                override fun onResourceReady(
-                    resource: Bitmap,
-                    transition: Transition<in Bitmap?>?
-                ) {
-                    listener?.onResourceReady(resource)
-                }
-            })
+        var builder = Glide.with(context).asBitmap().load(url)
+            .skipMemoryCache(skip)
+            .diskCacheStrategy(strategy)
+
+        if (!isGif(url) && dontAnimate) builder = builder.dontAnimate()
+        resourceId?.let { builder = builder.placeholder(it).error(it) }
+
+        builder.into(object : SimpleTarget<Bitmap?>() {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap?>?) {
+                listener?.onResourceReady(resource)
+            }
+        })
+    }
+
+    // ==================== 获取 Drawable ====================
+    @JvmStatic
+    fun asDrawable(
+        context: Context,
+        url: String?,
+        listener: OnDrawableListener?,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true // 补充默认值
+    ) {
+        asDrawable(context, url, null, strategy, dontAnimate, listener) // 透传参数
     }
 
     @JvmStatic
-    fun asDrawable(context: Context, url: String?, listener: OnDrawableListener?) {
-        Glide.with(context).asDrawable().load(url).into(object : SimpleTarget<Drawable?>() {
+    fun asDrawable(
+        context: Context,
+        url: String?,
+        resourceId: Int? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true,
+        listener: OnDrawableListener?
+    ) {
+        var builder = Glide.with(context).asDrawable().load(url)
+            .diskCacheStrategy(strategy) // 使用传入的缓存策略
+        if (!isGif(url) && dontAnimate) builder = builder.dontAnimate()
+        resourceId?.let { builder = builder.placeholder(it).error(it) }
+        builder.into(object : SimpleTarget<Drawable?>() {
             override fun onResourceReady(
                 resource: Drawable,
                 transition: Transition<in Drawable?>?
@@ -225,56 +308,55 @@ object GlideManager {
     }
 
     @JvmStatic
-    fun asDrawable(context: Context, url: String?, resourceId: Int, listener: OnDrawableListener?) {
-        Glide.with(context).asDrawable().load(url).placeholder(resourceId).error(resourceId)
-            .into(object : SimpleTarget<Drawable?>() {
-                override fun onResourceReady(
-                    resource: Drawable,
-                    transition: Transition<in Drawable?>?
-                ) {
-                    listener?.onResourceReady(resource)
-                }
-            })
-    }
-
-    @JvmStatic
     fun asDrawable(
         context: Context,
         url: String?,
-        resourceId: Int,
-        skip: Boolean,
-        strategy: DiskCacheStrategy,
+        resourceId: Int? = null,
+        skip: Boolean = false,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL,
+        dontAnimate: Boolean = true,
         listener: OnDrawableListener?
     ) {
-        Glide.with(context).asDrawable().load(url).skipMemoryCache(skip).diskCacheStrategy(strategy)
-            .placeholder(resourceId).error(resourceId).into(object : SimpleTarget<Drawable?>() {
-                override fun onResourceReady(
-                    resource: Drawable,
-                    transition: Transition<in Drawable?>?
-                ) {
-                    listener?.onResourceReady(resource)
-                }
-            })
+        var builder = Glide.with(context).asDrawable().load(url)
+            .skipMemoryCache(skip)
+            .diskCacheStrategy(strategy)
+
+        if (!isGif(url) && dontAnimate) builder = builder.dontAnimate()
+        resourceId?.let { builder = builder.placeholder(it).error(it) }
+
+        builder.into(object : SimpleTarget<Drawable?>() {
+            override fun onResourceReady(
+                resource: Drawable,
+                transition: Transition<in Drawable?>?
+            ) {
+                listener?.onResourceReady(resource)
+            }
+        })
     }
 
-    /**
-     * 圆形图片
-     *
-     * @param context
-     * @param headerImageUrl
-     * @param pvHeader
-     * @param resourceId     图片占位图
-     */
+    // ==================== 圆形头像 ====================
     @JvmStatic
     fun headerImage(
         context: Context,
         headerImageUrl: String?,
         pvHeader: ImageView,
-        resourceId: Int = R.mipmap.icon_header
+        resourceId: Int? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true
     ) {
-        Glide.with(context).load(headerImageUrl).skipMemoryCache(true)
-            .diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId).error(resourceId)
-            .apply(RequestOptions.bitmapTransform(CircleCrop())).into(pvHeader)
+        var builder = Glide.with(context).load(headerImageUrl)
+            .skipMemoryCache(false)
+            .diskCacheStrategy(strategy) // 使用传入的缓存策略
+            .apply(RequestOptions.bitmapTransform(CircleCrop()))
+
+        if (!isGif(headerImageUrl) && dontAnimate) {
+            builder = builder.dontAnimate()
+        }
+
+        resourceId?.let {
+            builder = builder.placeholder(it).error(it)
+        }
+        builder.into(pvHeader)
     }
 
     @JvmStatic
@@ -284,7 +366,9 @@ object GlideManager {
         pvHeader: ImageView,
         subNickName: String?,
         textSize: Float,
-        resourceId: Int = R.mipmap.icon_header
+        resourceId: Int? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true
     ) {
         if (headerImageUrl.isNullOrEmpty()) {
             if (!subNickName.isNullOrEmpty()) {
@@ -295,19 +379,28 @@ object GlideManager {
                 )
                 pvHeader.setImageDrawable(avatarDrawable)
             } else {
-                Glide.with(context).load(resourceId).skipMemoryCache(true)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(resourceId)
-                    .error(resourceId).apply(RequestOptions.bitmapTransform(CircleCrop()))
-                    .into(pvHeader)
+                resourceId?.let {
+                    val builder = Glide.with(context).load(it)
+                        .skipMemoryCache(false)
+                        .diskCacheStrategy(strategy) // 使用传入的缓存策略
+                        .apply(RequestOptions.bitmapTransform(CircleCrop()))
+                    if (dontAnimate) builder.dontAnimate()
+                    builder.into(pvHeader)
+                }
             }
         } else {
-            headerImage(context, headerImageUrl, pvHeader, resourceId)
+            headerImage(
+                context,
+                headerImageUrl,
+                pvHeader,
+                resourceId,
+                strategy,
+                dontAnimate
+            ) // 透传参数
         }
     }
 
-    /**
-     * 使用 CircleImageView 在xml中设置饱和度即可
-     */
+    // ==================== 灰色圆形头像 ====================
     @JvmStatic
     fun headerGrayscaleImage(
         context: Context,
@@ -315,7 +408,9 @@ object GlideManager {
         pvHeader: CircleImageView,
         nickName: String?,
         textSize: Float,
-        resourceId: Int
+        resourceId: Int? = null,
+        strategy: DiskCacheStrategy = DiskCacheStrategy.ALL, // 新增参数
+        dontAnimate: Boolean = true
     ) {
         if (headerImageUrl.isNullOrEmpty()) {
             if (!nickName.isNullOrEmpty()) {
@@ -327,13 +422,18 @@ object GlideManager {
                 pvHeader.setImageDrawable(avatarDrawable)
             }
         } else {
-            Glide.with(context).load(headerImageUrl)
-                .skipMemoryCache(true)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(resourceId)
-                .error(resourceId)
-                .dontAnimate()
-                .into(pvHeader)
+            var builder = Glide.with(context).load(headerImageUrl)
+                .skipMemoryCache(false)
+                .diskCacheStrategy(strategy) // 使用传入的缓存策略
+
+            if (!isGif(headerImageUrl) && dontAnimate) {
+                builder = builder.dontAnimate()
+            }
+
+            resourceId?.let {
+                builder = builder.placeholder(it).error(it)
+            }
+            builder.into(pvHeader)
         }
     }
 
